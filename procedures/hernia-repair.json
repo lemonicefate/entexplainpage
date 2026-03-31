@@ -1,0 +1,30 @@
+{
+  "id": "hernia-repair",
+  "title": "疝氣修補術",
+  "steps": [
+    {
+      "image": "images/hernia-repair/step1.webp",
+      "title": "什麼是疝氣",
+      "description": "疝氣是腹壁肌肉出現缺損，導致腹腔內的器官（通常是腸子）突出到皮膚下方形成隆起。",
+      "alt": "疝氣解剖示意圖，顯示腸子從腹壁缺損處突出"
+    },
+    {
+      "image": "images/hernia-repair/step2.webp",
+      "title": "常見位置",
+      "description": "最常見的是腹股溝疝氣（鼠蹊部），其次是臍疝氣（肚臍周圍）和切口疝氣（手術傷口處）。",
+      "alt": "人體正面圖，標示三種常見疝氣的位置"
+    },
+    {
+      "image": "images/hernia-repair/step3.webp",
+      "title": "手術修補",
+      "description": "將突出的器官推回腹腔，再用人工網膜加強修補腹壁缺損處，防止復發。",
+      "alt": "手術修補示意圖，顯示網膜覆蓋在腹壁缺損處"
+    },
+    {
+      "image": "images/hernia-repair/step4.webp",
+      "title": "術後注意事項",
+      "description": "術後 2-4 週避免提重物和劇烈運動。傷口保持乾燥清潔。如有紅腫熱痛請回診。",
+      "alt": "術後照護示意圖"
+    }
+  ]
+}

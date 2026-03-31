@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0077B6">
+  <meta name="description" content="診間手術衛教投影片系統">
+  <title>手術衛教</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>">
+</head>
+<body>
+  <div id="app">
+    <div id="grid-view" class="view active">
+      <header class="grid-header">
+        <h1>手術衛教</h1>
+      </header>
+      <div id="grid-container" class="grid-container">
+        <!-- Skeleton cards shown during loading -->
+        <div class="card skeleton"><div class="skeleton-thumb"></div><div class="skeleton-text"></div></div>
+        <div class="card skeleton"><div class="skeleton-thumb"></div><div class="skeleton-text"></div></div>
+        <div class="card skeleton"><div class="skeleton-thumb"></div><div class="skeleton-text"></div></div>
+      </div>
+      <div id="grid-empty" class="empty-state" hidden>
+        <p>尚未新增手術流程</p>
+        <p class="empty-sub">請在 procedures/ 資料夾中新增手術資料</p>
+      </div>
+      <div id="grid-error" class="error-state" hidden>
+        <p>載入失敗</p>
+        <button class="retry-btn" onclick="window.location.reload()">重新整理</button>
+      </div>
+    </div>
+
+    <div id="slide-view" class="view" role="region" aria-label="手術説明投影片">
+      <div class="slide-nav">
+        <button id="back-btn" class="nav-btn" aria-label="返回手術清單">← 返回</button>
+        <span id="step-indicator" class="step-indicator" aria-live="polite"></span>
+      </div>
+      <div id="slide-content" class="slide-content">
+        <img id="slide-image" class="slide-image" alt="">
+        <div id="image-placeholder" class="image-placeholder" hidden>
+          <p>圖片載入失敗</p>
+          <p id="placeholder-alt" class="placeholder-alt"></p>
+        </div>
+        <button id="prev-btn" class="arrow-btn arrow-left" aria-label="上一步">&#9664;</button>
+        <button id="next-btn" class="arrow-btn arrow-right" aria-label="下一步">&#9654;</button>
+        <div id="slide-text-panel" class="slide-text-panel">
+          <h2 id="slide-title" class="slide-title"></h2>
+          <p id="slide-desc" class="slide-desc"></p>
+        </div>
+      </div>
+      <div id="end-screen" class="end-screen" hidden>
+        <p class="end-title">説明完畢</p>
+        <button id="end-back-btn" class="end-back-btn">返回手術清單</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="offline-banner" class="banner offline-banner" hidden>離線模式</div>
+  <div id="update-banner" class="banner update-banner" hidden>
+    有新版本，<button id="update-btn" class="update-link">點此更新</button>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

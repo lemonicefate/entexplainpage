@@ -1,0 +1,14 @@
+{
+  "procedures": [
+    {
+      "id": "appendectomy",
+      "title": "闌尾切除術",
+      "thumbnail": "images/appendectomy/thumb.webp"
+    },
+    {
+      "id": "hernia-repair",
+      "title": "疝氣修補術",
+      "thumbnail": "images/hernia-repair/thumb.webp"
+    }
+  ]
+}

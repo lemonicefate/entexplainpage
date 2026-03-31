@@ -1,0 +1,36 @@
+{
+  "id": "appendectomy",
+  "title": "闌尾切除術",
+  "steps": [
+    {
+      "image": "images/appendectomy/step1.webp",
+      "title": "闌尾位置",
+      "description": "闌尾位於右下腹，連接盲腸末端。長約 5-10 公分，是一個管狀的結構。",
+      "alt": "人體腹部解剖圖，標示闌尾位於右下腹的位置"
+    },
+    {
+      "image": "images/appendectomy/step2.webp",
+      "title": "闌尾發炎",
+      "description": "當闌尾阻塞導致細菌感染時，會造成急性闌尾炎。症狀包括右下腹疼痛、發燒、噁心。",
+      "alt": "闌尾發炎示意圖，顯示紅腫的闌尾"
+    },
+    {
+      "image": "images/appendectomy/step3.webp",
+      "title": "手術方式：腹腔鏡",
+      "description": "透過腹部 3 個小切口（約 0.5-1 公分），插入腹腔鏡和手術器械進行切除。",
+      "alt": "腹腔鏡手術示意圖，顯示三個小切口的位置"
+    },
+    {
+      "image": "images/appendectomy/step4.webp",
+      "title": "切除闌尾",
+      "description": "夾住闌尾根部血管，切斷並移除發炎的闌尾。傷口以可吸收縫線縫合。",
+      "alt": "手術過程示意圖，顯示闌尾被夾住和切除"
+    },
+    {
+      "image": "images/appendectomy/step5.webp",
+      "title": "術後恢復",
+      "description": "通常住院 1-2 天即可出院。術後 1-2 週避免劇烈運動。傷口小，恢復快。",
+      "alt": "術後腹部示意圖，顯示三個小傷口的位置"
+    }
+  ]
+}
