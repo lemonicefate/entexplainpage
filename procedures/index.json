@@ -1,13 +1,21 @@
 {
+  "categories": [
+    { "id": "surgery", "title": "手術" },
+    { "id": "ent", "title": "耳鼻喉" },
+    { "id": "weight", "title": "減重" },
+    { "id": "functional", "title": "功能醫學" }
+  ],
   "procedures": [
     {
       "id": "appendectomy",
       "title": "闌尾切除術",
+      "category": "surgery",
       "thumbnail": "images/appendectomy/thumb.webp"
     },
     {
       "id": "hernia-repair",
       "title": "疝氣修補術",
+      "category": "surgery",
       "thumbnail": "images/hernia-repair/thumb.webp"
     }
   ]

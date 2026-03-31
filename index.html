@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0077B6">
-  <meta name="description" content="診間手術衛教投影片系統">
-  <title>手術衛教</title>
+  <meta name="description" content="診間衛教投影片系統">
+  <title>衛教説明</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>">
@@ -14,7 +14,10 @@
   <div id="app">
     <div id="grid-view" class="view active">
       <header class="grid-header">
-        <h1>手術衛教</h1>
+        <h1>衛教説明</h1>
+        <nav id="category-tabs" class="category-tabs" role="tablist" aria-label="衛教分類">
+          <button class="tab active" role="tab" aria-selected="true" data-category="all">全部</button>
+        </nav>
       </header>
       <div id="grid-container" class="grid-container">
         <!-- Skeleton cards shown during loading -->
@@ -23,8 +26,8 @@
         <div class="card skeleton"><div class="skeleton-thumb"></div><div class="skeleton-text"></div></div>
       </div>
       <div id="grid-empty" class="empty-state" hidden>
-        <p>尚未新增手術流程</p>
-        <p class="empty-sub">請在 procedures/ 資料夾中新增手術資料</p>
+        <p>此分類尚未新增衛教內容</p>
+        <p class="empty-sub">請在 procedures/ 資料夾中新增資料</p>
       </div>
       <div id="grid-error" class="error-state" hidden>
         <p>載入失敗</p>
@@ -32,7 +35,7 @@
       </div>
     </div>
 
-    <div id="slide-view" class="view" role="region" aria-label="手術説明投影片">
+    <div id="slide-view" class="view" role="region" aria-label="衛教説明投影片">
       <div class="slide-nav">
         <button id="back-btn" class="nav-btn" aria-label="返回手術清單">← 返回</button>
         <span id="step-indicator" class="step-indicator" aria-live="polite"></span>
@@ -52,7 +55,7 @@
       </div>
       <div id="end-screen" class="end-screen" hidden>
         <p class="end-title">説明完畢</p>
-        <button id="end-back-btn" class="end-back-btn">返回手術清單</button>
+        <button id="end-back-btn" class="end-back-btn">返回衛教清單</button>
       </div>
     </div>
   </div>

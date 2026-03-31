@@ -3,7 +3,9 @@
 
   // --- State ---
   var state = {
+    categories: [],
     procedures: [],
+    activeCategory: 'all',
     current: null,       // current procedure data
     stepIndex: 0,
     wakeLock: null,
@@ -17,6 +19,7 @@
   var gridContainer = $('grid-container');
   var gridEmpty = $('grid-empty');
   var gridError = $('grid-error');
+  var categoryTabs = $('category-tabs');
   var slideImage = $('slide-image');
   var imagePlaceholder = $('image-placeholder');
   var placeholderAlt = $('placeholder-alt');
@@ -51,12 +54,10 @@
         return res.json();
       })
       .then(function (data) {
+        state.categories = data.categories || [];
         state.procedures = data.procedures || [];
-        if (state.procedures.length === 0) {
-          showEmpty();
-        } else {
-          renderGrid();
-        }
+        renderCategoryTabs();
+        renderGrid();
         handleRoute();
       })
       .catch(function () {
@@ -72,13 +73,57 @@
       });
   }
 
+  // --- Category Tabs ---
+  function renderCategoryTabs() {
+    categoryTabs.innerHTML = '';
+
+    // "All" tab
+    var allTab = document.createElement('button');
+    allTab.className = 'tab' + (state.activeCategory === 'all' ? ' active' : '');
+    allTab.setAttribute('role', 'tab');
+    allTab.setAttribute('aria-selected', state.activeCategory === 'all' ? 'true' : 'false');
+    allTab.dataset.category = 'all';
+    allTab.textContent = '全部';
+    allTab.addEventListener('click', function () { setCategory('all'); });
+    categoryTabs.appendChild(allTab);
+
+    // Category tabs
+    state.categories.forEach(function (cat) {
+      var tab = document.createElement('button');
+      tab.className = 'tab' + (state.activeCategory === cat.id ? ' active' : '');
+      tab.setAttribute('role', 'tab');
+      tab.setAttribute('aria-selected', state.activeCategory === cat.id ? 'true' : 'false');
+      tab.dataset.category = cat.id;
+      tab.textContent = cat.title;
+      tab.addEventListener('click', function () { setCategory(cat.id); });
+      categoryTabs.appendChild(tab);
+    });
+  }
+
+  function setCategory(categoryId) {
+    state.activeCategory = categoryId;
+    renderCategoryTabs();
+    renderGrid();
+  }
+
+  function getFilteredProcedures() {
+    if (state.activeCategory === 'all') return state.procedures;
+    return state.procedures.filter(function (p) { return p.category === state.activeCategory; });
+  }
+
   // --- Grid Rendering ---
   function renderGrid() {
     gridContainer.innerHTML = '';
     gridEmpty.hidden = true;
     gridError.hidden = true;
 
-    state.procedures.forEach(function (proc) {
+    var filtered = getFilteredProcedures();
+    if (filtered.length === 0) {
+      showEmpty();
+      return;
+    }
+
+    filtered.forEach(function (proc) {
       var card = document.createElement('a');
       card.className = 'card';
       card.href = '#/' + proc.id;

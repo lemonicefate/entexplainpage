@@ -77,7 +77,7 @@ describe('Slide View HTML structure', () => {
   it('should have slide-view with region role and aria-label', () => {
     const slideView = document.getElementById('slide-view');
     expect(slideView.getAttribute('role')).toBe('region');
-    expect(slideView.getAttribute('aria-label')).toBe('手術説明投影片');
+    expect(slideView.getAttribute('aria-label')).toBe('衛教説明投影片');
   });
 
   it('should have end screen hidden by default', () => {
@@ -93,6 +93,28 @@ describe('Slide View HTML structure', () => {
   it('should have update banner hidden by default', () => {
     const banner = document.getElementById('update-banner');
     expect(banner.hidden).toBe(true);
+  });
+});
+
+describe('Category tabs', () => {
+  let dom, document;
+
+  beforeEach(() => {
+    dom = createDOM();
+    document = dom.window.document;
+  });
+
+  it('should have category-tabs container with tablist role', () => {
+    const tabs = document.getElementById('category-tabs');
+    expect(tabs).not.toBeNull();
+    expect(tabs.getAttribute('role')).toBe('tablist');
+  });
+
+  it('should have "all" tab active by default', () => {
+    const allTab = document.querySelector('.tab.active');
+    expect(allTab).not.toBeNull();
+    expect(allTab.dataset.category).toBe('all');
+    expect(allTab.getAttribute('aria-selected')).toBe('true');
   });
 });
 
@@ -132,14 +154,38 @@ describe('CSS design tokens', () => {
 });
 
 describe('Procedure JSON schema', () => {
-  it('index.json should have valid structure', () => {
+  it('index.json should have valid structure with categories', () => {
     const index = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../procedures/index.json'), 'utf-8'));
+    expect(index.categories).toBeDefined();
+    expect(Array.isArray(index.categories)).toBe(true);
+    index.categories.forEach(cat => {
+      expect(cat.id).toBeDefined();
+      expect(cat.title).toBeDefined();
+    });
     expect(index.procedures).toBeDefined();
     expect(Array.isArray(index.procedures)).toBe(true);
     index.procedures.forEach(proc => {
       expect(proc.id).toBeDefined();
       expect(proc.title).toBeDefined();
       expect(proc.thumbnail).toBeDefined();
+      expect(proc.category).toBeDefined();
+    });
+  });
+
+  it('should have the four clinic categories', () => {
+    const index = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../procedures/index.json'), 'utf-8'));
+    const categoryIds = index.categories.map(c => c.id);
+    expect(categoryIds).toContain('surgery');
+    expect(categoryIds).toContain('ent');
+    expect(categoryIds).toContain('weight');
+    expect(categoryIds).toContain('functional');
+  });
+
+  it('each procedure should reference a valid category', () => {
+    const index = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../procedures/index.json'), 'utf-8'));
+    const categoryIds = index.categories.map(c => c.id);
+    index.procedures.forEach(proc => {
+      expect(categoryIds).toContain(proc.category);
     });
   });
 
