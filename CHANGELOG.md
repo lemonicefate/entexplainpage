@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.1.0] - 2026-04-14
+
+### Added
+- DESIGN.md：一站式設計系統文件，涵蓋色彩 token、字型、間距、圓角、陰影、元件規格、無障礙標準、資料格式、新增衛教項目 checklist
+
+### Changed
+- CSS custom property 全面重構：統一命名為語義化 token（`--bg-primary`、`--text-secondary`、`--text-on-dark` 等共 43 個 token），所有 hardcoded 色值、字型大小、字重、圓角、轉場時間均改為 `var(--token)`
+
 ## [0.1.0.0] - 2026-03-31
 
 ### Added
