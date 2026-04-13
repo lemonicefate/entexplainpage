@@ -137,7 +137,7 @@
       thumb.alt = proc.title;
       thumb.loading = 'lazy';
       thumb.onerror = function () {
-        this.style.background = '#e0e0e0';
+        this.style.background = 'var(--border-light)';
         this.alt = proc.title;
       };
 
