@@ -126,7 +126,7 @@ describe('CSS design tokens', () => {
   });
 
   it('should use the correct background colors', () => {
-    expect(cssContent).toContain('--bg-light: #FFFFFF');
+    expect(cssContent).toContain('--bg-primary: #FFFFFF');
     expect(cssContent).toContain('--bg-dark: #1A1A1A');
   });
 
