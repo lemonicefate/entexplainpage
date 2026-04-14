@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>衛教管理 — Admin</title>
+<style>
+:root {
+  --bg-primary: #FFFFFF;
+  --bg-dark: #1A1A1A;
+  --bg-muted: #F5F5F5;
+  --accent: #0077B6;
+  --accent-hover: #005A8C;
+  --text-primary: #1A1A1A;
+  --text-light: #FFFFFF;
+  --text-muted: #888888;
+  --text-disabled: #999999;
+  --overlay: rgba(0,0,0,0.7);
+  --border-light: #E0E0E0;
+  --radius: 8px;
+  --space-xs: 8px;
+  --space-sm: 16px;
+  --space-md: 24px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.12);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg-muted);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 60fr 40fr;
+  gap: var(--space-md);
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: var(--space-md);
+  min-height: 100vh;
+}
+
+/* Left column */
+.left-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.header a {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.875rem;
+}
+
+.header a:hover { text-decoration: underline; }
+
+/* Existing procedures list */
+.proc-list {
+  background: var(--bg-primary);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--space-sm);
+}
+
+.proc-list h2 {
+  font-size: 1rem;
+  margin-bottom: var(--space-xs);
+  color: var(--text-muted);
+}
+
+.proc-list-empty {
+  color: var(--text-disabled);
+  font-size: 0.875rem;
+}
+
+.proc-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) 0;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.875rem;
+}
+
+.proc-row:last-child { border-bottom: none; }
+
+.badge {
+  display: inline-block;
+  background: var(--accent);
+  color: var(--text-light);
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.badge-steps {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+}
+
+/* Form */
+.form-card {
+  background: var(--bg-primary);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.form-card h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+input[type="text"],
+textarea,
+select {
+  width: 100%;
+  padding: var(--space-xs);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-family: inherit;
+  background: var(--bg-primary);
+  transition: border-color 0.15s;
+}
+
+input[type="text"]:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+input[type="file"] {
+  font-size: 0.8125rem;
+}
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Step cards */
+.steps-section h3 {
+  font-size: 0.9375rem;
+  margin-bottom: var(--space-xs);
+}
+
+.step-card {
+  background: var(--bg-muted);
+  border: 2px solid transparent;
+  border-radius: var(--radius);
+  padding: var(--space-sm);
+  margin-bottom: var(--space-xs);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  cursor: pointer;
+  transition: border-color 0.15s;
+  position: relative;
+}
+
+.step-card.focused {
+  border-color: var(--accent);
+}
+
+.step-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.step-badge {
+  background: var(--accent);
+  color: var(--text-light);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+.btn-remove-step {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 2px 4px;
+}
+
+.btn-add-step {
+  background: none;
+  border: 2px dashed var(--border-light);
+  border-radius: var(--radius);
+  padding: var(--space-xs) var(--space-sm);
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--accent);
+  width: 100%;
+  transition: border-color 0.15s;
+}
+
+.btn-add-step:hover {
+  border-color: var(--accent);
+}
+
+.btn-submit {
+  width: 100%;
+  padding: 12px;
+  background: var(--accent);
+  color: var(--text-light);
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-submit:hover {
+  background: var(--accent-hover);
+}
+
+.btn-submit:disabled {
+  background: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+/* Status area */
+.status {
+  padding: var(--space-sm);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  display: none;
+}
+
+.status.success {
+  display: block;
+  background: #e6f9ee;
+  color: #1a7a3a;
+}
+
+.status.error {
+  display: block;
+  background: #fde8e8;
+  color: #b91c1c;
+}
+
+.status a {
+  color: inherit;
+  font-weight: 600;
+}
+
+/* Right column — preview */
+.right-col {
+  position: sticky;
+  top: var(--space-md);
+  align-self: start;
+  height: calc(100vh - 2 * var(--space-md));
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-wrapper {
+  background: var(--bg-dark);
+  border-radius: var(--radius);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.preview-title {
+  color: var(--text-light);
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.preview-viewport {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.preview-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-disabled);
+  font-size: 0.875rem;
+}
+
+.preview-indicator {
+  position: absolute;
+  top: var(--space-xs);
+  right: var(--space-sm);
+  color: var(--text-light);
+  font-size: 0.8125rem;
+  background: rgba(0,0,0,0.5);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.preview-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--overlay);
+  color: var(--text-light);
+  padding: var(--space-sm);
+}
+
+.preview-overlay h3 {
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.preview-overlay p {
+  font-size: 0.8125rem;
+  opacity: 0.85;
+  line-height: 1.4;
+}
+
+.preview-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: var(--text-light);
+  font-size: 1.25rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.preview-nav:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.preview-nav.prev { left: var(--space-xs); }
+.preview-nav.next { right: var(--space-xs); }
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Left column -->
+  <div class="left-col">
+    <div class="header">
+      <h1>衛教管理</h1>
+      <a href="http://localhost:3000" target="_blank">主站 ↗</a>
+    </div>
+
+    <!-- Existing procedures -->
+    <div class="proc-list">
+      <h2>現有衛教</h2>
+      <div id="procListContent">
+        <div class="proc-list-empty">載入中…</div>
+      </div>
+    </div>
+
+    <!-- New procedure form -->
+    <form id="procForm" class="form-card" autocomplete="off">
+      <h2>新增衛教</h2>
+
+      <div class="field-group">
+        <label for="procId">識別碼</label>
+        <input type="text" id="procId" name="id" required pattern="[a-z0-9\-]+" placeholder="e.g. tonsillectomy">
+      </div>
+
+      <div class="field-group">
+        <label for="procTitle">標題（中文）</label>
+        <input type="text" id="procTitle" name="title" required>
+      </div>
+
+      <div class="field-group">
+        <label for="procCategory">分類</label>
+        <select id="procCategory" name="category" required>
+          <option value="" disabled selected>選擇分類…</option>
+        </select>
+      </div>
+
+      <div class="steps-section">
+        <h3>步驟</h3>
+        <div id="stepsContainer"></div>
+        <button type="button" class="btn-add-step" id="btnAddStep">➕ 新增步驟</button>
+      </div>
+
+      <button type="submit" class="btn-submit" id="btnSubmit">建立衛教</button>
+
+      <div id="statusArea" class="status"></div>
+    </form>
+  </div>
+
+  <!-- Right column — live preview -->
+  <div class="right-col">
+    <div class="preview-wrapper">
+      <div class="preview-title">預覽</div>
+      <div class="preview-viewport" id="previewViewport">
+        <div class="preview-placeholder" id="previewPlaceholder">尚無圖片</div>
+        <img class="preview-image" id="previewImage" style="display:none" alt="">
+        <div class="preview-indicator" id="previewIndicator">0 / 0</div>
+        <div class="preview-overlay" id="previewOverlay">
+          <h3 id="previewStepTitle">步驟標題</h3>
+          <p id="previewStepDesc">說明文字</p>
+        </div>
+        <button class="preview-nav prev" id="btnPrev" title="上一步">◀</button>
+        <button class="preview-nav next" id="btnNext" title="下一步">▶</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var API_BASE = 'http://localhost:3001';
+  var focusedStepIndex = 0;
+
+  // DOM refs
+  var procListContent = document.getElementById('procListContent');
+  var procCategory = document.getElementById('procCategory');
+  var stepsContainer = document.getElementById('stepsContainer');
+  var btnAddStep = document.getElementById('btnAddStep');
+  var procForm = document.getElementById('procForm');
+  var statusArea = document.getElementById('statusArea');
+  var btnSubmit = document.getElementById('btnSubmit');
+
+  // Preview refs
+  var previewImage = document.getElementById('previewImage');
+  var previewPlaceholder = document.getElementById('previewPlaceholder');
+  var previewIndicator = document.getElementById('previewIndicator');
+  var previewStepTitle = document.getElementById('previewStepTitle');
+  var previewStepDesc = document.getElementById('previewStepDesc');
+  var btnPrev = document.getElementById('btnPrev');
+  var btnNext = document.getElementById('btnNext');
+
+  // ── Helpers ──
+  function el(tag, className, textContent) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (textContent !== undefined) node.textContent = textContent;
+    return node;
+  }
+
+  // ── Load index ──
+  function loadIndex() {
+    fetch(API_BASE + '/api/index')
+      .then(function (res) {
+        if (!res.ok) throw new Error('Failed to fetch index');
+        return res.json();
+      })
+      .then(function (data) {
+        // Populate categories
+        procCategory.textContent = '';
+        var defaultOpt = document.createElement('option');
+        defaultOpt.value = '';
+        defaultOpt.disabled = true;
+        defaultOpt.selected = true;
+        defaultOpt.textContent = '選擇分類…';
+        procCategory.appendChild(defaultOpt);
+
+        (data.categories || []).forEach(function (cat) {
+          var opt = document.createElement('option');
+          opt.value = cat.id || cat;
+          opt.textContent = cat.title || cat;
+          procCategory.appendChild(opt);
+        });
+
+        // Populate procedures list
+        var procs = data.procedures || [];
+        procListContent.textContent = '';
+        if (procs.length === 0) {
+          procListContent.appendChild(el('div', 'proc-list-empty', '尚無衛教資料'));
+        } else {
+          procs.forEach(function (p) {
+            var row = el('div', 'proc-row');
+            var titleSpan = el('span', null, p.title || p.id);
+            titleSpan.style.flex = '1';
+            row.appendChild(titleSpan);
+            row.appendChild(el('span', 'badge', p.category || ''));
+            procListContent.appendChild(row);
+          });
+        }
+      })
+      .catch(function (err) {
+        procListContent.textContent = '';
+        procListContent.appendChild(el('div', 'proc-list-empty', '無法載入：' + err.message));
+      });
+  }
+
+  // ── Step management ──
+  function getStepCards() {
+    return Array.from(stepsContainer.querySelectorAll('.step-card'));
+  }
+
+  function renumberSteps() {
+    var cards = getStepCards();
+    cards.forEach(function (card, i) {
+      card.dataset.index = i;
+      card.querySelector('.step-badge').textContent = '步驟 ' + (i + 1);
+      var removeBtn = card.querySelector('.btn-remove-step');
+      removeBtn.style.display = cards.length <= 1 ? 'none' : '';
+    });
+  }
+
+  function buildField(labelText, inputEl) {
+    var group = el('div', 'field-group');
+    var lbl = el('label', null, labelText);
+    group.appendChild(lbl);
+    group.appendChild(inputEl);
+    return group;
+  }
+
+  function createStepCard() {
+    var card = el('div', 'step-card');
+
+    // Header
+    var header = el('div', 'step-card-header');
+    var badge = el('span', 'step-badge', '步驟 ?');
+    var removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'btn-remove-step';
+    removeBtn.title = '移除步驟';
+    removeBtn.textContent = '\u274C';
+    header.appendChild(badge);
+    header.appendChild(removeBtn);
+    card.appendChild(header);
+
+    // Step title
+    var titleInput = document.createElement('input');
+    titleInput.type = 'text';
+    titleInput.className = 'step-title';
+    titleInput.required = true;
+    card.appendChild(buildField('步驟標題', titleInput));
+
+    // Description
+    var descArea = document.createElement('textarea');
+    descArea.className = 'step-desc';
+    descArea.rows = 3;
+    descArea.required = true;
+    card.appendChild(buildField('說明', descArea));
+
+    // Alt text
+    var altInput = document.createElement('input');
+    altInput.type = 'text';
+    altInput.className = 'step-alt';
+    altInput.required = true;
+    card.appendChild(buildField('圖片描述（無障礙）', altInput));
+
+    // File input
+    var fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.className = 'step-image';
+    fileInput.accept = 'image/*';
+    card.appendChild(buildField('圖片', fileInput));
+
+    // Bind events
+    card.addEventListener('click', function (e) {
+      if (e.target.closest('.btn-remove-step')) return;
+      focusStep(parseInt(card.dataset.index, 10));
+    });
+
+    removeBtn.addEventListener('click', function () {
+      removeStep(card);
+    });
+
+    // Live preview on input
+    [titleInput, descArea, altInput].forEach(function (inp) {
+      inp.addEventListener('input', function () {
+        if (parseInt(card.dataset.index, 10) === focusedStepIndex) {
+          updatePreview();
+        }
+      });
+    });
+
+    fileInput.addEventListener('change', function () {
+      if (parseInt(card.dataset.index, 10) === focusedStepIndex) {
+        updatePreview();
+      }
+    });
+
+    return card;
+  }
+
+  function addStep() {
+    var card = createStepCard();
+    stepsContainer.appendChild(card);
+    renumberSteps();
+    focusStep(getStepCards().length - 1);
+  }
+
+  function removeStep(stepEl) {
+    stepEl.remove();
+    renumberSteps();
+    var cards = getStepCards();
+    focusedStepIndex = Math.min(focusedStepIndex, Math.max(0, cards.length - 1));
+    focusStep(focusedStepIndex);
+  }
+
+  function focusStep(index) {
+    var cards = getStepCards();
+    if (cards.length === 0) return;
+    if (index < 0) index = 0;
+    if (index >= cards.length) index = cards.length - 1;
+    focusedStepIndex = index;
+
+    cards.forEach(function (c, i) {
+      c.classList.toggle('focused', i === index);
+    });
+
+    updatePreview();
+  }
+
+  // ── Preview ──
+  function updatePreview() {
+    var cards = getStepCards();
+    var total = cards.length;
+    previewIndicator.textContent = (total === 0) ? '0 / 0' : (focusedStepIndex + 1) + ' / ' + total;
+
+    if (total === 0) {
+      previewStepTitle.textContent = '步驟標題';
+      previewStepDesc.textContent = '說明文字';
+      previewImage.style.display = 'none';
+      previewPlaceholder.style.display = 'flex';
+      return;
+    }
+
+    var card = cards[focusedStepIndex];
+    var title = card.querySelector('.step-title').value || '步驟標題';
+    var desc = card.querySelector('.step-desc').value || '說明文字';
+    var alt = card.querySelector('.step-alt').value || '';
+    var fileInput = card.querySelector('.step-image');
+
+    previewStepTitle.textContent = title;
+    previewStepDesc.textContent = desc;
+
+    if (fileInput.files && fileInput.files[0]) {
+      var url = URL.createObjectURL(fileInput.files[0]);
+      if (previewImage._blobUrl) URL.revokeObjectURL(previewImage._blobUrl);
+      previewImage._blobUrl = url;
+      previewImage.onload = function () {
+        URL.revokeObjectURL(url);
+        previewImage._blobUrl = null;
+      };
+      previewImage.onerror = function () {
+        URL.revokeObjectURL(url);
+        previewImage._blobUrl = null;
+        previewImage.style.display = 'none';
+        previewPlaceholder.style.display = 'flex';
+      };
+      previewImage.src = url;
+      previewImage.alt = alt;
+      previewImage.style.display = 'block';
+      previewPlaceholder.style.display = 'none';
+    } else {
+      previewImage.style.display = 'none';
+      previewPlaceholder.style.display = 'flex';
+    }
+  }
+
+  // Preview navigation
+  btnPrev.addEventListener('click', function () {
+    focusStep(focusedStepIndex - 1);
+  });
+
+  btnNext.addEventListener('click', function () {
+    focusStep(focusedStepIndex + 1);
+  });
+
+  // ── Submit ──
+  function submitForm(e) {
+    e.preventDefault();
+    statusArea.className = 'status';
+    statusArea.style.display = 'none';
+    btnSubmit.disabled = true;
+    btnSubmit.textContent = '提交中…';
+
+    var id = document.getElementById('procId').value.trim();
+    var title = document.getElementById('procTitle').value.trim();
+    var category = procCategory.value;
+    var cards = getStepCards();
+
+    var steps = cards.map(function (card) {
+      return {
+        title: card.querySelector('.step-title').value.trim(),
+        description: card.querySelector('.step-desc').value.trim(),
+        alt: card.querySelector('.step-alt').value.trim()
+      };
+    });
+
+    // Phase 1: POST procedure JSON
+    fetch(API_BASE + '/api/procedures', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: id, title: title, category: category, steps: steps })
+    })
+    .then(function (res1) {
+      if (!res1.ok) {
+        return res1.text().then(function (t) {
+          throw new Error('Phase 1 失敗 (' + res1.status + ')：' + t);
+        });
+      }
+      return res1.json();
+    })
+    .then(function () {
+      // Phase 2: POST images if any
+      var hasAnyImage = cards.some(function (card) {
+        var fi = card.querySelector('.step-image');
+        return fi.files && fi.files[0];
+      });
+
+      if (!hasAnyImage) return Promise.resolve();
+
+      var fd = new FormData();
+      var thumbAppended = false;
+      cards.forEach(function (card, i) {
+        var fi = card.querySelector('.step-image');
+        if (fi.files && fi.files[0]) {
+          if (!thumbAppended) { fd.append('thumb', fi.files[0]); thumbAppended = true; }
+          fd.append('step' + (i + 1), fi.files[0]);
+        }
+      });
+
+      return fetch(API_BASE + '/api/procedures/' + encodeURIComponent(id) + '/images', {
+        method: 'POST',
+        body: fd
+      }).then(function (res2) {
+        if (!res2.ok) {
+          return res2.text().then(function (t) {
+            throw new Error('衛教已建立，但圖片上傳失敗 (' + res2.status + ')：' + t + '。請手動補充圖片至 images/' + id + '/ 目錄。');
+          });
+        }
+      });
+    })
+    .then(function () {
+      // Success
+      statusArea.className = 'status success';
+      statusArea.textContent = '';
+      statusArea.appendChild(document.createTextNode('\u2705 建立完成！ '));
+      var link = document.createElement('a');
+      link.href = 'http://localhost:3000/#/' + id;
+      link.target = '_blank';
+      link.textContent = '在主站查看';
+      statusArea.appendChild(link);
+      statusArea.style.display = 'block';
+      resetForm();
+      loadIndex();
+    })
+    .catch(function (err) {
+      statusArea.className = 'status error';
+      statusArea.textContent = '\u274C ' + err.message;
+      statusArea.style.display = 'block';
+    })
+    .then(function () {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = '建立衛教';
+    });
+  }
+
+  function resetForm() {
+    procForm.reset();
+    stepsContainer.textContent = '';
+    addStep();
+    focusStep(0);
+  }
+
+  // ── Init ──
+  btnAddStep.addEventListener('click', addStep);
+  procForm.addEventListener('submit', submitForm);
+
+  addStep(); // start with 1 step
+  loadIndex();
+})();
+</script>
+</body>
+</html>
