@@ -155,6 +155,7 @@ describe('CSS design tokens', () => {
   it('should define all required design tokens in :root', () => {
     const requiredTokens = [
       '--bg-primary', '--bg-dark', '--bg-muted', '--bg-skeleton',
+      '--font',
       '--text-primary', '--text-light', '--text-secondary', '--text-muted',
       '--text-disabled', '--text-hint',
       '--accent', '--accent-hover',
