@@ -6,6 +6,7 @@ const path = require('path');
 
 const PORT = 3001;
 const ROOT = path.resolve(__dirname, '..');
+const SIZE_LIMIT = 50 * 1024 * 1024; // 50 MB
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -47,7 +48,6 @@ function parseMultipart(req) {
 
     const chunks = [];
     let totalSize = 0;
-    const SIZE_LIMIT = 50 * 1024 * 1024; // 50 MB
 
     req.on('data', (chunk) => {
       totalSize += chunk.length;
@@ -195,7 +195,15 @@ function handleGetProcedure(req, res, id) {
 
 function handlePostProcedures(req, res) {
   let body = '';
-  req.on('data', (chunk) => { body += chunk; });
+  let totalSize = 0;
+  req.on('data', (chunk) => {
+    totalSize += chunk.length;
+    if (totalSize > SIZE_LIMIT) {
+      req.destroy();
+      return;
+    }
+    body += chunk;
+  });
   req.on('end', () => {
     let payload;
     try {
@@ -229,6 +237,7 @@ function handlePostProcedures(req, res) {
       const procedure = {
         id,
         title,
+        category,
         steps: steps.map((step, i) => ({
           image: `images/${id}/step${i + 1}.webp`,
           title: step.title || '',
@@ -242,7 +251,13 @@ function handlePostProcedures(req, res) {
 
       // Update index.json
       const indexPath = path.join(ROOT, 'procedures', 'index.json');
-      const index = readJsonFile(indexPath);
+      let index;
+      try {
+        index = readJsonFile(indexPath);
+      } catch {
+        index = { categories: [], procedures: [] };
+      }
+      if (!Array.isArray(index.procedures)) index.procedures = [];
       index.procedures.push({
         id,
         title,
