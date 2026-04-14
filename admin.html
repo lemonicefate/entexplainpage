@@ -640,9 +640,7 @@ input[type="file"] {
     stepEl.remove();
     renumberSteps();
     var cards = getStepCards();
-    if (focusedStepIndex >= cards.length) {
-      focusedStepIndex = Math.max(0, cards.length - 1);
-    }
+    focusedStepIndex = Math.min(focusedStepIndex, Math.max(0, cards.length - 1));
     focusStep(focusedStepIndex);
   }
 
@@ -685,7 +683,18 @@ input[type="file"] {
 
     if (fileInput.files && fileInput.files[0]) {
       var url = URL.createObjectURL(fileInput.files[0]);
-      previewImage.onload = function () { URL.revokeObjectURL(url); };
+      if (previewImage._blobUrl) URL.revokeObjectURL(previewImage._blobUrl);
+      previewImage._blobUrl = url;
+      previewImage.onload = function () {
+        URL.revokeObjectURL(url);
+        previewImage._blobUrl = null;
+      };
+      previewImage.onerror = function () {
+        URL.revokeObjectURL(url);
+        previewImage._blobUrl = null;
+        previewImage.style.display = 'none';
+        previewPlaceholder.style.display = 'flex';
+      };
       previewImage.src = url;
       previewImage.alt = alt;
       previewImage.style.display = 'block';
@@ -750,10 +759,11 @@ input[type="file"] {
       if (!hasAnyImage) return Promise.resolve();
 
       var fd = new FormData();
+      var thumbAppended = false;
       cards.forEach(function (card, i) {
         var fi = card.querySelector('.step-image');
         if (fi.files && fi.files[0]) {
-          if (i === 0) fd.append('thumb', fi.files[0]);
+          if (!thumbAppended) { fd.append('thumb', fi.files[0]); thumbAppended = true; }
           fd.append('step' + (i + 1), fi.files[0]);
         }
       });
@@ -764,7 +774,7 @@ input[type="file"] {
       }).then(function (res2) {
         if (!res2.ok) {
           return res2.text().then(function (t) {
-            throw new Error('圖片上傳失敗 (' + res2.status + ')：' + t);
+            throw new Error('衛教已建立，但圖片上傳失敗 (' + res2.status + ')：' + t + '。請手動補充圖片至 images/' + id + '/ 目錄。');
           });
         }
       });
