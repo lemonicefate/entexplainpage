@@ -509,7 +509,7 @@ input[type="file"] {
         (data.categories || []).forEach(function (cat) {
           var opt = document.createElement('option');
           opt.value = cat.id || cat;
-          opt.textContent = cat.label || cat;
+          opt.textContent = cat.title || cat;
           procCategory.appendChild(opt);
         });
 
@@ -525,7 +525,6 @@ input[type="file"] {
             titleSpan.style.flex = '1';
             row.appendChild(titleSpan);
             row.appendChild(el('span', 'badge', p.category || ''));
-            row.appendChild(el('span', 'badge badge-steps', (p.steps || []).length + ' 步驟'));
             procListContent.appendChild(row);
           });
         }
@@ -621,7 +620,7 @@ input[type="file"] {
       });
     });
 
-    fileInput.addEventListener('input', function () {
+    fileInput.addEventListener('change', function () {
       if (parseInt(card.dataset.index, 10) === focusedStepIndex) {
         updatePreview();
       }
