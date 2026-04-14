@@ -26,6 +26,7 @@
   /* Text on dark backgrounds */
   --text-on-dark: rgba(255, 255, 255, 0.85);
   --text-on-dark-muted: rgba(255, 255, 255, 0.5);
+  --text-on-dark-subtle: rgba(255, 255, 255, 0.4);
 
   /* Typography */
   --font: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
@@ -135,7 +136,7 @@ img {
 
 .tab {
   padding: var(--space-xs) var(--space-sm);
-  font-size: var(--text-base);
+  font-size: 15px; /* intentional: off-scale, matches original design */
   font-weight: var(--weight-medium);
   color: var(--text-muted);
   border-radius: var(--radius-pill);
@@ -335,7 +336,7 @@ img {
 .placeholder-alt {
   font-size: var(--text-sm);
   margin-top: var(--space-xs);
-  color: var(--text-on-dark-muted);
+  color: var(--text-on-dark-subtle);
 }
 
 /* Arrow buttons */

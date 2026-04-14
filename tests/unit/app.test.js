@@ -151,6 +151,26 @@ describe('CSS design tokens', () => {
   it('should not use outline: none (a11y)', () => {
     expect(cssContent).not.toContain('outline: none');
   });
+
+  it('should define all required design tokens in :root', () => {
+    const requiredTokens = [
+      '--bg-primary', '--bg-dark', '--bg-muted', '--bg-skeleton',
+      '--text-primary', '--text-light', '--text-secondary', '--text-muted',
+      '--text-disabled', '--text-hint',
+      '--accent', '--accent-hover',
+      '--border-light', '--overlay', '--overlay-nav',
+      '--text-on-dark', '--text-on-dark-muted', '--text-on-dark-subtle',
+      '--text-sm', '--text-base', '--text-lg', '--text-xl',
+      '--weight-normal', '--weight-medium', '--weight-semibold', '--weight-bold',
+      '--space-xs', '--space-sm', '--space-md', '--space-lg', '--space-xl',
+      '--radius-sm', '--radius', '--radius-pill',
+      '--shadow', '--shadow-hover',
+      '--transition', '--transition-fast', '--transition-image',
+    ];
+    requiredTokens.forEach(token => {
+      expect(cssContent).toContain(token + ':');
+    });
+  });
 });
 
 describe('Procedure JSON schema', () => {

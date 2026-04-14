@@ -46,14 +46,17 @@
 
 ### 深色背景文字
 
+三層層次，用於深色（`--bg-dark`）背景上的文字：
+
 | Token | 值 | 用途 |
 |-------|------|------|
-| `--text-on-dark` | `rgba(255,255,255,0.85)` | 步驟指示器、投影片上的主要白色文字 |
-| `--text-on-dark-muted` | `rgba(255,255,255,0.5)` | 箭頭按鈕、placeholder、輔助文字 |
+| `--text-on-dark` | `rgba(255,255,255,0.85)` | 步驟指示器、投影片上的主要白色文字（原設計為 0.8，更新至 0.85 以提升可讀性） |
+| `--text-on-dark-muted` | `rgba(255,255,255,0.5)` | 箭頭按鈕、image-placeholder 主文字、輔助文字 |
+| `--text-on-dark-subtle` | `rgba(255,255,255,0.4)` | placeholder-alt 副文字（與 muted 形成主副層次） |
 
 **命名原則：** 用途導向（`text-secondary`）而非色值導向（`grey-600`）。
 
-**總計 17 個 token。**
+**總計 18 個色彩 token。**
 
 ---
 
@@ -72,9 +75,11 @@ Google Fonts 為主、macOS/iOS 次之、Windows 兜底。
 | Token | 值 | 用途 |
 |-------|------|------|
 | `--text-sm` | `14px` | 副文字、banner、placeholder alt |
-| `--text-base` | `16px` | 預設正文、Tab、投影片說明、按鈕 |
+| `--text-base` | `16px` | 預設正文、投影片說明、按鈕 |
 | `--text-lg` | `18px` | 卡片標題、投影片步驟標題、結束按鈕 |
 | `--text-xl` | `24px` | 結束畫面標題 |
+
+**例外值：** 分類 Tab 使用 `15px`（不在 scale 內），保留原始設計，不強制對齊 token。
 
 ### 字重
 
