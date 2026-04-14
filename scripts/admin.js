@@ -182,6 +182,10 @@ function handleGetIndex(req, res) {
 
 function handleGetProcedure(req, res, id) {
   const filePath = path.join(ROOT, 'procedures', `${id}.json`);
+  const resolved = path.resolve(filePath);
+  if (!resolved.startsWith(path.join(ROOT, 'procedures'))) {
+    return jsonResponse(res, 400, { error: 'Invalid id' });
+  }
   if (!fs.existsSync(filePath)) {
     return jsonResponse(res, 404, { error: `Procedure "${id}" not found` });
   }
@@ -196,15 +200,20 @@ function handleGetProcedure(req, res, id) {
 function handlePostProcedures(req, res) {
   let body = '';
   let totalSize = 0;
+  let aborted = false;
   req.on('data', (chunk) => {
     totalSize += chunk.length;
     if (totalSize > SIZE_LIMIT) {
+      aborted = true;
+      res.writeHead(413, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Payload too large' }));
       req.destroy();
       return;
     }
     body += chunk;
   });
   req.on('end', () => {
+    if (aborted) return;
     let payload;
     try {
       payload = JSON.parse(body);
@@ -231,7 +240,12 @@ function handlePostProcedures(req, res) {
 
     try {
       // Create images directory
-      fs.mkdirSync(path.join(ROOT, 'images', id), { recursive: true });
+      const imagesDir = path.join(ROOT, 'images', id);
+      const resolvedImagesDir = path.resolve(imagesDir);
+      if (!resolvedImagesDir.startsWith(path.join(ROOT, 'images'))) {
+        return jsonResponse(res, 400, { error: 'Invalid id' });
+      }
+      fs.mkdirSync(imagesDir, { recursive: true });
 
       // Build procedure JSON
       const procedure = {
@@ -291,7 +305,13 @@ async function handlePostImages(req, res, id) {
   try {
     const procedure = readJsonFile(procPath);
     const indexPath = path.join(ROOT, 'procedures', 'index.json');
-    const index = readJsonFile(indexPath);
+    let index;
+    try {
+      index = readJsonFile(indexPath);
+    } catch {
+      index = { categories: [], procedures: [] };
+    }
+    if (!Array.isArray(index.procedures)) index.procedures = [];
 
     const savedPaths = {};
 
