@@ -134,6 +134,53 @@ describe('Reader mode (tap zones + scrubber + install hint)', () => {
   });
 });
 
+describe('Tools (pen canvas + spot + laser)', () => {
+  let dom, document;
+
+  beforeEach(() => {
+    dom = createDOM();
+    document = dom.window.document;
+  });
+
+  it('pen canvas exists inside slide-stage', () => {
+    const canvas = document.querySelector('#slide-stage canvas#pen-canvas');
+    expect(canvas).not.toBeNull();
+    expect(canvas.tagName).toBe('CANVAS');
+  });
+
+  it('pen canvas has aria-hidden (decorative drawing surface)', () => {
+    const canvas = document.getElementById('pen-canvas');
+    expect(canvas.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('laser-dot and spot-overlay still exist', () => {
+    expect(document.getElementById('laser-dot')).not.toBeNull();
+    expect(document.getElementById('spot-overlay')).not.toBeNull();
+  });
+});
+
+describe('Tool CSS (pen + spot + laser)', () => {
+  let cssContent;
+
+  beforeEach(() => {
+    cssContent = fs.readFileSync(path.resolve(__dirname, '../../css/style.css'), 'utf-8');
+  });
+
+  it('pen-canvas has touch-action none (drawing must not pan page)', () => {
+    expect(cssContent).toMatch(/\.pen-canvas[\s\S]*?touch-action:\s*none/);
+  });
+
+  it('stage in tool modes disables touch-action (blocks browser pan)', () => {
+    expect(cssContent).toMatch(/player-stage\.tool-[a-z]+[\s\S]*?touch-action:\s*none/);
+  });
+
+  it('spot-overlay uses responsive radius (clamp) and a plateau', () => {
+    expect(cssContent).toMatch(/spot-overlay[\s\S]*?clamp\(\s*180px/);
+    // transparent 40% marks the plateau edge, not 0→dark
+    expect(cssContent).toMatch(/spot-overlay[\s\S]*?transparent\s+40%/);
+  });
+});
+
 describe('Reader mode CSS tokens + rules', () => {
   let cssContent;
 
