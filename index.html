@@ -100,6 +100,11 @@
         </div>
         <div id="laser-dot" class="laser-dot" hidden></div>
         <div id="spot-overlay" class="spot-overlay" hidden></div>
+        <div id="tap-zones" aria-hidden="true">
+          <button class="tap-zone tap-zone-prev" id="tap-prev" aria-label="上一頁" tabindex="-1"></button>
+          <button class="tap-zone tap-zone-toggle" id="tap-toggle" aria-label="切換工具列" tabindex="-1"></button>
+          <button class="tap-zone tap-zone-next" id="tap-next" aria-label="下一頁" tabindex="-1"></button>
+        </div>
       </div>
 
       <div class="player-controls">
@@ -131,6 +136,11 @@
 
       <div id="thumb-strip" class="thumb-strip"></div>
 
+      <div id="scrubber-wrap" class="player-scrubber" aria-hidden="false">
+        <input id="scrubber" type="range" min="0" max="0" value="0" step="1" aria-label="跳至指定頁">
+        <div id="scrubber-label" class="player-scrubber-label" aria-live="polite">1 / 1</div>
+      </div>
+
       <div id="end-screen" class="end-screen" hidden>
         <p class="end-title">說明完畢</p>
         <button id="end-back-btn" class="btn-primary">返回衛教清單</button>
@@ -159,6 +169,15 @@
   <div id="offline-banner" class="banner banner-offline" hidden>離線模式</div>
   <div id="update-banner" class="banner banner-update" hidden>
     有新版本，<button id="update-btn" class="banner-link">點此更新</button>
+  </div>
+
+  <div id="install-hint" class="install-hint" hidden role="status" aria-live="polite">
+    <div class="install-hint-icon" aria-hidden="true">📱</div>
+    <div class="install-hint-body">
+      <div class="install-hint-title">加入主畫面可全螢幕使用</div>
+      <div class="install-hint-desc">點分享 <span aria-hidden="true">⬆︎</span> → 加入主畫面</div>
+    </div>
+    <button id="install-hint-close" class="install-hint-close" aria-label="關閉提示">✕</button>
   </div>
 
   <script src="js/app.js"></script>

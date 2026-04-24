@@ -16,8 +16,12 @@
     stepIndex: 0,
     activeTool: null,            // pen | spot | laser | null
     wakeLock: null,
-    preloadAbort: null
+    preloadAbort: null,
+    chromeHidden: false,
+    chromeTimer: null
   };
+
+  var CHROME_AUTO_HIDE_MS = 3000;
 
   // --- DOM refs ---
   var $ = function (id) { return document.getElementById(id); };
@@ -47,6 +51,13 @@
   var thumbStrip = $('thumb-strip');
   var laserDot = $('laser-dot');
   var spotOverlay = $('spot-overlay');
+  // tap zones (e-book navigation)
+  var tapPrev = $('tap-prev');
+  var tapToggle = $('tap-toggle');
+  var tapNext = $('tap-next');
+  // scrubber (mobile page slider)
+  var scrubber = $('scrubber');
+  var scrubberLabel = $('scrubber-label');
   // calculator
   var calcBack = $('calc-back');
   var calcTabs = $('calc-tabs');
@@ -55,6 +66,8 @@
   var offlineBanner = $('offline-banner');
   var updateBanner = $('update-banner');
   var updateBtn = $('update-btn');
+  var installHint = $('install-hint');
+  var installHintClose = $('install-hint-close');
 
   // ============================================================
   // Static metadata: built-in calculators (separate from JSON data)
@@ -118,6 +131,9 @@
     setupSwipe();
     setupOffline();
     setupPlayerControls();
+    setupTapZones();
+    setupScrubber();
+    setupInstallHint();
     setupCalcShell();
     registerServiceWorker();
     loadIndex();
@@ -356,6 +372,8 @@
     setTool(null);
     cancelPreload();
     releaseWakeLock();
+    clearChromeTimer();
+    showChrome(); // reset so next entry starts with chrome visible
     switchView(homeView);
   }
 
@@ -377,6 +395,8 @@
         renderStep();
         preloadImages(data.steps);
         requestWakeLock();
+        showChrome();
+        scheduleChromeHide();
       })
       .catch(function () { window.location.hash = ''; });
   }
@@ -433,6 +453,8 @@
     var active = thumbStrip.querySelector('.thumb.is-active');
     if (active && active.scrollIntoView) active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
 
+    syncScrubber();
+    bumpChromeTimer();
     endScreen.hidden = true;
   }
 
@@ -490,8 +512,13 @@
     });
     slideStage.classList.toggle('tool-laser', t === 'laser');
     slideStage.classList.toggle('tool-spot',  t === 'spot');
+    slideStage.classList.toggle('tool-pen',   t === 'pen');
     laserDot.hidden = t !== 'laser';
     spotOverlay.hidden = t !== 'spot';
+    // When a tool turns on, force chrome visible and cancel the auto-hide.
+    // When the last tool turns off, restart the auto-hide countdown.
+    if (t) { showChrome(); clearChromeTimer(); }
+    else if (slideView.classList.contains('active')) { scheduleChromeHide(); }
   }
 
   // ============================================================
@@ -521,6 +548,99 @@
   // ============================================================
   // Touch / Swipe (player)
   // ============================================================
+  // ============================================================
+  // iOS Safari install hint (one-time banner)
+  // ============================================================
+  function setupInstallHint() {
+    if (!installHint || !installHintClose) return;
+    // Skip if user already dismissed
+    try { if (localStorage.getItem('dismissed_install_hint') === '1') return; }
+    catch (e) { /* storage disabled — show the hint anyway */ }
+
+    // Already installed to home screen → no hint
+    if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return;
+    if (navigator.standalone === true) return; // legacy iOS
+
+    // Show only on iPhone / iPad Safari. UA sniffing is fragile but this
+    // is a purely cosmetic hint — false negatives are fine.
+    var ua = navigator.userAgent || '';
+    var isIOS = /iPad|iPhone|iPod/.test(ua) && !/(CriOS|FxiOS|EdgiOS|OPiOS)/.test(ua);
+    var isIPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+    if (!isIOS && !isIPadOS) return;
+
+    installHint.hidden = false;
+    installHintClose.addEventListener('click', function () {
+      installHint.hidden = true;
+      try { localStorage.setItem('dismissed_install_hint', '1'); } catch (e) {}
+    });
+  }
+
+  // ============================================================
+  // Tap zones (e-book style: left=prev, center=toggle chrome, right=next)
+  // ============================================================
+  function setupTapZones() {
+    if (!tapPrev || !tapNext || !tapToggle) return;
+    tapPrev.addEventListener('click', function () {
+      if (state.activeTool) return; // let tools own the stage
+      goPrev();
+    });
+    tapNext.addEventListener('click', function () {
+      if (state.activeTool) return;
+      goNext();
+    });
+    tapToggle.addEventListener('click', function () {
+      if (state.activeTool) return;
+      toggleChrome();
+    });
+  }
+
+  function showChrome() {
+    state.chromeHidden = false;
+    slideView.classList.remove('is-immersive');
+  }
+  function hideChrome() {
+    if (state.activeTool) return; // never hide while a tool is active
+    state.chromeHidden = true;
+    slideView.classList.add('is-immersive');
+  }
+  function clearChromeTimer() {
+    if (state.chromeTimer) { clearTimeout(state.chromeTimer); state.chromeTimer = null; }
+  }
+  function scheduleChromeHide() {
+    clearChromeTimer();
+    state.chromeTimer = setTimeout(hideChrome, CHROME_AUTO_HIDE_MS);
+  }
+  // Called on every navigation (tap/swipe/keyboard/scrubber) so active use
+  // keeps the UI visible instead of vanishing mid-interaction.
+  function bumpChromeTimer() {
+    if (state.chromeHidden) return;                      // already hidden — don't pull it back
+    if (!slideView.classList.contains('active')) return; // only in player
+    if (state.activeTool) return;                        // tool mode forces visibility separately
+    scheduleChromeHide();
+  }
+  function toggleChrome() {
+    if (state.chromeHidden) { showChrome(); scheduleChromeHide(); }
+    else                    { hideChrome(); clearChromeTimer(); }
+  }
+
+  // ============================================================
+  // Scrubber (mobile page slider — replaces thumb strip < 768px)
+  // ============================================================
+  function setupScrubber() {
+    if (!scrubber) return;
+    scrubber.addEventListener('input', function (e) {
+      var i = parseInt(e.target.value, 10);
+      if (!isNaN(i)) jumpTo(i);
+    });
+  }
+  function syncScrubber() {
+    if (!scrubber || !state.current) return;
+    var n = (state.current.steps || []).length;
+    scrubber.max = String(Math.max(0, n - 1));
+    scrubber.value = String(state.stepIndex);
+    if (scrubberLabel) scrubberLabel.textContent = (state.stepIndex + 1) + ' / ' + n;
+  }
+
   function setupSwipe() {
     var startX = 0, startY = 0, startTime = 0, touching = false, fingers = 0;
     slideStage.addEventListener('touchstart', function (e) {
@@ -584,13 +704,19 @@
 
   function registerServiceWorker() {
     if (!('serviceWorker' in navigator)) return;
-    navigator.serviceWorker.register('js/sw.js')
+    navigator.serviceWorker.register('./sw.js')
       .then(function (reg) {
         reg.addEventListener('updatefound', function () {
           var nw = reg.installing;
           if (!nw) return;
+          // Capture controller state at update-found time, NOT at activation.
+          // On first install, clients.claim() sets controller during activate,
+          // so checking controller at statechange would be true — false positive.
+          // A real update is defined by: a controller already existed when the
+          // new SW began installing.
+          var hadController = !!navigator.serviceWorker.controller;
           nw.addEventListener('statechange', function () {
-            if (nw.state === 'activated' && navigator.serviceWorker.controller) updateBanner.hidden = false;
+            if (nw.state === 'activated' && hadController) updateBanner.hidden = false;
           });
         });
       })

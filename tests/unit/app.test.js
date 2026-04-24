@@ -97,6 +97,72 @@ describe('Slide player structure', () => {
   });
 });
 
+describe('Reader mode (tap zones + scrubber + install hint)', () => {
+  let dom, document;
+
+  beforeEach(() => {
+    dom = createDOM();
+    document = dom.window.document;
+  });
+
+  it('three tap zones exist with labels inside slide-stage', () => {
+    const zones = document.querySelectorAll('#slide-stage #tap-zones .tap-zone');
+    expect(zones.length).toBe(3);
+    expect(document.getElementById('tap-prev').getAttribute('aria-label')).toBe('上一頁');
+    expect(document.getElementById('tap-toggle').getAttribute('aria-label')).toBe('切換工具列');
+    expect(document.getElementById('tap-next').getAttribute('aria-label')).toBe('下一頁');
+  });
+
+  it('scrubber exists with range input and aria-live label', () => {
+    const wrap = document.getElementById('scrubber-wrap');
+    const input = document.getElementById('scrubber');
+    const label = document.getElementById('scrubber-label');
+    expect(wrap).not.toBeNull();
+    expect(input).not.toBeNull();
+    expect(input.getAttribute('type')).toBe('range');
+    expect(input.getAttribute('aria-label')).toBe('跳至指定頁');
+    expect(label.getAttribute('aria-live')).toBe('polite');
+  });
+
+  it('install hint banner is in DOM, hidden by default', () => {
+    const hint = document.getElementById('install-hint');
+    const closeBtn = document.getElementById('install-hint-close');
+    expect(hint).not.toBeNull();
+    expect(hint.hidden).toBe(true);
+    expect(closeBtn).not.toBeNull();
+    expect(closeBtn.getAttribute('aria-label')).toBe('關閉提示');
+  });
+});
+
+describe('Reader mode CSS tokens + rules', () => {
+  let cssContent;
+
+  beforeEach(() => {
+    cssContent = fs.readFileSync(path.resolve(__dirname, '../../css/style.css'), 'utf-8');
+  });
+
+  it('defines --chrome-fade transition token', () => {
+    expect(cssContent).toContain('--chrome-fade:');
+  });
+
+  it('slide-view uses 100dvh with 100vh fallback', () => {
+    expect(cssContent).toMatch(/height:\s*100vh/);
+    expect(cssContent).toMatch(/height:\s*100dvh/);
+  });
+
+  it('has is-immersive rules that fade chrome', () => {
+    expect(cssContent).toContain('.is-immersive');
+    expect(cssContent).toMatch(/is-immersive[^{]*\.player-controls/);
+  });
+
+  it('scrubber is hidden by default, shown on mobile (@media max-width 768px)', () => {
+    // default: display none
+    expect(cssContent).toMatch(/\.player-scrubber\s*\{[^}]*display:\s*none/);
+    // media query shows it
+    expect(cssContent).toMatch(/max-width:\s*768px[\s\S]*?\.player-scrubber\s*\{\s*display:\s*flex/);
+  });
+});
+
 describe('Calculator view structure', () => {
   let dom, document;
 
@@ -219,14 +285,20 @@ describe('Service worker', () => {
   let swContent;
 
   beforeEach(() => {
-    swContent = fs.readFileSync(path.resolve(__dirname, '../../js/sw.js'), 'utf-8');
+    swContent = fs.readFileSync(path.resolve(__dirname, '../../sw.js'), 'utf-8');
   });
 
-  it('precaches core resources', () => {
-    expect(swContent).toContain('/index.html');
-    expect(swContent).toContain('/css/style.css');
-    expect(swContent).toContain('/js/app.js');
-    expect(swContent).toContain('/procedures/index.json');
+  it('precaches core resources (relative paths for project-site scope)', () => {
+    expect(swContent).toContain('./index.html');
+    expect(swContent).toContain('./css/style.css');
+    expect(swContent).toContain('./js/app.js');
+    expect(swContent).toContain('./procedures/index.json');
+  });
+
+  it('does not use absolute paths in PRECACHE (would 404 on GitHub Pages project site)', () => {
+    expect(swContent).not.toMatch(/['"]\/index\.html['"]/);
+    expect(swContent).not.toMatch(/['"]\/css\/style\.css['"]/);
+    expect(swContent).not.toMatch(/['"]\/js\/app\.js['"]/);
   });
 
   it('uses cache-first strategy', () => {
@@ -240,11 +312,21 @@ describe('Service worker', () => {
 });
 
 describe('PWA manifest', () => {
+  let manifest;
+
+  beforeEach(() => {
+    manifest = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../manifest.json'), 'utf-8'));
+  });
+
   it('valid manifest.json with new theme', () => {
-    const manifest = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../manifest.json'), 'utf-8'));
     expect(manifest.name).toBe('診間解說 · Explain');
     expect(manifest.display).toBe('standalone');
     expect(manifest.lang).toBe('zh-TW');
     expect(manifest.theme_color).toBe('#0e7c7b');
+  });
+
+  it('uses relative start_url and scope (project-site compatible)', () => {
+    expect(manifest.start_url).toBe('./');
+    expect(manifest.scope).toBe('./');
   });
 });

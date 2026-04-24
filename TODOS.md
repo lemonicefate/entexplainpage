@@ -1,19 +1,5 @@
 # TODOS
 
-## TODO: AbortController 用於圖片預載
-**Priority:** Medium
-**What:** 醫師點錯手術立即返回再點另一個時，前一個的預載請求應該被取消，不跟新的搶頻寬。用 AbortController 管理 fetch/image preload 請求。
-**Why:** 避免診間網路較慢時，舊的預載影響新手術的載入速��。
-**Context:** app.js 中進入投影片模式時會預載所有步驟圖片。如果醫師快速切換手術，多組預載會同時執行。在 Wi-Fi 不穩的診間，這會導致新手術的圖片載入延遲。
-**Depends on:** 核心投影片渲染功能完成後。
-
-## TODO: Keyboard navigation + ARIA 無障礙支援
-**Priority:** Medium
-**What:** 加入鍵盤左右箭頭翻頁、focus management、aria-live 區域、role 屬性。
-**Why:** 台灣醫療機構有無障礙法規要求。部分醫師用桌機 + 鍵盤操作，鍵盤翻頁比用滑鼠點箭頭更快。
-**Context:** 目前設計只有 touch gesture + 箭頭按鈕。需要加入：keydown event listener（左右箭頭）、aria-live="polite" 在步驟變更時通知 screen reader、focus trap 在投影片模式中、role="region" 標記投影片區域。注意：/plan-design-review 已在設計文件中加入了詳細的 ARIA 規格，實作時參考設計文件。
-**Depends on:** 核心投影片渲染功能完成後。
-
 ## TODO: Calculator 測試策略 — 按「出錯會不會害到病人」分層
 **Priority:** High
 **What:** 每個計算機要有自己的測試檔（不是一個大檔），但只對「權威抄寫型」規則寫 golden-file 測試。
@@ -45,3 +31,22 @@ tests/unit/
 **Context:** 現行 v0.2.0.0 的 BMI/Lipid/Peds 是 demo placeholder，Lipid 的 ASCVD 公式是湊的，先不寫測試。等真實 calc 上線時，**每個 calc 的 PR 自帶 tests/unit/calc/{id}.test.js**，用這個分層表判斷哪些 rule 要鎖死。
 **Depends on:** 每個真實 calculator 上線時同 PR 處理。
 
+## TODO: Scrubber rAF throttle（等 steps 多再做）
+**Priority:** Low
+**What:** 若未來任一手術超過 ~20 steps，把 `setupScrubber()` 的 `input` handler 包 `requestAnimationFrame` throttle，避免拖拉時觸發過多 `renderStep` 影響幀率。
+**Why:** Reviewer 在 v0.2.1.0 PR 提出此擔憂。當下每支手術 4–5 steps，拖整條 scrubber 最多 5 次 input event，不是效能問題；現在加 throttle/debounce 只會引入拖動延遲反而傷 UX。
+**Context:** 正確手段是 `rAF` throttle（保持 60fps 上限），不是 debounce（會 lag）。觸發條件：`max(proc.steps.length) > 20`。
+**Depends on:** 真實頁數增長到 20+。
+
+## Completed
+
+### AbortController 用於圖片預載
+**Priority:** Medium
+**What:** 醫師點錯手術立即返回再點另一個時，前一個的預載請求應該被取消，不跟新的搶頻寬。
+**Status:** 已排程 remote agent 於 2026-05-08 09:00 處理（trigger `trig_016HpfGshq8NjmNS9yv7ebLv`），將用 image array + `img.src = ''` 取消方式修正 `preloadAbort` dead code。
+
+### Keyboard navigation + ARIA 無障礙支援
+**Priority:** Medium
+**Completed:** v0.2.0.0 (2026-04-24)
+**What:** 鍵盤左右箭頭翻頁、`aria-live`、`role="region"`、返回按鈕 aria-label。
+**Note:** v0.2.1.0 又新增 reader mode 的 `aria-live` 在 scrubber label 與 `aria-hidden` 於 tap zones，進一步完善無障礙。

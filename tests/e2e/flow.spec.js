@@ -71,3 +71,105 @@ test.describe('Edge cases', () => {
     await expect(page.locator('#home-view')).toBeVisible();
   });
 });
+
+test.describe('Reader mode (tap zones + scrubber + auto-hide)', () => {
+  test('tap left zone goes to previous, tap right zone goes to next', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
+    await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
+    await expect(page.locator('#slide-view')).toBeVisible();
+    await expect(page.locator('#step-indicator')).toContainText('01 /');
+
+    // Right zone → next
+    await page.locator('#tap-next').click();
+    await expect(page.locator('#step-indicator')).toContainText('02 /');
+
+    // Left zone → prev
+    await page.locator('#tap-prev').click();
+    await expect(page.locator('#step-indicator')).toContainText('01 /');
+  });
+
+  test('center tap toggles immersive chrome class', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
+    await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
+    await expect(page.locator('#slide-view')).toBeVisible();
+
+    // First center tap → hide chrome (was visible on entry)
+    await page.locator('#tap-toggle').click();
+    await expect(page.locator('#slide-view')).toHaveClass(/is-immersive/);
+
+    // Second center tap → show chrome
+    await page.locator('#tap-toggle').click();
+    await expect(page.locator('#slide-view')).not.toHaveClass(/is-immersive/);
+  });
+
+  test('tap zones disabled when a drawing tool is active', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
+    await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
+    await expect(page.locator('#slide-view')).toBeVisible();
+
+    // Activate laser → stage gets tool-laser class
+    await page.keyboard.press('l');
+    await expect(page.locator('#slide-stage')).toHaveClass(/tool-laser/);
+
+    // Tap-next click should be blocked by pointer-events: none on zone
+    const before = await page.locator('#step-indicator').textContent();
+    await page.locator('#tap-next').click({ force: true }); // force past pointer-events check in test
+    // Even with force, the handler itself returns early because state.activeTool is set
+    const after = await page.locator('#step-indicator').textContent();
+    expect(after).toBe(before);
+  });
+
+  test('scrubber drag jumps to a specific step', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
+    await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
+    await expect(page.locator('#slide-view')).toBeVisible();
+
+    // Set scrubber to index 2 via input event
+    const scrubber = page.locator('#scrubber');
+    await scrubber.evaluate((el) => {
+      el.value = '2';
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+
+    await expect(page.locator('#step-indicator')).toContainText('03 /');
+    await expect(page.locator('#scrubber-label')).toContainText('3 /');
+  });
+
+  test('chrome auto-hides 3 seconds after entering player', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
+    await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
+    await expect(page.locator('#slide-view')).toBeVisible();
+
+    // Chrome visible on entry
+    await expect(page.locator('#slide-view')).not.toHaveClass(/is-immersive/);
+
+    // After the 3s timer, it becomes immersive
+    await expect(page.locator('#slide-view')).toHaveClass(/is-immersive/, { timeout: 5000 });
+  });
+
+  test('navigation resets the auto-hide timer — UI does not vanish mid-tap', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
+    await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
+    await expect(page.locator('#slide-view')).toBeVisible();
+    await expect(page.locator('#slide-view')).not.toHaveClass(/is-immersive/);
+
+    // Navigate via scrubber every 1s for 5s. Each jumpTo runs renderStep
+    // which calls bumpChromeTimer — so the 3s auto-hide must never fire
+    // while the user is actively scrubbing.
+    const scrubber = page.locator('#scrubber');
+    for (let i = 0; i < 5; i++) {
+      await page.waitForTimeout(1000);
+      await scrubber.evaluate((el, idx) => {
+        el.value = String(idx % 2); // alternate 0 / 1, stays in range
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }, i);
+      await expect(page.locator('#slide-view')).not.toHaveClass(/is-immersive/);
+    }
+  });
+});
