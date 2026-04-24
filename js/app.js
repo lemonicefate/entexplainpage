@@ -47,6 +47,10 @@
   var thumbStrip = $('thumb-strip');
   var laserDot = $('laser-dot');
   var spotOverlay = $('spot-overlay');
+  // tap zones (e-book navigation)
+  var tapPrev = $('tap-prev');
+  var tapToggle = $('tap-toggle');
+  var tapNext = $('tap-next');
   // calculator
   var calcBack = $('calc-back');
   var calcTabs = $('calc-tabs');
@@ -118,6 +122,7 @@
     setupSwipe();
     setupOffline();
     setupPlayerControls();
+    setupTapZones();
     setupCalcShell();
     registerServiceWorker();
     loadIndex();
@@ -521,6 +526,28 @@
   // ============================================================
   // Touch / Swipe (player)
   // ============================================================
+  // ============================================================
+  // Tap zones (e-book style: left=prev, center=toggle chrome, right=next)
+  // ============================================================
+  function setupTapZones() {
+    if (!tapPrev || !tapNext || !tapToggle) return;
+    tapPrev.addEventListener('click', function () {
+      if (state.activeTool) return; // let tools own the stage
+      goPrev();
+    });
+    tapNext.addEventListener('click', function () {
+      if (state.activeTool) return;
+      goNext();
+    });
+    tapToggle.addEventListener('click', function () {
+      if (state.activeTool) return;
+      toggleChrome();
+    });
+  }
+
+  // Stub — real auto-hide logic lands in the next commit.
+  function toggleChrome() { /* implemented in commit 4 */ }
+
   function setupSwipe() {
     var startX = 0, startY = 0, startTime = 0, touching = false, fingers = 0;
     slideStage.addEventListener('touchstart', function (e) {

@@ -509,6 +509,39 @@ img.card-thumb { background: var(--tint-1); }
   transition: background-position var(--t-fast) linear;
 }
 
+/* Tap zones (e-book style: left=prev, center=toggle, right=next) */
+#tap-zones {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  z-index: 20;
+  pointer-events: none; /* children take over */
+}
+.tap-zone {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
+}
+.tap-zone-prev   { flex-basis: 33%; }
+.tap-zone-toggle { flex-basis: 34%; }
+.tap-zone-next   { flex-basis: 33%; }
+.tap-zone:focus-visible {
+  outline: 2px dashed rgba(255,255,255,0.35);
+  outline-offset: -6px;
+}
+/* Disable tap zones while a drawing tool is active so pen/spot/laser work */
+.player-stage.tool-pen   #tap-zones,
+.player-stage.tool-spot  #tap-zones,
+.player-stage.tool-laser #tap-zones { pointer-events: none; }
+.player-stage.tool-pen   .tap-zone,
+.player-stage.tool-spot  .tap-zone,
+.player-stage.tool-laser .tap-zone { pointer-events: none; cursor: none; }
+
 /* Player controls bar */
 .player-controls {
   display: flex; justify-content: space-between; align-items: center;
