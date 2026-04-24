@@ -66,6 +66,8 @@
   var offlineBanner = $('offline-banner');
   var updateBanner = $('update-banner');
   var updateBtn = $('update-btn');
+  var installHint = $('install-hint');
+  var installHintClose = $('install-hint-close');
 
   // ============================================================
   // Static metadata: built-in calculators (separate from JSON data)
@@ -131,6 +133,7 @@
     setupPlayerControls();
     setupTapZones();
     setupScrubber();
+    setupInstallHint();
     setupCalcShell();
     registerServiceWorker();
     loadIndex();
@@ -544,6 +547,33 @@
   // ============================================================
   // Touch / Swipe (player)
   // ============================================================
+  // ============================================================
+  // iOS Safari install hint (one-time banner)
+  // ============================================================
+  function setupInstallHint() {
+    if (!installHint || !installHintClose) return;
+    // Skip if user already dismissed
+    try { if (localStorage.getItem('dismissed_install_hint') === '1') return; }
+    catch (e) { /* storage disabled — show the hint anyway */ }
+
+    // Already installed to home screen → no hint
+    if (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) return;
+    if (navigator.standalone === true) return; // legacy iOS
+
+    // Show only on iPhone / iPad Safari. UA sniffing is fragile but this
+    // is a purely cosmetic hint — false negatives are fine.
+    var ua = navigator.userAgent || '';
+    var isIOS = /iPad|iPhone|iPod/.test(ua) && !/(CriOS|FxiOS|EdgiOS|OPiOS)/.test(ua);
+    var isIPadOS = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+    if (!isIOS && !isIPadOS) return;
+
+    installHint.hidden = false;
+    installHintClose.addEventListener('click', function () {
+      installHint.hidden = true;
+      try { localStorage.setItem('dismissed_install_hint', '1'); } catch (e) {}
+    });
+  }
+
   // ============================================================
   // Tap zones (e-book style: left=prev, center=toggle chrome, right=next)
   // ============================================================
