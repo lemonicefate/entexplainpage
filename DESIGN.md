@@ -189,9 +189,37 @@ CSS custom property 定義於 `:root`，禁止 hardcode hex（測試會擋）。
 - Frame 條紋背景：對角線重複條紋 `linear-gradient(135deg, ...)` + `--player-bg-2`
 - 工具：`pen` / `spot` / `laser` / `exit`
 - Active 工具：`--peach` 背景
-- 縮圖列：`--player-bg-3` 底，active 縮圖 `--peach` 邊框
+- 縮圖列：`--player-bg-3` 底，active 縮圖 `--peach` 邊框（**桌機 ≥768px**）
 - 雷射指標：紅色發光點跟隨游標（10px / box-shadow blur）
 - 聚光燈：`radial-gradient` 暗化 overlay，140px 透明半徑
+
+#### Reader mode（v0.2.1.0）
+
+為解決行動裝置瀏覽器 chrome 佔畫面、縮圖列精準度差的問題，播放器採用電子書式互動：
+
+```
+┌──────────┬──────────┬──────────┐
+│          │          │          │
+│  PREV    │  TOGGLE  │  NEXT    │
+│  (33%)   │  (34%)   │  (33%)   │
+│          │          │          │
+└──────────┴──────────┴──────────┘
+        ─────── scrubber ───────
+              「5 / 12」
+```
+
+- **三區 tap zone** 絕對定位覆蓋 stage：左 33% 上一頁、中央 34% toggle 工具列、右 33% 下一頁
+- **自動隱藏**：進入播放顯示 3 秒後套 `.is-immersive`，頂部/底部/scrubber/thumbs 全部 `opacity: 0` + `pointer-events: none`（`--chrome-fade: 240ms`）
+- **工具啟用時** (`state.activeTool`)：tap zones 全部 `pointer-events: none`，chrome 強制顯示並取消自動隱藏 timer
+- **Viewport**：`height: 100dvh` 搭配 `100vh` fallback、`touch-action: manipulation`、`overscroll-behavior: none`
+- **底部 scrubber（≤768px）**：`<input type=range>` 桃橘 thumb（24px），取代 thumbs 條；`renderStep()` 呼叫 `syncScrubber()` 雙向綁定
+
+#### iOS 加入主畫面提示（v0.2.1.0）
+
+- 觸發：iPhone/iPad Safari + 非 standalone + localStorage 無 dismiss flag
+- 位置：底部 fixed banner，slide-up 動畫 260ms
+- 叉叉關閉 → `localStorage.dismissed_install_hint = '1'` 永久記住
+- 目的：即使 PWA scope 修好，仍需使用者主動「加入主畫面」才能進入 standalone
 
 ### 4.3 計算機頁（CalcPage）
 

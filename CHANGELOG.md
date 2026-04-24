@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.1.0] - 2026-04-25
+
+### Added
+- **Reader mode（電子書式沉浸閱讀）**：播放器左/中/右三區 tap navigation（上一頁 / 切換工具列 / 下一頁），進入播放後 3 秒自動隱藏工具列與返回按鈕，中央再 tap 恢復顯示，工具啟用中 tap zones 自動停用
+- **手機版底部 scrubber（拖拉桿）**：`<input type=range>` 配桃橘 thumb，支援單手快速跳頁，顯示「5 / 12」頁碼；桌機版保留 thumbnail 條（768px 分水嶺 RWD）
+- **播放器 100dvh viewport**：使用 dynamic viewport unit，在行動瀏覽器工具列自動隱藏時回收畫面空間；`touch-action: manipulation` 消除 iOS 300ms tap 延遲；`overscroll-behavior: none` 防止 pull-to-refresh 誤觸
+- **iOS Safari 加入主畫面提示 banner**：第一次在 iPhone/iPad Safari 打開時顯示一次性底部提示，告知加入主畫面可全螢幕使用；使用者關閉後 localStorage 記住不再顯示
+
+### Fixed
+- **PWA 安裝修正**：v0.2.0.0 及更早版本的 `manifest.json` 用 `"start_url": "/"`，在 GitHub Pages project site（`/entexplainpage/`）下會把 standalone app 鎖到 user root（`lemonicefate.github.io/`），安裝後無法正確開啟。現改 `"./"` 並新增 `scope: "./"`
+- **Service Worker scope 修正**：將 `sw.js` 從 `js/sw.js` 搬到 project root，讓 SW scope 涵蓋整個 app；`PRECACHE_URLS` 從絕對路徑 (`/index.html`) 改相對路徑 (`./index.html`)，修正 SW install 時 `cache.addAll` 抓到 404 而從未成功 activate 的 bug（過去的「離線支援」在 production 事實上沒運作）
+- **更新 banner 誤判**：SW scope 修正後，`clients.claim()` 會在首次安裝時就設定 controller，導致 update banner 在全新安裝也誤顯示並擋住返回按鈕。改為在 `updatefound` 當下捕捉 controller 狀態，僅真正更新時才提示
+
+### Changed
+- SW cache 版本 `entexplain-v3` → `entexplain-v4`，強制重新抓取所有資產（避免混用舊絕對路徑 cache）
+
+### Upgrade notes
+- **升級後建議在 iPad Safari 清一次 site data** 確保完全乾淨：設定 → Safari → 進階 → 網站資料 → 搜尋 entexplainpage 移除。不清也可以，新 SW 會接管，舊 SW 殘留無副作用。
+- 升級後請重新「加入主畫面」一次，以使用正確的 start_url
+
 ## [0.2.0.0] - 2026-04-24
 
 ### Added
