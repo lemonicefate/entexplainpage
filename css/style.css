@@ -537,7 +537,17 @@ img.card-thumb { background: var(--tint-1); }
   position: absolute; inset: 0;
   pointer-events: none;
   z-index: 25;
-  background: radial-gradient(circle 140px at var(--spot-x, 50%) var(--spot-y, 50%), transparent 0%, rgba(0,0,0,0.78) 100%);
+  /* Widened from 140px. Responsive via clamp; mobile stays ~180, desktop
+     reaches ~280 so the highlighted region is large enough to contain a
+     real anatomical feature, not just a single structure. Gradient plateau
+     (fully transparent up to 40%) gives a usable "bright core" before the
+     fade begins, not a pointwise bright center. */
+  background: radial-gradient(
+    circle clamp(180px, 24vw, 280px) at var(--spot-x, 50%) var(--spot-y, 50%),
+    transparent 0%,
+    transparent 40%,
+    rgba(0,0,0,0.80) 100%
+  );
   transition: background-position var(--t-fast) linear;
 }
 
