@@ -700,8 +700,14 @@
         reg.addEventListener('updatefound', function () {
           var nw = reg.installing;
           if (!nw) return;
+          // Capture controller state at update-found time, NOT at activation.
+          // On first install, clients.claim() sets controller during activate,
+          // so checking controller at statechange would be true — false positive.
+          // A real update is defined by: a controller already existed when the
+          // new SW began installing.
+          var hadController = !!navigator.serviceWorker.controller;
           nw.addEventListener('statechange', function () {
-            if (nw.state === 'activated' && navigator.serviceWorker.controller) updateBanner.hidden = false;
+            if (nw.state === 'activated' && hadController) updateBanner.hidden = false;
           });
         });
       })
