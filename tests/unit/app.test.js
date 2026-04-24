@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { JSDOM } from 'jsdom';
 import fs from 'fs';
 import path from 'path';
@@ -6,14 +6,13 @@ import path from 'path';
 const htmlContent = fs.readFileSync(path.resolve(__dirname, '../../index.html'), 'utf-8');
 
 function createDOM() {
-  const dom = new JSDOM(htmlContent, {
+  return new JSDOM(htmlContent, {
     url: 'http://localhost/',
     pretendToBeVisual: true
   });
-  return dom;
 }
 
-describe('Grid View', () => {
+describe('Home view', () => {
   let dom, document;
 
   beforeEach(() => {
@@ -21,33 +20,40 @@ describe('Grid View', () => {
     document = dom.window.document;
   });
 
-  it('should have grid-view as the active view by default', () => {
-    const gridView = document.getElementById('grid-view');
-    expect(gridView.classList.contains('active')).toBe(true);
+  it('home-view is the active view by default', () => {
+    const homeView = document.getElementById('home-view');
+    expect(homeView.classList.contains('active')).toBe(true);
   });
 
-  it('should have slide-view hidden by default', () => {
-    const slideView = document.getElementById('slide-view');
-    expect(slideView.classList.contains('active')).toBe(false);
+  it('slide-view and calc-view are hidden by default', () => {
+    expect(document.getElementById('slide-view').classList.contains('active')).toBe(false);
+    expect(document.getElementById('calc-view').classList.contains('active')).toBe(false);
   });
 
-  it('should display skeleton loading cards initially', () => {
+  it('renders skeleton cards while loading', () => {
     const skeletons = document.querySelectorAll('.card.skeleton');
     expect(skeletons.length).toBe(3);
   });
 
-  it('should have empty state hidden by default', () => {
-    const emptyState = document.getElementById('grid-empty');
-    expect(emptyState.hidden).toBe(true);
+  it('grid empty / error states are hidden by default', () => {
+    expect(document.getElementById('grid-empty').hidden).toBe(true);
+    expect(document.getElementById('grid-error').hidden).toBe(true);
   });
 
-  it('should have error state hidden by default', () => {
-    const errorState = document.getElementById('grid-error');
-    expect(errorState.hidden).toBe(true);
+  it('search input exists with ARIA label', () => {
+    const search = document.getElementById('search-input');
+    expect(search).not.toBeNull();
+    expect(search.getAttribute('aria-label')).toBe('搜尋');
+  });
+
+  it('filter chips container has tablist role', () => {
+    const chips = document.getElementById('filter-chips');
+    expect(chips).not.toBeNull();
+    expect(chips.getAttribute('role')).toBe('tablist');
   });
 });
 
-describe('Slide View HTML structure', () => {
+describe('Slide player structure', () => {
   let dom, document;
 
   beforeEach(() => {
@@ -55,48 +61,43 @@ describe('Slide View HTML structure', () => {
     document = dom.window.document;
   });
 
-  it('should have a back button with correct aria-label', () => {
+  it('back button has aria-label', () => {
     const backBtn = document.getElementById('back-btn');
     expect(backBtn).not.toBeNull();
-    expect(backBtn.getAttribute('aria-label')).toBe('返回手術清單');
+    expect(backBtn.getAttribute('aria-label')).toBe('返回列表');
   });
 
-  it('should have a step indicator with aria-live', () => {
+  it('step indicator has aria-live', () => {
     const indicator = document.getElementById('step-indicator');
-    expect(indicator).not.toBeNull();
     expect(indicator.getAttribute('aria-live')).toBe('polite');
   });
 
-  it('should have prev/next buttons with aria-labels', () => {
-    const prev = document.getElementById('prev-btn');
-    const next = document.getElementById('next-btn');
-    expect(prev.getAttribute('aria-label')).toBe('上一步');
-    expect(next.getAttribute('aria-label')).toBe('下一步');
+  it('prev/next buttons have aria-labels', () => {
+    expect(document.getElementById('prev-btn').getAttribute('aria-label')).toBe('上一頁');
+    expect(document.getElementById('next-btn').getAttribute('aria-label')).toBe('下一頁');
   });
 
-  it('should have slide-view with region role and aria-label', () => {
+  it('slide-view has region role and label', () => {
     const slideView = document.getElementById('slide-view');
     expect(slideView.getAttribute('role')).toBe('region');
-    expect(slideView.getAttribute('aria-label')).toBe('衛教説明投影片');
+    expect(slideView.getAttribute('aria-label')).toBe('衛教投影片播放器');
   });
 
-  it('should have end screen hidden by default', () => {
-    const endScreen = document.getElementById('end-screen');
-    expect(endScreen.hidden).toBe(true);
+  it('end screen, banners hidden by default', () => {
+    expect(document.getElementById('end-screen').hidden).toBe(true);
+    expect(document.getElementById('offline-banner').hidden).toBe(true);
+    expect(document.getElementById('update-banner').hidden).toBe(true);
   });
 
-  it('should have offline banner hidden by default', () => {
-    const banner = document.getElementById('offline-banner');
-    expect(banner.hidden).toBe(true);
-  });
-
-  it('should have update banner hidden by default', () => {
-    const banner = document.getElementById('update-banner');
-    expect(banner.hidden).toBe(true);
+  it('player tools are present', () => {
+    expect(document.getElementById('tool-pen')).not.toBeNull();
+    expect(document.getElementById('tool-spot')).not.toBeNull();
+    expect(document.getElementById('tool-laser')).not.toBeNull();
+    expect(document.getElementById('thumb-strip')).not.toBeNull();
   });
 });
 
-describe('Category tabs', () => {
+describe('Calculator view structure', () => {
   let dom, document;
 
   beforeEach(() => {
@@ -104,117 +105,102 @@ describe('Category tabs', () => {
     document = dom.window.document;
   });
 
-  it('should have category-tabs container with tablist role', () => {
-    const tabs = document.getElementById('category-tabs');
-    expect(tabs).not.toBeNull();
-    expect(tabs.getAttribute('role')).toBe('tablist');
+  it('calc-view has region role and label', () => {
+    const v = document.getElementById('calc-view');
+    expect(v.getAttribute('role')).toBe('region');
+    expect(v.getAttribute('aria-label')).toBe('醫學計算機');
   });
 
-  it('should have "all" tab active by default', () => {
-    const allTab = document.querySelector('.tab.active');
-    expect(allTab).not.toBeNull();
-    expect(allTab.dataset.category).toBe('all');
-    expect(allTab.getAttribute('aria-selected')).toBe('true');
+  it('calc back button and tab list exist', () => {
+    expect(document.getElementById('calc-back')).not.toBeNull();
+    expect(document.getElementById('calc-tabs').getAttribute('role')).toBe('tablist');
+    expect(document.getElementById('calc-body')).not.toBeNull();
   });
 });
 
-describe('CSS design tokens', () => {
+describe('CSS design tokens (Warm Teal × Peach)', () => {
   let cssContent;
 
   beforeEach(() => {
     cssContent = fs.readFileSync(path.resolve(__dirname, '../../css/style.css'), 'utf-8');
   });
 
-  it('should use the correct background colors', () => {
-    expect(cssContent).toContain('--bg-primary: #FFFFFF');
-    expect(cssContent).toContain('--bg-dark: #1A1A1A');
+  it('uses brand teal and deep navy tokens', () => {
+    expect(cssContent).toContain('--teal:');
+    expect(cssContent).toContain('#0e7c7b');
+    expect(cssContent).toContain('--fg:');
+    expect(cssContent).toContain('#0f2a42');
   });
 
-  it('should use the correct accent color', () => {
-    expect(cssContent).toContain('--accent: #0077B6');
-  });
-
-  it('should use Noto Sans TC as primary font', () => {
+  it('uses Noto Sans TC and Instrument Serif', () => {
     expect(cssContent).toContain('Noto Sans TC');
+    expect(cssContent).toContain('Instrument Serif');
   });
 
-  it('should define 44px minimum touch targets', () => {
-    expect(cssContent).toContain('min-width: 44px');
-    expect(cssContent).toContain('min-height: 44px');
+  it('does not use outline:none (a11y)', () => {
+    expect(cssContent).not.toMatch(/outline:\s*none/);
   });
 
-  it('should have responsive breakpoints', () => {
+  it('defines responsive breakpoints', () => {
     expect(cssContent).toContain('max-width: 1024px');
+    expect(cssContent).toContain('max-width: 768px');
     expect(cssContent).toContain('max-width: 480px');
   });
 
-  it('should not use outline: none (a11y)', () => {
-    expect(cssContent).not.toContain('outline: none');
-  });
-
-  it('should define all required design tokens in :root', () => {
-    const requiredTokens = [
-      '--bg-primary', '--bg-dark', '--bg-muted', '--bg-skeleton',
-      '--font',
-      '--text-primary', '--text-light', '--text-secondary', '--text-muted',
-      '--text-disabled', '--text-hint',
-      '--accent', '--accent-hover',
-      '--border-light', '--overlay', '--overlay-nav',
-      '--text-on-dark', '--text-on-dark-muted', '--text-on-dark-subtle',
-      '--text-sm', '--text-base', '--text-lg', '--text-xl',
-      '--weight-normal', '--weight-medium', '--weight-semibold', '--weight-bold',
-      '--space-xs', '--space-sm', '--space-md', '--space-lg', '--space-xl',
-      '--radius-sm', '--radius', '--radius-pill',
-      '--shadow', '--shadow-hover',
-      '--transition', '--transition-fast', '--transition-image',
+  it('declares core design tokens in :root', () => {
+    const required = [
+      '--fg', '--teal', '--teal-2', '--bg', '--muted',
+      '--ink', '--ink-2', '--ink-3',
+      '--surface', '--line', '--line-strong',
+      '--peach', '--gold',
+      '--player-bg',
+      '--ok-fg', '--ok-bg', '--warn-fg', '--warn-bg', '--danger-fg', '--danger-bg',
+      '--tag-explain-bg', '--tag-surgery-bg', '--tag-calc-bg',
+      '--font', '--font-serif', '--font-mono',
+      '--r', '--r-md', '--r-pill',
+      '--shadow-card', '--shadow-hover',
+      '--t', '--t-fast'
     ];
-    requiredTokens.forEach(token => {
-      expect(cssContent).toContain(token + ':');
+    required.forEach(t => {
+      expect(cssContent).toContain(t + ':');
     });
   });
 });
 
 describe('Procedure JSON schema', () => {
-  it('index.json should have valid structure with categories', () => {
+  it('index.json has valid structure with categories', () => {
     const index = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../procedures/index.json'), 'utf-8'));
-    expect(index.categories).toBeDefined();
     expect(Array.isArray(index.categories)).toBe(true);
     index.categories.forEach(cat => {
       expect(cat.id).toBeDefined();
       expect(cat.title).toBeDefined();
     });
-    expect(index.procedures).toBeDefined();
     expect(Array.isArray(index.procedures)).toBe(true);
     index.procedures.forEach(proc => {
       expect(proc.id).toBeDefined();
       expect(proc.title).toBeDefined();
       expect(proc.thumbnail).toBeDefined();
       expect(proc.category).toBeDefined();
+      expect(proc.type).toBeDefined();        // new field
     });
   });
 
-  it('should have the four clinic categories', () => {
+  it('has the four clinic categories', () => {
     const index = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../procedures/index.json'), 'utf-8'));
-    const categoryIds = index.categories.map(c => c.id);
-    expect(categoryIds).toContain('surgery');
-    expect(categoryIds).toContain('ent');
-    expect(categoryIds).toContain('weight');
-    expect(categoryIds).toContain('functional');
+    const ids = index.categories.map(c => c.id);
+    ['surgery', 'ent', 'weight', 'functional'].forEach(id => expect(ids).toContain(id));
   });
 
-  it('each procedure should reference a valid category', () => {
+  it('each procedure references a valid category', () => {
     const index = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../procedures/index.json'), 'utf-8'));
-    const categoryIds = index.categories.map(c => c.id);
-    index.procedures.forEach(proc => {
-      expect(categoryIds).toContain(proc.category);
-    });
+    const ids = index.categories.map(c => c.id);
+    index.procedures.forEach(proc => expect(ids).toContain(proc.category));
   });
 
-  it('each procedure JSON should have valid steps', () => {
+  it('each procedure JSON has valid steps', () => {
     const index = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../procedures/index.json'), 'utf-8'));
     index.procedures.forEach(proc => {
-      const filePath = path.resolve(__dirname, '../../procedures/' + proc.id + '.json');
-      const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+      const data = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../procedures/' + proc.id + '.json'), 'utf-8'));
       expect(data.id).toBe(proc.id);
       expect(data.title).toBeDefined();
       expect(Array.isArray(data.steps)).toBe(true);
@@ -229,36 +215,36 @@ describe('Procedure JSON schema', () => {
   });
 });
 
-describe('Service Worker', () => {
+describe('Service worker', () => {
   let swContent;
 
   beforeEach(() => {
     swContent = fs.readFileSync(path.resolve(__dirname, '../../js/sw.js'), 'utf-8');
   });
 
-  it('should precache core resources', () => {
+  it('precaches core resources', () => {
     expect(swContent).toContain('/index.html');
     expect(swContent).toContain('/css/style.css');
     expect(swContent).toContain('/js/app.js');
     expect(swContent).toContain('/procedures/index.json');
   });
 
-  it('should use cache-first strategy', () => {
+  it('uses cache-first strategy', () => {
     expect(swContent).toContain('caches.match');
   });
 
-  it('should clean up old caches on activate', () => {
+  it('cleans up old caches on activate', () => {
     expect(swContent).toContain('caches.keys');
     expect(swContent).toContain('caches.delete');
   });
 });
 
 describe('PWA manifest', () => {
-  it('should have valid manifest.json', () => {
+  it('valid manifest.json with new theme', () => {
     const manifest = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../manifest.json'), 'utf-8'));
-    expect(manifest.name).toBe('手術衛教');
+    expect(manifest.name).toBe('診間解說 · Explain');
     expect(manifest.display).toBe('standalone');
     expect(manifest.lang).toBe('zh-TW');
-    expect(manifest.theme_color).toBe('#0077B6');
+    expect(manifest.theme_color).toBe('#0e7c7b');
   });
 });

@@ -1,291 +1,377 @@
-# DESIGN.md — 衛教投影片系統設計規格
+# DESIGN.md — 診間解說 · Explain
 
-> 一站式設計系統文件，涵蓋視覺 token、元件規格、無障礙標準、資料格式。
-> 目標讀者：自己（未來回顧用）+ 其他可能貢獻 UI 的開發者/設計師。
+> 設計系統文件：色彩 token、元件規格、無障礙標準、資料格式。
+> 目標讀者：自己（未來回顧用）+ 其他可能貢獻 UI 的開發者。
+
+---
+
+## 0. 產品概述
+
+**診間解說（Clinic Explain）** 是給門診醫師在診間使用的溝通輔助工具。三大功能：
+
+| 模組 | 說明 |
+|------|------|
+| 解釋病情（explain） | 多頁圖卡，解剖圖、分級、治療選擇 |
+| 手術流程（surgery） | 步驟式圖卡，從術前到術後 |
+| 醫學計算機（calc） | BMI、血脂風險 + Statin 給付、小兒劑量 |
+
+**設計取向：** Warm Teal × Peach。專業、眼睛舒適、適合長時間閱讀。
 
 ---
 
 ## 1. 色彩系統
 
-所有顏色以 CSS custom property 定義於 `:root`，禁止 hardcode hex。
+CSS custom property 定義於 `:root`，禁止 hardcode hex（測試會擋）。
 
-### 基底色
-
+### 基底
 | Token | 值 | 用途 |
-|-------|------|------|
-| `--bg-primary` | `#FFFFFF` | 頁面背景、卡片背景 |
-| `--bg-dark` | `#1A1A1A` | 投影片背景、結束畫面 |
-| `--bg-muted` | `#F5F5F5` | 離線 banner、hover 底色 |
-| `--bg-skeleton` | `#F0F0F0` | Skeleton 載入底色 |
+|-------|----|------|
+| `--fg` | `#0f2a42` | 主要文字、深色背景（播放器） |
+| `--teal` | `#0e7c7b` | 品牌主色、按鈕、結果卡標頭 |
+| `--teal-deep` | `#0a6968` | 漸層末端、hover |
+| `--teal-2` | `#4a9e94` | section label、次要 teal |
+| `--bg` | `#ffffff` | 頁面背景 |
+| `--muted` | `#56706c` | 次要文字 |
 
-### 文字色
-
+### Ink 階層（深淺三級）
 | Token | 值 | 用途 |
-|-------|------|------|
-| `--text-primary` | `#1A1A1A` | 主要文字 |
-| `--text-light` | `#FFFFFF` | 深色背景上的文字 |
-| `--text-secondary` | `#666666` | 次要文字（grid header） |
-| `--text-muted` | `#888888` | 非活躍 tab、輔助文字 |
-| `--text-disabled` | `#999999` | 空狀態文字、banner 文字 |
-| `--text-hint` | `#BBBBBB` | 空狀態副文字 |
+|-------|----|------|
+| `--ink` | `#1a3942` | 卡片標題、品牌文字 |
+| `--ink-2` | `#3a5064` | 表單 label、內文 |
+| `--ink-3` | `#8aa3a0` | placeholder、計數、kbd |
 
-### 互動色
-
+### Surface / 線條
 | Token | 值 | 用途 |
-|-------|------|------|
-| `--accent` | `#0077B6` | 按鈕、活躍 tab、focus ring、PWA theme color |
-| `--accent-hover` | `#005A8C` | hover 狀態 |
+|-------|----|------|
+| `--surface` | `#ffffff` | 卡片底色 |
+| `--surface-pin` | `#fffdf5` | 釘選卡片米黃底 |
+| `--line` | `#eaf2ef` | 一般邊框 |
+| `--line-strong` | `#d7e4e0` | 表單邊框 |
+| `--tint-1` | `#f0f7f4` | 輸入底色、淺背景 |
+| `--tint-2` | `#f5faf8` | tab bar 底、摘要底 |
 
-### 覆蓋層與邊框
-
+### Accent
 | Token | 值 | 用途 |
-|-------|------|------|
-| `--border-light` | `#E0E0E0` | skeleton 中色調、離線 banner 邊框、圖片錯誤 fallback |
-| `--overlay` | `rgba(0,0,0,0.7)` | 投影片文字面板 |
-| `--overlay-nav` | `rgba(0,0,0,0.8)` | 投影片導航列 |
+|-------|----|------|
+| `--peach` | `#e5966a` | 播放器工具 active |
+| `--peach-soft` | `#fbe7d9` | 手術 tag 底 |
+| `--peach-ink` | `#a65a2e` | 手術 tag 文字 |
+| `--gold` | `#f2c94c` | focus ring、釘星 |
+| `--gold-soft` | `#fef6dc` | 釘按鈕 active 底 |
 
-### 深色背景文字
+### Player 深色面
+| Token | 值 |
+|-------|----|
+| `--player-bg` | `#0f2a42` |
+| `--player-bg-2` | `#1a3a55` |
+| `--player-bg-3` | `#081a2c` |
 
-三層層次，用於深色（`--bg-dark`）背景上的文字：
+### 語意色（計算結果判讀）
+| 狀態 | 前景 | 背景 | 符號 |
+|------|------|------|------|
+| `ok` | `#1a7a4a` | `#e7f5ef` | ● |
+| `warn` | `#a07a14` | `#fdf4d9` | ■ |
+| `danger` | `#c44a2e` | `#fde6e0` | ▲ |
+| `info` | `#0e7c7b` | `#e7f3f1` | ● |
 
-| Token | 值 | 用途 |
-|-------|------|------|
-| `--text-on-dark` | `rgba(255,255,255,0.85)` | 步驟指示器、投影片上的主要白色文字（原設計為 0.8，更新至 0.85 以提升可讀性） |
-| `--text-on-dark-muted` | `rgba(255,255,255,0.5)` | 箭頭按鈕、image-placeholder 主文字、輔助文字 |
-| `--text-on-dark-subtle` | `rgba(255,255,255,0.4)` | placeholder-alt 副文字（與 muted 形成主副層次） |
-
-**命名原則：** 用途導向（`text-secondary`）而非色值導向（`grey-600`）。
-
-**總計 18 個色彩 token。**
+### Tag 標籤色
+| 類型 | 背景 token | 文字 token |
+|------|-----------|-----------|
+| `explain` | `--tag-explain-bg` `#e7f3f1` | `--tag-explain-fg` `#0e7c7b` |
+| `surgery` | `--tag-surgery-bg` `#fbe7d9` | `--tag-surgery-fg` `#a65a2e` |
+| `calc` | `--tag-calc-bg` `#efe9fb` | `--tag-calc-fg` `#6b4ac7` |
 
 ---
 
 ## 2. 字型與排版
 
-### 字型堆疊
+| Token | 用途 |
+|-------|------|
+| `--font` `Noto Sans TC, -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif` | 主字型（中文 + 一般 UI） |
+| `--font-serif` `Instrument Serif, "Cormorant Garamond", Georgia, serif` | 品牌副標 "Explain" |
+| `--font-mono` `ui-monospace, "SF Mono", Menlo, Consolas, monospace` | 頁碼、kbd、placeholder label |
+
+### 字級
+| 用途 | 值 |
+|------|------|
+| 卡片副文字、tag、kbd | 11–12px |
+| 內文 | 13–14px |
+| 卡片標題 | 15px |
+| 搜尋輸入 | 17px |
+| 計算機 H3 | 20px |
+| 頁面標題（投影片中央） | 28px |
+| 結果卡數值 | 42px |
+
+### 字重
+| 值 | 用途 |
+|------|------|
+| 400 | 正文 |
+| 500 | label、tab |
+| 600 | 卡片標題、tag、按鈕 |
+| 700 | H3、品牌、結果數值 |
+
+---
+
+## 3. 圓角、陰影、動態
+
+| Token | 值 | 用途 |
+|-------|------|------|
+| `--r-sm` | 6px | kbd 鍵帽 |
+| `--r` | 10px | 輸入框、check、tool 按鈕 |
+| `--r-md` | 14px | 卡片、結果卡、搜尋框 |
+| `--r-lg` | 20px | 大型容器 |
+| `--r-pill` | 999px | tag、chip、按鈕 pill |
 
 | Token | 值 |
 |-------|------|
-| `--font` | `"Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif` |
-
-Google Fonts 為主、macOS/iOS 次之、Windows 兜底。
-
-### 字級 Scale（4 級）
+| `--shadow-card` | `0 1px 2px rgba(15,42,66,0.04)` |
+| `--shadow-hover` | `0 16px 30px -20px rgba(15,42,66,0.2)` |
+| `--shadow-pop` | `0 12px 32px -12px rgba(15,42,66,0.18)` |
 
 | Token | 值 | 用途 |
 |-------|------|------|
-| `--text-sm` | `14px` | 副文字、banner、placeholder alt |
-| `--text-base` | `16px` | 預設正文、投影片說明、按鈕 |
-| `--text-lg` | `18px` | 卡片標題、投影片步驟標題、結束按鈕 |
-| `--text-xl` | `24px` | 結束畫面標題 |
+| `--t-fast` | `100ms ease` | 細微互動 |
+| `--t` | `150ms ease` | 通用 |
+| `--t-slow` | `220ms ease` | 較大過渡 |
 
-**例外值：** 分類 Tab 使用 `15px`（不在 scale 內），保留原始設計，不強制對齊 token。
+**Focus ring：** `2px solid var(--gold)`, offset `2px`（鍵盤可見）。
 
-### 字重
+---
 
-| Token | 值 | 用途 |
-|-------|------|------|
-| `--weight-normal` | `400` | 正文 |
-| `--weight-medium` | `500` | Tab、步驟指示器 |
-| `--weight-semibold` | `600` | 按鈕、grid header |
-| `--weight-bold` | `700` | 卡片標題、投影片標題、結束標題 |
+## 4. 元件規格
 
-### 行高
+### 4.1 首頁（HomePage）
 
-| 情境 | 值 |
+```
+┌─────────────────────────────────────────┐
+│ [衛] 診間解說 Explain        Dr. 王 ○ │  ← brand + user
+├─────────────────────────────────────────┤
+│       ┌─🔍 搜尋 (⌘K) ──────────┐        │
+│       └────────────────────────┘        │
+│         ⌘K · Esc · Enter                │
+│                                         │
+│ [全部] [★釘選 (3)] [病情] [手術] [計算]  │
+│                              42 個項目  │
+│ ┌──────┐ ┌──────┐ ┌──────┐              │
+│ │ 圖   │ │ 圖   │ │ 圖   │  …          │
+│ │ 標題 │ │ 標題 │ │ 標題 │              │
+│ │ tag ★│ │ tag ★│ │ tag ★│              │
+│ └──────┘ └──────┘ └──────┘              │
+└─────────────────────────────────────────┘
+```
+
+- 卡片懸停：`translateY(-2px)` + `--shadow-hover`
+- 釘選卡片底色：`--surface-pin`（米黃）
+- ⌘K 聚焦搜尋；Esc 清除查詢
+- Filter 排序：釘選優先 → 中文標題 localeCompare
+
+### 4.2 投影片播放器（PlayerPage）
+
+```
+┌────────────────────────────────────────────┐
+│ ← 返回列表                                  │  ← absolute top-left
+│  01 / 04                       專案標題     │
+│                              page subtitle  │
+│      ┌─────────────────────┐               │
+│      │  條紋深色背景         │               │
+│      │  ┌─────────────┐    │               │
+│      │  │ 圖片 / 標題  │    │               │
+│      │  │ 說明文字     │    │               │
+│      │  └─────────────┘    │               │
+│      └─────────────────────┘               │
+│                                            │
+│ [上一頁] [下一頁]    [畫筆][聚][雷][X]      │
+│ ────── 縮圖列 ─────────────────────────    │
+└────────────────────────────────────────────┘
+```
+
+- 深色背景 `--player-bg` (#0f2a42)
+- Frame 條紋背景：對角線重複條紋 `linear-gradient(135deg, ...)` + `--player-bg-2`
+- 工具：`pen` / `spot` / `laser` / `exit`
+- Active 工具：`--peach` 背景
+- 縮圖列：`--player-bg-3` 底，active 縮圖 `--peach` 邊框
+- 雷射指標：紅色發光點跟隨游標（10px / box-shadow blur）
+- 聚光燈：`radial-gradient` 暗化 overlay，140px 透明半徑
+
+### 4.3 計算機頁（CalcPage）
+
+```
+┌──────────────────────────────────────────┐
+│ ← 返回   醫學計算機                       │
+│                                          │
+│ [BMI] [血脂風險] [小兒劑量]               │  ← tab in pill
+│                                          │
+│ ┌──────────────────┐  ┌────────────┐     │
+│ │ INPUT CARD       │  │ RESULT     │     │
+│ │  欄位 / checkbox │  │  數值      │     │
+│ │  (左欄表單)       │  │  判讀      │     │
+│ │                  │  │  規則      │     │
+│ │                  │  │  摘要      │     │
+│ │                  │  │  按鈕      │     │
+│ └──────────────────┘  └────────────┘     │
+│                       (sticky)           │
+└──────────────────────────────────────────┘
+```
+
+- 兩欄 grid：`1fr 360px`，結果卡 `position: sticky`
+- 結果卡頭部：teal 漸層
+- 規則 RuleList：`●` 符合（綠）/ `○` 不符合（灰）
+- 摘要：虛線邊框 + `--tint-2` 底色
+- 行動按鈕：「投影給病人看」（primary teal）/「列印」（ghost）
+- ≤768px：單欄；結果卡取消 sticky
+
+### 4.4 共用元件清單
+
+| 元件 | class / id |
+|------|-----------|
+| Brand 標誌 | `.brand`, `.brand-mark`, `.brand-name`, `.brand-sub` |
+| 搜尋框 | `.search` + `.search-icon` |
+| 篩選 chip | `.chip` (`[aria-selected]`) |
+| 卡片 | `.card`, `.card-thumb`, `.card-info`, `.card-title`, `.card-sub`, `.card-foot` |
+| Tag pill | `.tag.tag-explain` `.tag-surgery` `.tag-calc` |
+| Pin button | `.pin-btn`（`.is-on` 高亮） |
+| Skeleton | `.skeleton-thumb` `.skeleton-line` |
+| 計算欄位 | `.field`, `.field-label`, `.field-input`, `.field-unit` |
+| Checkbox | `.check`（`.is-on` 高亮） |
+| 區塊 label | `.section-label` |
+| 結果卡 | `.result-card`, `.result-head`, `.verdict`, `.rules`, `.rule`, `.summary` |
+| Disclaimer | `.result-disclaimer` |
+| Player tool | `.tool[data-tool]`（`.is-active`） |
+| Thumb | `.thumb`（`.is-active`） |
+| Banner | `.banner-offline` `.banner-update` |
+
+---
+
+## 5. 鍵盤快捷鍵
+
+| 按鍵 | 所在頁面 | 功能 |
+|--------|---------|------|
+| `⌘K` / `Ctrl+K` | 首頁 | 聚焦搜尋列 |
+| `Esc` | 搜尋框 | 清除（再按一次：失焦） |
+| `←` / `→` / `Space` | 播放器 | 上 / 下一頁 |
+| `Esc` | 播放器 / 計算機 | 返回首頁 |
+| `1`–`9` | 播放器 | 跳到第 N 頁 |
+| `L` | 播放器 | 切換雷射指標 |
+| `S` | 播放器 | 切換聚光燈 |
+| `P` | 播放器 | 切換畫筆（toggle，繪圖功能 TODO） |
+
+---
+
+## 6. 路由（hash-based，無 router 套件）
+
+| Hash | 視圖 |
 |------|------|
-| 正文（投影片說明） | `1.5` |
-| 標題（卡片標題） | `1.3` |
+| `` 或 `#` | 首頁 |
+| `#/<id>` | 播放器，載入 `procedures/<id>.json` |
+| `#/calc` 或 `#/calc/<id>` | 計算機（id: `bmi` / `lipid` / `peds-dose`） |
+
+LocalStorage：
+- `clinic_pins`：已釘選 id 陣列
 
 ---
 
-## 3. 間距、圓角、陰影
+## 7. 響應式
 
-### 間距 Scale（8px 基底）
-
-| Token | 值 | 用途 |
-|-------|------|------|
-| `--space-xs` | `8px` | 元素內緊湊間距 |
-| `--space-sm` | `16px` | 卡片內距、按鈕 padding |
-| `--space-md` | `24px` | 區塊間距 |
-| `--space-lg` | `32px` | 主要區段間距 |
-| `--space-xl` | `48px` | 頁面頂部留白 |
-
-**原則：** 所有間距為 8 的倍數。
-
-### 圓角
-
-| Token | 值 | 用途 |
-|-------|------|------|
-| `--radius-sm` | `4px` | Skeleton 文字區塊 |
-| `--radius` | `8px` | 卡片、按鈕、一般容器 |
-| `--radius-pill` | `20px` | 分類 Tab（膠囊形） |
-
-### 陰影
-
-| Token | 值 | 用途 |
-|-------|------|------|
-| `--shadow` | `0 1px 3px rgba(0,0,0,0.12)` | 卡片靜止 |
-| `--shadow-hover` | `0 2px 8px rgba(0,0,0,0.2)` | 卡片 hover |
-
-### Z-Index 層級
-
-| 層級 | 值 | 元素 |
-|------|------|------|
-| 基底 | `auto` | 一般內容 |
-| 導航 | `5` | 箭頭按鈕 |
-| 固定 | `10` | 投影片導航列 |
-| 覆蓋 | `20` | 結束畫面 |
-| 系統 | `100` | Banner（離線/更新） |
-
-### 轉場動畫
-
-| Token | 值 | 用途 |
-|-------|------|------|
-| `--transition` | `200ms ease` | 通用轉場（hover、view 切換） |
-| `--transition-fast` | `100ms ease` | 箭頭按鈕 hover |
-| `--transition-image` | `150ms ease` | 圖片淡入 |
-
----
-
-## 4. 響應式斷點
-
-| 斷點 | 目標裝置 | 格線 | 特殊調整 |
-|------|---------|------|---------|
-| `≥ 1025px` | 桌機 | 3 欄 | 投影片圖片 max-width 800px |
-| `481–1024px` | 平板 | 2 欄 | — |
-| `≤ 480px` | 手機 | 1 欄 | 箭頭按鈕 40×40px / 20px 字、文字面板 max-height 35% |
-
-**觸控目標：** 所有互動元素最小 44×44px（WCAG 2.1 SC 2.5.5）。
-
----
-
-## 5. 元件規格
-
-### 5.1 分類 Tab 列
-
-- **外觀：** 膠囊形（`--radius-pill`）、水平可捲動、隱藏捲軸
-- **狀態：**
-  - 活躍：`--accent` 背景 + `--text-light` 文字
-  - 非活躍：透明背景 + `--text-muted`
-  - Hover：`--bg-skeleton` 背景
-- **無障礙：** `role="tablist"` 容器、`role="tab"` 各按鈕、`aria-selected` 標記當前
-
-### 5.2 衛教卡片
-
-- **佈局：** 16:9 縮圖 + 標題文字
-- **狀態：**
-  - 靜止：`--shadow`
-  - Hover：`translateY(-2px)` + `--shadow-hover`
-  - 載入中：skeleton shimmer 動畫
-- **連結：** `<a href="#/{id}">`，整張卡片可點擊
-- **圖片錯誤 fallback：** `--border-light` 背景
-
-### 5.3 投影片檢視器
-
-- **佈局：** 全螢幕深色背景（`--bg-dark`）、圖片 `object-fit: contain` 置中
-- **導航箭頭：** `--text-on-dark-muted` → hover `--text-light`
-- **文字面板：** 底部覆蓋層（`--overlay`）、max-height 30%（手機 35%）、溢出可捲動
-- **步驟指示器：** `--text-on-dark`、`aria-live="polite"`
-- **結束畫面：** z-index 20、標題 + 返回按鈕
-
-### 5.4 系統 Banner
-
-- **離線 banner：** 底部固定、`--bg-muted` 背景 + `--border-light` 上邊框
-- **更新 banner：** 頂部固定、`--accent` 背景 + `--text-light` 文字
-
-### 5.5 觸控與手勢
-
-| 參數 | 值 |
+| 斷點 | 調整 |
 |------|------|
-| 滑動閾值 | 50px 最小位移 |
-| 方向 | 水平位移 > 垂直位移 |
-| 時間限制 | 500ms 內完成 |
-| 多指處理 | 偵測到雙指時不觸發（保護 pinch-to-zoom） |
+| ≤ 1024px | grid `minmax(220px, 1fr)` |
+| ≤ 768px | 計算機改單欄、結果卡取消 sticky、欄位 grid 改單欄、頁面 padding 減 |
+| ≤ 480px | grid 單欄、按鈕 padding 縮小、縮圖縮小 |
 
-### 5.6 鍵盤導航
-
-| 按鍵 | 動作 | 適用情境 |
-|------|------|---------|
-| `→` | 下一步 | 投影片模式 |
-| `←` | 上一步 | 投影片模式 |
-| `Escape` | 返回列表 | 投影片模式 |
+**觸控目標：** 主要按鈕最小 44×44px（WCAG 2.1 SC 2.5.5）。
 
 ---
 
-## 6. 資料格式
+## 8. 資料格式
 
-### 索引檔 `procedures/index.json`
+### `procedures/index.json`
 
 ```json
 {
   "categories": [
     { "id": "surgery", "title": "手術" },
-    { "id": "ent", "title": "耳鼻喉" },
-    { "id": "weight", "title": "減重" },
-    { "id": "functional", "title": "功能醫學" }
+    { "id": "ent", "title": "耳鼻喉" }
   ],
   "procedures": [
     {
       "id": "appendectomy",
       "title": "闌尾切除術",
+      "subtitle": "腹腔鏡微創 · 5 步驟",
       "category": "surgery",
+      "type": "surgery",
+      "region": "腹",
+      "slides": 5,
       "thumbnail": "images/appendectomy/thumb.webp"
     }
   ]
 }
 ```
 
-- `category` 必須對應某個 `categories[].id`
-- `thumbnail` 路徑格式：`images/{id}/thumb.webp`
+| 欄位 | 必填 | 說明 |
+|------|------|------|
+| `id` | ✓ | 唯一識別 |
+| `title` | ✓ | 卡片主標 |
+| `subtitle` | — | 卡片副文字（推薦填寫） |
+| `category` | ✓ | 對應 `categories[].id` |
+| `type` | ✓ | `explain` / `surgery`（決定 tag 顏色與篩選） |
+| `region` | — | 解剖部位（耳/鼻/喉/腹…） |
+| `slides` | — | 步驟數，給卡片佔位顯示 |
+| `thumbnail` | ✓ | 16:9 縮圖路徑 |
 
-### 個別衛教檔 `procedures/{id}.json`
+### 個別 `procedures/<id>.json`
 
 ```json
 {
   "id": "appendectomy",
   "title": "闌尾切除術",
   "steps": [
-    {
-      "image": "images/appendectomy/step1.webp",
+    { "image": "images/appendectomy/step1.webp",
       "title": "步驟標題",
       "description": "步驟說明文字",
-      "alt": "圖片替代文字"
-    }
+      "alt": "圖片替代文字" }
   ]
 }
 ```
 
 ### 圖片規範
-
 | 項目 | 規格 |
 |------|------|
 | 格式 | WebP |
-| 縮圖命名 | `thumb.webp` |
-| 步驟命名 | `step{N}.webp`（1-indexed） |
+| 縮圖 | `thumb.webp` |
+| 步驟 | `step{N}.webp`（1-indexed） |
 | 目錄 | `images/{procedure-id}/` |
-| 縮圖顯示 | 16:9（CSS `aspect-ratio`） |
-| 步驟顯示 | `object-fit: contain` |
 
 ---
 
-## 7. 無障礙標準
+## 9. 無障礙
 
 | 標準 | 要求 |
 |------|------|
-| 配色對比 | WCAG AA（正文 4.5:1、大字 3:1） |
+| 對比 | WCAG AA（正文 4.5:1、大字 3:1） |
 | 觸控目標 | 最小 44×44px |
-| 鍵盤存取 | 所有互動功能可用鍵盤操作 |
-| ARIA 角色 | Tab 用 `role="tablist/tab"` + `aria-selected` |
-| 即時通知 | 步驟變更用 `aria-live="polite"` |
-| 語言標記 | `lang="zh-TW"` |
+| 鍵盤 | 所有互動可達；focus-visible ring 顯示 |
+| ARIA | filter chips 用 `role="tablist"` + `aria-selected`；step indicator `aria-live="polite"` |
+| 語言 | `lang="zh-TW"` |
+| outline | `:focus-visible` 顯示 gold ring；`outline:none` 在測試會被攔下，僅允許在已恢復視覺指引的情境用 `outline:0` |
 
 ---
 
-## 8. 新增衛教項目 Checklist
+## 10. 新增衛教項目 Checklist
 
 1. 建立圖片目錄 `images/{id}/`，放入 `thumb.webp` + `step1.webp` ~ `stepN.webp`
-2. 建立衛教 JSON `procedures/{id}.json`，依第 6 節 schema 填入步驟資料
-3. 更新索引 `procedures/index.json`，在 `procedures` 陣列新增條目
+2. 建立衛教 JSON `procedures/{id}.json`（依 §8 schema）
+3. 更新索引 `procedures/index.json`，新增條目並指定 `type` 與（建議）`subtitle` / `region` / `slides`
 4. 驗證 `category` 對應已存在的分類 ID
-5. 測試：開啟首頁 → 卡片出現 → 點擊進入投影片 → 翻完所有步驟 → 結束畫面
+5. 測試流程：開啟首頁 → 卡片出現 → 點擊進入播放器 → 翻完所有步驟 → 結束畫面
+
+---
+
+## 11. 待實作 / 下一步
+
+- [ ] 畫筆工具實際繪圖功能（Canvas）
+- [ ] 「投影給病人看」全螢幕模式（隱藏醫師操作面板）
+- [ ] 計算機列印版型（@media print）
+- [ ] 更多計算機：CHA₂DS₂-VASc、CrCl、IV 流速、GLP-1 NHI、FESS NHI
+- [ ] 流程圖分支播放（A→D / B→1 條件式跳頁）
+- [ ] 搜尋列 ↑↓ 導覽候選結果
+- [ ] 多醫師 / 多科室自訂衛教

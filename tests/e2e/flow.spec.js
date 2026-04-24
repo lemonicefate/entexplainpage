@@ -1,73 +1,73 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Complete consultation flow', () => {
-  test('should load grid, enter slideshow, navigate steps, and return', async ({ page }) => {
+  test('loads home, enters player, navigates steps, and returns', async ({ page }) => {
     await page.goto('/');
 
-    // Grid should be visible
-    await expect(page.locator('#grid-view')).toBeVisible();
+    // Home is visible
+    await expect(page.locator('#home-view')).toBeVisible();
 
-    // Wait for procedures to load (skeleton cards should be replaced)
+    // Wait for procedures to load (skeleton cards replaced by real cards)
     await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
 
-    // Click first procedure card
-    await page.locator('.card:not(.skeleton)').first().click();
+    // Click first project card (skip calculator cards by href)
+    await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
 
-    // Slideshow should be visible
+    // Player visible
     await expect(page.locator('#slide-view')).toBeVisible();
+    await expect(page.locator('#step-indicator')).toContainText('01 /');
 
-    // Step indicator should show 1/N
-    await expect(page.locator('#step-indicator')).toContainText('1 /');
-
-    // Click next arrow
+    // Next / Prev
     await page.locator('#next-btn').click();
-    await expect(page.locator('#step-indicator')).toContainText('2 /');
-
-    // Click prev arrow
+    await expect(page.locator('#step-indicator')).toContainText('02 /');
     await page.locator('#prev-btn').click();
-    await expect(page.locator('#step-indicator')).toContainText('1 /');
+    await expect(page.locator('#step-indicator')).toContainText('01 /');
 
-    // Click back button
+    // Back to home
     await page.locator('#back-btn').click();
-
-    // Grid should be visible again
-    await expect(page.locator('#grid-view')).toBeVisible();
+    await expect(page.locator('#home-view')).toBeVisible();
   });
 
-  test('should navigate with keyboard arrows', async ({ page }) => {
+  test('keyboard navigation works in player', async ({ page }) => {
     await page.goto('/');
-
-    // Wait for grid
     await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
-
-    // Enter slideshow
-    await page.locator('.card:not(.skeleton)').first().click();
+    await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
     await expect(page.locator('#slide-view')).toBeVisible();
 
-    // Press right arrow
     await page.keyboard.press('ArrowRight');
-    await expect(page.locator('#step-indicator')).toContainText('2 /');
+    await expect(page.locator('#step-indicator')).toContainText('02 /');
 
-    // Press left arrow
     await page.keyboard.press('ArrowLeft');
-    await expect(page.locator('#step-indicator')).toContainText('1 /');
+    await expect(page.locator('#step-indicator')).toContainText('01 /');
 
-    // Press Escape to go back
     await page.keyboard.press('Escape');
-    await expect(page.locator('#grid-view')).toBeVisible();
+    await expect(page.locator('#home-view')).toBeVisible();
+  });
+});
+
+test.describe('Calculator', () => {
+  test('opens calculator via direct hash and switches tabs', async ({ page }) => {
+    await page.goto('/#/calc/bmi');
+    await expect(page.locator('#calc-view')).toBeVisible();
+    await expect(page.locator('.calc-card h3')).toContainText('BMI');
+
+    // Result card renders
+    await expect(page.locator('.result-value').first()).toBeVisible();
+
+    // Switch to lipid tab
+    await page.locator('.calc-tab[data-calc="lipid"]').click();
+    await expect(page.locator('.calc-card h3')).toContainText('血脂');
   });
 });
 
 test.describe('Edge cases', () => {
-  test('should handle invalid hash gracefully', async ({ page }) => {
-    await page.goto('/#/nonexistent-surgery');
-
-    // Should redirect back to grid
-    await expect(page.locator('#grid-view')).toBeVisible({ timeout: 5000 });
+  test('invalid hash redirects to home', async ({ page }) => {
+    await page.goto('/#/nonexistent-procedure');
+    await expect(page.locator('#home-view')).toBeVisible({ timeout: 5000 });
   });
 
-  test('should show grid-view on empty hash', async ({ page }) => {
+  test('home shown on empty hash', async ({ page }) => {
     await page.goto('/');
-    await expect(page.locator('#grid-view')).toBeVisible();
+    await expect(page.locator('#home-view')).toBeVisible();
   });
 });
