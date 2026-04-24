@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0.0] - 2026-04-24
+
+### Added
+- **首頁重新設計**：品牌列（衛 / 診間解說 / Explain）、⌘K 搜尋輸入、篩選 chip（全部 / ★ 釘選 / 解釋病情 / 手術流程 / 計算機）、卡片 TagPill + 釘選按鈕（localStorage 持久化）
+- **播放器重新設計**：深色 `#0f2a42` 全螢幕、左上返回 / 右上專案標題＋頁面副標、中央條紋 frame 內含圖片或大字標題說明、底部上下頁 + 工具列（畫筆 / 聚光燈 / 雷射指標 / 退出）、縮圖列
+- **播放器工具**：雷射指標（紅色發光點）、聚光燈（暗化 radial overlay）、畫筆（toggle 預留）
+- **新增鍵盤快捷**：`L` 雷射、`S` 聚光燈、`P` 畫筆、`1`–`9` 跳頁、`Space` 下一頁
+- **計算機頁**：BMI / 血脂風險 + Statin 健保給付 / 小兒劑量 三個 calculator，左輸入右結果（sticky），含規則逐條核對與摘要
+- **路由擴充**：`#/calc` `#/calc/<id>` 計算機頁
+- 資料 schema 擴充：`subtitle` / `type` / `region` / `slides`
+
+### Changed
+- **設計系統全面替換為 Warm Teal × Peach**：主色 `#0e7c7b`、深藍字 `#0f2a42`、桃橘 `#e5966a`、Noto Sans TC + Instrument Serif 字型組合
+- DESIGN.md 完整改版以反映新設計系統與元件
+- PWA `theme_color` 改為 `#0e7c7b`，App 名稱改為「診間解說 · Explain」
+- SW cache 版本 `entexplain-v3`
+- admin.html 顏色 token 同步更新
+
 ## [0.1.1.0] - 2026-04-14
 
 ### Added
