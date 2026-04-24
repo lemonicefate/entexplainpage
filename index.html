@@ -3,67 +3,162 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0077B6">
-  <meta name="description" content="診間衛教投影片系統">
-  <title>衛教説明</title>
+  <meta name="theme-color" content="#0e7c7b">
+  <meta name="description" content="診間病情溝通輔助系統 — 衛教圖卡 / 手術流程 / 醫學計算機">
+  <title>診間解說 · Explain</title>
   <style>[hidden]{display:none!important}</style>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230e7c7b'/><text x='50' y='68' text-anchor='middle' font-size='58' font-family='sans-serif' font-weight='700' fill='%23fff'>衛</text></svg>">
 </head>
 <body>
   <div id="app">
-    <div id="grid-view" class="view active">
-      <header class="grid-header">
-        <h1>衛教説明</h1>
-        <nav id="category-tabs" class="category-tabs" role="tablist" aria-label="衛教分類">
-          <button class="tab active" role="tab" aria-selected="true" data-category="all">全部</button>
-        </nav>
-      </header>
-      <div id="grid-container" class="grid-container">
-        <!-- Skeleton cards shown during loading -->
-        <div class="card skeleton"><div class="skeleton-thumb"></div><div class="skeleton-text"></div></div>
-        <div class="card skeleton"><div class="skeleton-thumb"></div><div class="skeleton-text"></div></div>
-        <div class="card skeleton"><div class="skeleton-thumb"></div><div class="skeleton-text"></div></div>
-      </div>
-      <div id="grid-empty" class="empty-state" hidden>
-        <p>此分類尚未新增衛教內容</p>
-        <p class="empty-sub">請在 procedures/ 資料夾中新增資料</p>
-      </div>
-      <div id="grid-error" class="error-state" hidden>
-        <p>載入失敗</p>
-        <button class="retry-btn" onclick="window.location.reload()">重新整理</button>
-      </div>
-    </div>
 
-    <div id="slide-view" class="view" role="region" aria-label="衛教説明投影片">
-      <div class="slide-nav">
-        <button id="back-btn" class="nav-btn" aria-label="返回手術清單">← 返回</button>
-        <span id="step-indicator" class="step-indicator" aria-live="polite"></span>
-      </div>
-      <div id="slide-content" class="slide-content">
-        <img id="slide-image" class="slide-image" alt="">
-        <div id="image-placeholder" class="image-placeholder" hidden>
-          <p>圖片載入失敗</p>
-          <p id="placeholder-alt" class="placeholder-alt"></p>
+    <!-- ========== Home View ========== -->
+    <section id="home-view" class="view active">
+      <div class="home-wrap">
+        <header class="home-topbar">
+          <div class="brand">
+            <div class="brand-mark">衛</div>
+            <span class="brand-name">診間解說</span>
+            <span class="brand-sub">Explain</span>
+          </div>
+          <div class="user-chip">
+            <div class="avatar"></div>
+            <span>Dr. 王 · 第三診間</span>
+          </div>
+        </header>
+
+        <div class="search-wrap">
+          <span class="search-icon" aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          </span>
+          <input
+            id="search-input"
+            type="search"
+            class="search"
+            placeholder="搜尋衛教圖、手術流程、計算機... 例：鼻塞 / septoplasty / BMI"
+            aria-label="搜尋"
+            autocomplete="off">
         </div>
-        <button id="prev-btn" class="arrow-btn arrow-left" aria-label="上一步">&#9664;</button>
-        <button id="next-btn" class="arrow-btn arrow-right" aria-label="下一步">&#9654;</button>
-        <div id="slide-text-panel" class="slide-text-panel">
-          <h2 id="slide-title" class="slide-title"></h2>
-          <p id="slide-desc" class="slide-desc"></p>
+        <p class="kbd-hint">
+          <kbd class="kbd">⌘K</kbd> 快速搜尋 ·
+          <kbd class="kbd">Esc</kbd> 清除 ·
+          <kbd class="kbd">Enter</kbd> 開啟
+        </p>
+
+        <div class="toolbar">
+          <nav id="filter-chips" class="chips" role="tablist" aria-label="篩選"></nav>
+          <span id="result-count" class="result-count"></span>
+        </div>
+
+        <div id="grid-container" class="grid">
+          <!-- skeletons during load -->
+          <div class="card skeleton"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+          <div class="card skeleton"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+          <div class="card skeleton"><div class="skeleton-thumb"></div><div class="skeleton-body"><div class="skeleton-line"></div><div class="skeleton-line short"></div></div></div>
+        </div>
+
+        <div id="grid-empty" class="empty" hidden>
+          <div class="empty-mark">∅</div>
+          <p class="empty-title">找不到符合的項目</p>
+          <p class="empty-sub">試試其他關鍵字或切換篩選</p>
+        </div>
+        <div id="grid-error" class="empty" hidden>
+          <p class="empty-title">載入失敗</p>
+          <button class="btn-primary" onclick="window.location.reload()">重新整理</button>
         </div>
       </div>
+    </section>
+
+    <!-- ========== Slide Player View ========== -->
+    <section id="slide-view" class="view" role="region" aria-label="衛教投影片播放器">
+      <button id="back-btn" class="player-back" aria-label="返回列表">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+        返回列表
+      </button>
+
+      <header class="player-topbar">
+        <span id="step-indicator" class="player-counter" aria-live="polite">00 / 00</span>
+        <div class="player-title-area">
+          <div id="player-title" class="player-title"></div>
+          <div id="player-page-title" class="player-sub"></div>
+        </div>
+      </header>
+
+      <div id="slide-stage" class="player-stage">
+        <div id="slide-frame" class="player-frame">
+          <img id="slide-image" class="slide-image" alt="" hidden>
+          <div id="image-placeholder" class="image-placeholder" hidden>
+            <div class="ph-label" id="placeholder-label">圖片載入失敗</div>
+            <div class="ph-title" id="placeholder-title"></div>
+            <div class="ph-desc" id="placeholder-alt"></div>
+          </div>
+        </div>
+        <div id="laser-dot" class="laser-dot" hidden></div>
+        <div id="spot-overlay" class="spot-overlay" hidden></div>
+      </div>
+
+      <div class="player-controls">
+        <div class="player-nav">
+          <button id="prev-btn" class="btn-pill btn-pill-ghost" aria-label="上一頁">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+            上一頁
+          </button>
+          <button id="next-btn" class="btn-pill btn-pill-light" aria-label="下一頁">
+            下一頁
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+        <div class="player-tools">
+          <button id="tool-pen" class="tool" title="畫筆 (P)" aria-label="畫筆" data-tool="pen">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          </button>
+          <button id="tool-spot" class="tool" title="聚光燈 (S)" aria-label="聚光燈" data-tool="spot">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="10"/></svg>
+          </button>
+          <button id="tool-laser" class="tool" title="雷射指標 (L)" aria-label="雷射指標" data-tool="laser">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="2"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83"/></svg>
+          </button>
+          <button id="tool-exit" class="tool" title="退出 (Esc)" aria-label="退出">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div id="thumb-strip" class="thumb-strip"></div>
+
       <div id="end-screen" class="end-screen" hidden>
-        <p class="end-title">説明完畢</p>
-        <button id="end-back-btn" class="end-back-btn">返回衛教清單</button>
+        <p class="end-title">說明完畢</p>
+        <button id="end-back-btn" class="btn-primary">返回衛教清單</button>
       </div>
-    </div>
+    </section>
+
+    <!-- ========== Calculator View ========== -->
+    <section id="calc-view" class="view" role="region" aria-label="醫學計算機">
+      <div class="calc-wrap">
+        <div class="calc-topbar">
+          <button id="calc-back" class="btn-ghost-sm" aria-label="返回首頁">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg>
+            返回
+          </button>
+          <h2 class="calc-title">醫學計算機</h2>
+        </div>
+
+        <div id="calc-tabs" class="calc-tabs" role="tablist" aria-label="計算機分類"></div>
+
+        <div id="calc-body" class="calc-body"></div>
+      </div>
+    </section>
+
   </div>
 
-  <div id="offline-banner" class="banner offline-banner" hidden>離線模式</div>
-  <div id="update-banner" class="banner update-banner" hidden>
-    有新版本，<button id="update-btn" class="update-link">點此更新</button>
+  <div id="offline-banner" class="banner banner-offline" hidden>離線模式</div>
+  <div id="update-banner" class="banner banner-update" hidden>
+    有新版本，<button id="update-btn" class="banner-link">點此更新</button>
   </div>
 
   <script src="js/app.js"></script>

@@ -9,13 +9,21 @@
     {
       "id": "appendectomy",
       "title": "闌尾切除術",
+      "subtitle": "腹腔鏡微創 · 5 步驟",
       "category": "surgery",
+      "type": "surgery",
+      "region": "腹",
+      "slides": 5,
       "thumbnail": "images/appendectomy/thumb.webp"
     },
     {
       "id": "hernia-repair",
       "title": "疝氣修補術",
+      "subtitle": "腹股溝疝氣 · 修補流程",
       "category": "surgery",
+      "type": "surgery",
+      "region": "腹",
+      "slides": 4,
       "thumbnail": "images/hernia-repair/thumb.webp"
     }
   ]
