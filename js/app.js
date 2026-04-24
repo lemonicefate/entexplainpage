@@ -584,7 +584,7 @@
 
   function registerServiceWorker() {
     if (!('serviceWorker' in navigator)) return;
-    navigator.serviceWorker.register('js/sw.js')
+    navigator.serviceWorker.register('./sw.js')
       .then(function (reg) {
         reg.addEventListener('updatefound', function () {
           var nw = reg.installing;

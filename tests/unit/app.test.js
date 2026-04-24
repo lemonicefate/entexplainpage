@@ -219,7 +219,7 @@ describe('Service worker', () => {
   let swContent;
 
   beforeEach(() => {
-    swContent = fs.readFileSync(path.resolve(__dirname, '../../js/sw.js'), 'utf-8');
+    swContent = fs.readFileSync(path.resolve(__dirname, '../../sw.js'), 'utf-8');
   });
 
   it('precaches core resources', () => {
