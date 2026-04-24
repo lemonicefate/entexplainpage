@@ -525,6 +525,14 @@ img.card-thumb { background: var(--tint-1); }
   transform: translate(-50%, -50%);
   z-index: 30;
 }
+.pen-canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;   /* default off — captures only when tool-pen active */
+  z-index: 22;            /* above tap zones (20), below laser/spot overlay */
+  touch-action: none;     /* required so drawing doesn't pan the page */
+}
+.player-stage.tool-pen .pen-canvas { pointer-events: auto; cursor: crosshair; }
 .spot-overlay {
   position: absolute; inset: 0;
   pointer-events: none;
