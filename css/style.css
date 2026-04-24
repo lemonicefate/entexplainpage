@@ -465,7 +465,8 @@ img.card-thumb { background: var(--tint-1); }
   touch-action: pan-y pinch-zoom;
 }
 .player-stage.tool-laser,
-.player-stage.tool-spot { cursor: none; }
+.player-stage.tool-spot,
+.player-stage.tool-pen   { cursor: none; touch-action: none; }
 
 .player-frame {
   width: min(100%, 900px);

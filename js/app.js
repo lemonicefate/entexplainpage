@@ -495,17 +495,40 @@
     var exitBtn = $('tool-exit');
     if (exitBtn) exitBtn.addEventListener('click', function () { window.location.hash = ''; });
 
-    slideStage.addEventListener('mousemove', function (e) {
-      if (!state.activeTool) return;
+    // Pointer Events unify mouse, touch, and stylus.
+    // - mouse hover: fires continuously even without press (desktop laser feel)
+    // - touch:       fires only while finger is down (iPad: tap-and-drag laser)
+    // Touch offsets the visual above the finger so the user can see it
+    // (finger pad ~60px obscures the 10px dot). Mouse + pen stay on-axis.
+    slideStage.addEventListener('pointermove', function (e) {
+      if (!state.activeTool || state.activeTool === 'pen') return;
       var rect = slideStage.getBoundingClientRect();
       var x = e.clientX - rect.left;
       var y = e.clientY - rect.top;
+      var yOffset = e.pointerType === 'touch' ? -50 : 0;
       if (state.activeTool === 'laser') {
         laserDot.style.left = x + 'px';
-        laserDot.style.top = y + 'px';
+        laserDot.style.top = (y + yOffset) + 'px';
       } else if (state.activeTool === 'spot') {
         spotOverlay.style.setProperty('--spot-x', x + 'px');
-        spotOverlay.style.setProperty('--spot-y', y + 'px');
+        spotOverlay.style.setProperty('--spot-y', (y + yOffset) + 'px');
+      }
+    });
+    // On iPad, the first touchdown needs to position the laser immediately —
+    // otherwise the dot stays at the last hover position until the finger moves.
+    slideStage.addEventListener('pointerdown', function (e) {
+      if (!state.activeTool || state.activeTool === 'pen') return;
+      if (e.pointerType === 'touch') e.preventDefault(); // block page-pan
+      var rect = slideStage.getBoundingClientRect();
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
+      var yOffset = e.pointerType === 'touch' ? -50 : 0;
+      if (state.activeTool === 'laser') {
+        laserDot.style.left = x + 'px';
+        laserDot.style.top = (y + yOffset) + 'px';
+      } else if (state.activeTool === 'spot') {
+        spotOverlay.style.setProperty('--spot-x', x + 'px');
+        spotOverlay.style.setProperty('--spot-y', (y + yOffset) + 'px');
       }
     });
   }
