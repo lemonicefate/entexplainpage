@@ -222,11 +222,17 @@ describe('Service worker', () => {
     swContent = fs.readFileSync(path.resolve(__dirname, '../../sw.js'), 'utf-8');
   });
 
-  it('precaches core resources', () => {
-    expect(swContent).toContain('/index.html');
-    expect(swContent).toContain('/css/style.css');
-    expect(swContent).toContain('/js/app.js');
-    expect(swContent).toContain('/procedures/index.json');
+  it('precaches core resources (relative paths for project-site scope)', () => {
+    expect(swContent).toContain('./index.html');
+    expect(swContent).toContain('./css/style.css');
+    expect(swContent).toContain('./js/app.js');
+    expect(swContent).toContain('./procedures/index.json');
+  });
+
+  it('does not use absolute paths in PRECACHE (would 404 on GitHub Pages project site)', () => {
+    expect(swContent).not.toMatch(/['"]\/index\.html['"]/);
+    expect(swContent).not.toMatch(/['"]\/css\/style\.css['"]/);
+    expect(swContent).not.toMatch(/['"]\/js\/app\.js['"]/);
   });
 
   it('uses cache-first strategy', () => {
@@ -240,11 +246,21 @@ describe('Service worker', () => {
 });
 
 describe('PWA manifest', () => {
+  let manifest;
+
+  beforeEach(() => {
+    manifest = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../manifest.json'), 'utf-8'));
+  });
+
   it('valid manifest.json with new theme', () => {
-    const manifest = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../manifest.json'), 'utf-8'));
     expect(manifest.name).toBe('診間解說 · Explain');
     expect(manifest.display).toBe('standalone');
     expect(manifest.lang).toBe('zh-TW');
     expect(manifest.theme_color).toBe('#0e7c7b');
+  });
+
+  it('uses relative start_url and scope (project-site compatible)', () => {
+    expect(manifest.start_url).toBe('./');
+    expect(manifest.scope).toBe('./');
   });
 });
