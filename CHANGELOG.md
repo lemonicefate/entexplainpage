@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.2.0] - 2026-04-25
+
+### Added
+- **畫筆（Pen）工具終於真的會畫** — v0.2.0.0 起上線的畫筆按鈕一直是空殼（handler 只處理 laser / spot），現改用 `<canvas>` + Pointer Events API 實作，iPad 手指、滑鼠、Apple Pencil 都支援。筆畫紅色 4px、retina 清晰（devicePixelRatio 處理）、換頁自動清空、關閉畫筆後筆畫保留（可關工具繼續對圖說明）
+
+### Fixed
+- **聚光燈半徑過窄** — 從 140px 半徑擴大到 `clamp(180px, 24vw, 280px)`，中央加 40% 完全透明 plateau 讓「亮區」有實際大小（不再是針點式聚焦）；桌面約 ~112px 亮核、手機 ~72px
+- **雷射 / 聚光燈在 iPad 失效** — 原本只綁 `mousemove`，iOS Safari 對 `touchmove` 不會模擬 `mousemove`（手指移動完全不觸發）。改用 Pointer Events（`pointermove` + `pointerdown`）統一處理滑鼠、觸控、Pencil
+- **雷射 / 聚光燈手指遮擋** — 觸控輸入時雷射點自動向上偏移 50px（iOS 長按放大鏡的同樣 UX 慣例），讓使用者看得到自己指哪。滑鼠、Pencil 不偏移（游標本身就精準）
+- **Tool 模式下頁面滾動** — 在 `.tool-laser`/`.tool-spot`/`.tool-pen` 時設 `touch-action: none`，防止手指滑動不小心觸發 browser scroll 或 pinch-zoom
+
 ## [0.2.1.0] - 2026-04-25
 
 ### Added

@@ -190,8 +190,9 @@ CSS custom property 定義於 `:root`，禁止 hardcode hex（測試會擋）。
 - 工具：`pen` / `spot` / `laser` / `exit`
 - Active 工具：`--peach` 背景
 - 縮圖列：`--player-bg-3` 底，active 縮圖 `--peach` 邊框（**桌機 ≥768px**）
-- 雷射指標：紅色發光點跟隨游標（10px / box-shadow blur）
-- 聚光燈：`radial-gradient` 暗化 overlay，140px 透明半徑
+- 雷射指標：紅色發光點跟隨指標（10px / box-shadow blur）。滑鼠/Pencil 對齊游標、觸控向上偏移 50px 避免手指遮擋
+- 聚光燈：`radial-gradient` 暗化 overlay，半徑 `clamp(180px, 24vw, 280px)`，0–40% 完全透明 plateau，給實際可用的亮區（非針點式）
+- 畫筆：`<canvas>` 覆蓋 stage，Pointer Events API 處理滑鼠/觸控/Pencil；devicePixelRatio 做 HiDPI；紅色 4px round cap/join；`touch-action: none` 阻止瀏覽器接手手勢
 
 #### Reader mode（v0.2.1.0）
 

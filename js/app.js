@@ -51,6 +51,7 @@
   var thumbStrip = $('thumb-strip');
   var laserDot = $('laser-dot');
   var spotOverlay = $('spot-overlay');
+  var penCanvas = $('pen-canvas');
   // tap zones (e-book navigation)
   var tapPrev = $('tap-prev');
   var tapToggle = $('tap-toggle');
@@ -133,6 +134,7 @@
     setupPlayerControls();
     setupTapZones();
     setupScrubber();
+    setupPen();
     setupInstallHint();
     setupCalcShell();
     registerServiceWorker();
@@ -373,6 +375,7 @@
     cancelPreload();
     releaseWakeLock();
     clearChromeTimer();
+    clearPen();
     showChrome(); // reset so next entry starts with chrome visible
     switchView(homeView);
   }
@@ -391,6 +394,7 @@
         switchView(slideView);
         endScreen.hidden = true;
         playerTitle.textContent = state.current.title;
+        resizePenCanvas(); // canvas only has real dimensions once slideView is active
         renderThumbs();
         renderStep();
         preloadImages(data.steps);
@@ -455,6 +459,7 @@
 
     syncScrubber();
     bumpChromeTimer();
+    clearPen();        // drawings belong to the previous slide — wipe on step change
     endScreen.hidden = true;
   }
 
@@ -490,17 +495,40 @@
     var exitBtn = $('tool-exit');
     if (exitBtn) exitBtn.addEventListener('click', function () { window.location.hash = ''; });
 
-    slideStage.addEventListener('mousemove', function (e) {
-      if (!state.activeTool) return;
+    // Pointer Events unify mouse, touch, and stylus.
+    // - mouse hover: fires continuously even without press (desktop laser feel)
+    // - touch:       fires only while finger is down (iPad: tap-and-drag laser)
+    // Touch offsets the visual above the finger so the user can see it
+    // (finger pad ~60px obscures the 10px dot). Mouse + pen stay on-axis.
+    slideStage.addEventListener('pointermove', function (e) {
+      if (!state.activeTool || state.activeTool === 'pen') return;
       var rect = slideStage.getBoundingClientRect();
       var x = e.clientX - rect.left;
       var y = e.clientY - rect.top;
+      var yOffset = e.pointerType === 'touch' ? -50 : 0;
       if (state.activeTool === 'laser') {
         laserDot.style.left = x + 'px';
-        laserDot.style.top = y + 'px';
+        laserDot.style.top = (y + yOffset) + 'px';
       } else if (state.activeTool === 'spot') {
         spotOverlay.style.setProperty('--spot-x', x + 'px');
-        spotOverlay.style.setProperty('--spot-y', y + 'px');
+        spotOverlay.style.setProperty('--spot-y', (y + yOffset) + 'px');
+      }
+    });
+    // On iPad, the first touchdown needs to position the laser immediately —
+    // otherwise the dot stays at the last hover position until the finger moves.
+    slideStage.addEventListener('pointerdown', function (e) {
+      if (!state.activeTool || state.activeTool === 'pen') return;
+      if (e.pointerType === 'touch') e.preventDefault(); // block page-pan
+      var rect = slideStage.getBoundingClientRect();
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
+      var yOffset = e.pointerType === 'touch' ? -50 : 0;
+      if (state.activeTool === 'laser') {
+        laserDot.style.left = x + 'px';
+        laserDot.style.top = (y + yOffset) + 'px';
+      } else if (state.activeTool === 'spot') {
+        spotOverlay.style.setProperty('--spot-x', x + 'px');
+        spotOverlay.style.setProperty('--spot-y', (y + yOffset) + 'px');
       }
     });
   }
@@ -621,6 +649,66 @@
   function toggleChrome() {
     if (state.chromeHidden) { showChrome(); scheduleChromeHide(); }
     else                    { hideChrome(); clearChromeTimer(); }
+  }
+
+  // ============================================================
+  // Pen (canvas drawing, pointer events for mouse + touch + stylus)
+  // ============================================================
+  var penCtx = null;
+  var penDrawing = false;
+  var PEN_STROKE = 'rgba(255,59,59,0.85)';
+  var PEN_WIDTH = 4;
+
+  function resizePenCanvas() {
+    if (!penCanvas) return;
+    var rect = penCanvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    var dpr = window.devicePixelRatio || 1;
+    // Setting width/height clears the canvas — caller must accept loss here.
+    penCanvas.width  = Math.round(rect.width  * dpr);
+    penCanvas.height = Math.round(rect.height * dpr);
+    penCtx = penCanvas.getContext('2d');
+    penCtx.scale(dpr, dpr);
+    penCtx.strokeStyle = PEN_STROKE;
+    penCtx.lineWidth = PEN_WIDTH;
+    penCtx.lineCap = 'round';
+    penCtx.lineJoin = 'round';
+  }
+  function clearPen() {
+    if (!penCtx || !penCanvas) return;
+    var dpr = window.devicePixelRatio || 1;
+    penCtx.clearRect(0, 0, penCanvas.width / dpr, penCanvas.height / dpr);
+  }
+  function setupPen() {
+    if (!penCanvas || !('PointerEvent' in window)) return;
+    resizePenCanvas();
+    window.addEventListener('resize', function () {
+      // Resizing clears strokes — acceptable; drawings belong to current slide only.
+      resizePenCanvas();
+    });
+    penCanvas.addEventListener('pointerdown', function (e) {
+      if (state.activeTool !== 'pen' || !penCtx) return;
+      e.preventDefault();
+      penDrawing = true;
+      if (penCanvas.setPointerCapture) penCanvas.setPointerCapture(e.pointerId);
+      var rect = penCanvas.getBoundingClientRect();
+      penCtx.beginPath();
+      penCtx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    });
+    penCanvas.addEventListener('pointermove', function (e) {
+      if (!penDrawing || state.activeTool !== 'pen' || !penCtx) return;
+      var rect = penCanvas.getBoundingClientRect();
+      penCtx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+      penCtx.stroke();
+    });
+    function endStroke() {
+      if (!penDrawing) return;
+      penDrawing = false;
+      if (penCtx) penCtx.closePath();
+    }
+    penCanvas.addEventListener('pointerup', endStroke);
+    penCanvas.addEventListener('pointercancel', endStroke);
+    penCanvas.addEventListener('pointerleave', endStroke);
   }
 
   // ============================================================

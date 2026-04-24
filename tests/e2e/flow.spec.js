@@ -152,6 +152,75 @@ test.describe('Reader mode (tap zones + scrubber + auto-hide)', () => {
     await expect(page.locator('#slide-view')).toHaveClass(/is-immersive/, { timeout: 5000 });
   });
 
+  test('pen tool: activating enables canvas pointer capture; drawing leaves pixels on canvas', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
+    await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
+    await expect(page.locator('#slide-view')).toBeVisible();
+
+    // Activate pen
+    await page.keyboard.press('p');
+    await expect(page.locator('#slide-stage')).toHaveClass(/tool-pen/);
+
+    // Canvas should now receive pointer events
+    const canHandle = await page.locator('#pen-canvas').evaluate((el) =>
+      getComputedStyle(el).pointerEvents
+    );
+    expect(canHandle).toBe('auto');
+
+    // Draw a stroke across the canvas
+    const box = await page.locator('#pen-canvas').boundingBox();
+    await page.mouse.move(box.x + 50, box.y + 50);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 200, box.y + 200, { steps: 20 });
+    await page.mouse.up();
+
+    // Canvas should now contain non-transparent pixels
+    const hasInk = await page.locator('#pen-canvas').evaluate((canvas) => {
+      const ctx = canvas.getContext('2d');
+      const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      for (let i = 3; i < img.data.length; i += 4) {
+        if (img.data[i] !== 0) return true; // any non-transparent alpha
+      }
+      return false;
+    });
+    expect(hasInk).toBe(true);
+  });
+
+  test('pen strokes clear when moving to next step', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
+    await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
+    await expect(page.locator('#slide-view')).toBeVisible();
+
+    await page.keyboard.press('p');
+    const box = await page.locator('#pen-canvas').boundingBox();
+    await page.mouse.move(box.x + 50, box.y + 50);
+    await page.mouse.down();
+    await page.mouse.move(box.x + 150, box.y + 150, { steps: 10 });
+    await page.mouse.up();
+
+    // Confirm ink exists
+    let hasInk = await page.locator('#pen-canvas').evaluate((c) => {
+      const img = c.getContext('2d').getImageData(0, 0, c.width, c.height);
+      for (let i = 3; i < img.data.length; i += 4) if (img.data[i] !== 0) return true;
+      return false;
+    });
+    expect(hasInk).toBe(true);
+
+    // Move to next slide — exit pen first so tap zone is active
+    await page.keyboard.press('p');
+    await page.locator('#tap-next').click();
+
+    // Canvas should be wiped
+    hasInk = await page.locator('#pen-canvas').evaluate((c) => {
+      const img = c.getContext('2d').getImageData(0, 0, c.width, c.height);
+      for (let i = 3; i < img.data.length; i += 4) if (img.data[i] !== 0) return true;
+      return false;
+    });
+    expect(hasInk).toBe(false);
+  });
+
   test('navigation resets the auto-hide timer — UI does not vanish mid-tap', async ({ page }) => {
     await page.goto('/');
     await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
