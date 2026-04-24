@@ -16,8 +16,12 @@
     stepIndex: 0,
     activeTool: null,            // pen | spot | laser | null
     wakeLock: null,
-    preloadAbort: null
+    preloadAbort: null,
+    chromeHidden: false,
+    chromeTimer: null
   };
+
+  var CHROME_AUTO_HIDE_MS = 3000;
 
   // --- DOM refs ---
   var $ = function (id) { return document.getElementById(id); };
@@ -361,6 +365,8 @@
     setTool(null);
     cancelPreload();
     releaseWakeLock();
+    clearChromeTimer();
+    showChrome(); // reset so next entry starts with chrome visible
     switchView(homeView);
   }
 
@@ -382,6 +388,8 @@
         renderStep();
         preloadImages(data.steps);
         requestWakeLock();
+        showChrome();
+        scheduleChromeHide();
       })
       .catch(function () { window.location.hash = ''; });
   }
@@ -495,8 +503,13 @@
     });
     slideStage.classList.toggle('tool-laser', t === 'laser');
     slideStage.classList.toggle('tool-spot',  t === 'spot');
+    slideStage.classList.toggle('tool-pen',   t === 'pen');
     laserDot.hidden = t !== 'laser';
     spotOverlay.hidden = t !== 'spot';
+    // When a tool turns on, force chrome visible and cancel the auto-hide.
+    // When the last tool turns off, restart the auto-hide countdown.
+    if (t) { showChrome(); clearChromeTimer(); }
+    else if (slideView.classList.contains('active')) { scheduleChromeHide(); }
   }
 
   // ============================================================
@@ -545,8 +558,26 @@
     });
   }
 
-  // Stub — real auto-hide logic lands in the next commit.
-  function toggleChrome() { /* implemented in commit 4 */ }
+  function showChrome() {
+    state.chromeHidden = false;
+    slideView.classList.remove('is-immersive');
+  }
+  function hideChrome() {
+    if (state.activeTool) return; // never hide while a tool is active
+    state.chromeHidden = true;
+    slideView.classList.add('is-immersive');
+  }
+  function clearChromeTimer() {
+    if (state.chromeTimer) { clearTimeout(state.chromeTimer); state.chromeTimer = null; }
+  }
+  function scheduleChromeHide() {
+    clearChromeTimer();
+    state.chromeTimer = setTimeout(hideChrome, CHROME_AUTO_HIDE_MS);
+  }
+  function toggleChrome() {
+    if (state.chromeHidden) { showChrome(); scheduleChromeHide(); }
+    else                    { hideChrome(); clearChromeTimer(); }
+  }
 
   function setupSwipe() {
     var startX = 0, startY = 0, startTime = 0, touching = false, fingers = 0;

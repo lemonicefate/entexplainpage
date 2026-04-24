@@ -70,6 +70,7 @@
   /* --- Motion --- */
   --t-fast: 100ms ease;
   --t:      150ms ease;
+  --chrome-fade: 240ms;
   --t-slow: 220ms ease;
 }
 
@@ -388,6 +389,29 @@ img.card-thumb { background: var(--tint-1); }
   color: #fff;
   position: relative;
   user-select: none;
+  height: 100vh;       /* fallback */
+  height: 100dvh;      /* reclaim space when mobile browser chrome hides */
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+/* Immersive mode: hide top bar, back btn, controls, thumbs, scrubber.
+   Triggered by center tap or auto-hide timer. */
+#slide-view.is-immersive .player-back,
+#slide-view.is-immersive .player-topbar,
+#slide-view.is-immersive .player-controls,
+#slide-view.is-immersive .thumb-strip,
+#slide-view.is-immersive .player-scrubber {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--chrome-fade) ease;
+}
+.player-back,
+.player-topbar,
+.player-controls,
+.thumb-strip,
+.player-scrubber {
+  transition: opacity var(--chrome-fade) ease;
 }
 
 .player-back {
