@@ -55,6 +55,9 @@
   var tapPrev = $('tap-prev');
   var tapToggle = $('tap-toggle');
   var tapNext = $('tap-next');
+  // scrubber (mobile page slider)
+  var scrubber = $('scrubber');
+  var scrubberLabel = $('scrubber-label');
   // calculator
   var calcBack = $('calc-back');
   var calcTabs = $('calc-tabs');
@@ -127,6 +130,7 @@
     setupOffline();
     setupPlayerControls();
     setupTapZones();
+    setupScrubber();
     setupCalcShell();
     registerServiceWorker();
     loadIndex();
@@ -446,6 +450,7 @@
     var active = thumbStrip.querySelector('.thumb.is-active');
     if (active && active.scrollIntoView) active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
 
+    syncScrubber();
     endScreen.hidden = true;
   }
 
@@ -577,6 +582,24 @@
   function toggleChrome() {
     if (state.chromeHidden) { showChrome(); scheduleChromeHide(); }
     else                    { hideChrome(); clearChromeTimer(); }
+  }
+
+  // ============================================================
+  // Scrubber (mobile page slider — replaces thumb strip < 768px)
+  // ============================================================
+  function setupScrubber() {
+    if (!scrubber) return;
+    scrubber.addEventListener('input', function (e) {
+      var i = parseInt(e.target.value, 10);
+      if (!isNaN(i)) jumpTo(i);
+    });
+  }
+  function syncScrubber() {
+    if (!scrubber || !state.current) return;
+    var n = (state.current.steps || []).length;
+    scrubber.max = String(Math.max(0, n - 1));
+    scrubber.value = String(state.stepIndex);
+    if (scrubberLabel) scrubberLabel.textContent = (state.stepIndex + 1) + ' / ' + n;
   }
 
   function setupSwipe() {
