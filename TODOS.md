@@ -31,6 +31,13 @@ tests/unit/
 **Context:** 現行 v0.2.0.0 的 BMI/Lipid/Peds 是 demo placeholder，Lipid 的 ASCVD 公式是湊的，先不寫測試。等真實 calc 上線時，**每個 calc 的 PR 自帶 tests/unit/calc/{id}.test.js**，用這個分層表判斷哪些 rule 要鎖死。
 **Depends on:** 每個真實 calculator 上線時同 PR 處理。
 
+## TODO: Scrubber rAF throttle（等 steps 多再做）
+**Priority:** Low
+**What:** 若未來任一手術超過 ~20 steps，把 `setupScrubber()` 的 `input` handler 包 `requestAnimationFrame` throttle，避免拖拉時觸發過多 `renderStep` 影響幀率。
+**Why:** Reviewer 在 v0.2.1.0 PR 提出此擔憂。當下每支手術 4–5 steps，拖整條 scrubber 最多 5 次 input event，不是效能問題；現在加 throttle/debounce 只會引入拖動延遲反而傷 UX。
+**Context:** 正確手段是 `rAF` throttle（保持 60fps 上限），不是 debounce（會 lag）。觸發條件：`max(proc.steps.length) > 20`。
+**Depends on:** 真實頁數增長到 20+。
+
 ## Completed
 
 ### AbortController 用於圖片預載

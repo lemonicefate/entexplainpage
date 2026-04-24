@@ -454,6 +454,7 @@
     if (active && active.scrollIntoView) active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
 
     syncScrubber();
+    bumpChromeTimer();
     endScreen.hidden = true;
   }
 
@@ -608,6 +609,14 @@
   function scheduleChromeHide() {
     clearChromeTimer();
     state.chromeTimer = setTimeout(hideChrome, CHROME_AUTO_HIDE_MS);
+  }
+  // Called on every navigation (tap/swipe/keyboard/scrubber) so active use
+  // keeps the UI visible instead of vanishing mid-interaction.
+  function bumpChromeTimer() {
+    if (state.chromeHidden) return;                      // already hidden — don't pull it back
+    if (!slideView.classList.contains('active')) return; // only in player
+    if (state.activeTool) return;                        // tool mode forces visibility separately
+    scheduleChromeHide();
   }
   function toggleChrome() {
     if (state.chromeHidden) { showChrome(); scheduleChromeHide(); }

@@ -151,4 +151,25 @@ test.describe('Reader mode (tap zones + scrubber + auto-hide)', () => {
     // After the 3s timer, it becomes immersive
     await expect(page.locator('#slide-view')).toHaveClass(/is-immersive/, { timeout: 5000 });
   });
+
+  test('navigation resets the auto-hide timer — UI does not vanish mid-tap', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
+    await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
+    await expect(page.locator('#slide-view')).toBeVisible();
+    await expect(page.locator('#slide-view')).not.toHaveClass(/is-immersive/);
+
+    // Navigate via scrubber every 1s for 5s. Each jumpTo runs renderStep
+    // which calls bumpChromeTimer — so the 3s auto-hide must never fire
+    // while the user is actively scrubbing.
+    const scrubber = page.locator('#scrubber');
+    for (let i = 0; i < 5; i++) {
+      await page.waitForTimeout(1000);
+      await scrubber.evaluate((el, idx) => {
+        el.value = String(idx % 2); // alternate 0 / 1, stays in range
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      }, i);
+      await expect(page.locator('#slide-view')).not.toHaveClass(/is-immersive/);
+    }
+  });
 });
