@@ -1,0 +1,49 @@
+{
+  "id": "snore",
+  "title": "打呼",
+  "category": "ent",
+  "steps": [
+    {
+      "image": "images/snore/step1.png",
+      "title": "打呼可能的原因",
+      "description": "打呼不外乎是鼻道或咽喉的空間因為窄縮的關係,因為空氣經過窄縮處而出現的震動聲。",
+      "alt": "打呼不外乎是鼻道或咽喉的空間因為窄縮的關係,因為空氣經過窄縮處而出現的震動聲。"
+    },
+    {
+      "image": "images/snore/step2.png",
+      "title": "咽喉狹窄",
+      "description": "可以用Friedman tongue position 來 區分口咽狹窄的程度",
+      "alt": "可以用Friedman tongue position 來 區分口咽狹窄的程度"
+    },
+    {
+      "image": "images/snore/step3.jpg",
+      "title": "扁桃腺",
+      "description": "扁桃腺也占了打呼一個重要的地位,可以根據大小分為Grade 1-4",
+      "alt": "扁桃腺也占了打呼一個重要的地位,可以根據大小分為Grade 1-4"
+    },
+    {
+      "image": "images/snore/step4.jpg",
+      "title": "鼻中膈",
+      "description": "鼻中膈彎曲可能導致某一邊特別狹窄",
+      "alt": "鼻中膈彎曲可能導致某一邊特別狹窄"
+    },
+    {
+      "image": "images/snore/step5.webp",
+      "title": "下鼻甲肥大",
+      "description": "下鼻甲肥大則是有可能和躺下就鼻塞較有關連性,而且可能會左右輪流.",
+      "alt": "下鼻甲肥大則是有可能和躺下就鼻塞較有關連性,而且可能會左右輪流."
+    },
+    {
+      "image": "images/snore/step6.jpg",
+      "title": "下鼻甲肥大不同嚴重程度",
+      "description": "可以發現下鼻甲越肥大,下鼻道,也就是鼻呼吸的通道也會越窄",
+      "alt": "可以發現下鼻甲越肥大,下鼻道,也就是鼻呼吸的通道也會越窄"
+    },
+    {
+      "image": "images/snore/step7.png",
+      "title": "打呼的治療策略流程圖",
+      "description": "打呼的治療策略流程圖如圖",
+      "alt": "打呼的治療策略流程圖如圖"
+    }
+  ]
+}
