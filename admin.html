@@ -505,7 +505,7 @@ input[type="file"] {
   <div class="left-col">
     <div class="header">
       <h1>衛教管理</h1>
-      <a href="http://localhost:3000" target="_blank">主站 ↗</a>
+      <a href="/" target="_blank">主站 ↗</a>
     </div>
 
     <!-- Existing procedures -->
@@ -573,8 +573,9 @@ input[type="file"] {
 
 <script>
 (function () {
-  var API_BASE = 'http://localhost:3001';
-  var SITE_BASE = 'http://localhost:3000';
+  // Same-origin: admin.js serves both /api/* and the main site's static files.
+  var API_BASE = '';
+  var SITE_BASE = '';
   var focusedStepIndex = 0;
   var mode = 'add';        // 'add' | 'edit'
   var editingId = null;

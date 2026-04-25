@@ -57,7 +57,9 @@ npm install
 npm run serve
 # 開啟 http://localhost:3000
 
-# 網頁版編輯器（port 3001，搭配 admin.html）
+# 網頁版編輯器（port 3001 同時服務主站與編輯器）
+#   主站  → http://localhost:3001/
+#   編輯器 → http://localhost:3001/admin.html
 npm run admin
 ```
 
@@ -199,10 +201,11 @@ gh pr merge --squash --delete-branch
 
 ```bash
 npm run admin
-# 開 http://localhost:3000/admin.html
+# 編輯器：http://localhost:3001/admin.html
+# 主站  ：http://localhost:3001/   （同一個 port，方便邊改邊看）
 ```
 
-可以上傳圖檔、即時預覽、儲存回 `procedures/*.json`。完成後再 `git diff` 檢查、commit。
+可以新增 / 編輯 / 刪除衛教、拖拉調整步驟順序、上傳或替換步驟圖、即時預覽、儲存回 `procedures/*.json`。完成後再 `git diff` 檢查、commit。
 
 ---
 

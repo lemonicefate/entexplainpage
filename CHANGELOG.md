@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - **必填欄位調整** — 步驟標題、圖片設為必填；說明（description）改選填；無障礙描述（alt）欄位從 admin UI 移除（JSON schema 與既有資料保留），對診間內部 PWA 沒實際用處
 - **admin server 新增路由** — `PUT /api/procedures/:id`（multipart payload + 可選圖片附件）、`DELETE /api/procedures/:id`；CORS `Access-Control-Allow-Methods` 加入 `PUT, DELETE`
+- **admin 與主站共用同一個 port** — 之前 `npm run admin` 只跑 port 3001 admin server，但啟動訊息誤導印 `Main site: http://localhost:3000`，使用者打 3000 就會 connection refused（要再開一個 terminal 跑 `npm run serve`）。現在 admin.js 加上靜態檔 fallback：`http://localhost:3001/` 直接服務主站、`http://localhost:3001/admin.html` 進編輯器，單一指令搞定。`npm run serve` 仍保留給只想看主站時用
 
 ## [0.2.2.0] - 2026-04-25
 

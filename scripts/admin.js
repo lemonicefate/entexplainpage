@@ -151,22 +151,56 @@ function extFromContentType(ct) {
 }
 
 // ---------------------------------------------------------------------------
-// Route handlers
+// Static file fallback (serves project root so main site + admin share one port)
 // ---------------------------------------------------------------------------
 
-function handleGetRoot(req, res) {
-  const htmlPath = path.join(ROOT, 'admin.html');
-  fs.readFile(htmlPath, (err, data) => {
-    if (err) {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
-      res.end('admin.html not found');
-      return;
+const MIME = {
+  '.html': 'text/html; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.mjs': 'application/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.webp': 'image/webp',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.gif': 'image/gif',
+  '.svg': 'image/svg+xml',
+  '.ico': 'image/x-icon',
+  '.webmanifest': 'application/manifest+json',
+  '.txt': 'text/plain; charset=utf-8',
+  '.md': 'text/markdown; charset=utf-8',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.ttf': 'font/ttf',
+};
+
+function handleStatic(req, res, pathname) {
+  let decoded;
+  try {
+    decoded = decodeURIComponent(pathname);
+  } catch (_) {
+    return jsonResponse(res, 400, { error: 'Invalid path' });
+  }
+  if (decoded === '/' || decoded === '') decoded = '/index.html';
+  const rel = decoded.replace(/^\/+/, '');
+  const filePath = path.join(ROOT, rel);
+  const resolved = path.resolve(filePath);
+  if (resolved !== ROOT && !resolved.startsWith(ROOT + path.sep)) {
+    return jsonResponse(res, 400, { error: 'Path outside project' });
+  }
+  fs.stat(resolved, (err, stat) => {
+    if (err || !stat.isFile()) {
+      return jsonResponse(res, 404, { error: 'Not found' });
     }
+    const ext = path.extname(resolved).toLowerCase();
+    const mime = MIME[ext] || 'application/octet-stream';
     res.writeHead(200, {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Content-Length': data.length,
+      'Content-Type': mime,
+      'Content-Length': stat.size,
+      'Cache-Control': 'no-cache',
     });
-    res.end(data);
+    fs.createReadStream(resolved).pipe(res);
   });
 }
 
@@ -530,10 +564,6 @@ async function router(req, res) {
   const method = req.method;
 
   try {
-    if (method === 'GET' && pathname === '/') {
-      return handleGetRoot(req, res);
-    }
-
     if (method === 'GET' && pathname === '/api/index') {
       return handleGetIndex(req, res);
     }
@@ -558,6 +588,11 @@ async function router(req, res) {
       return await handlePostImages(req, res, imagesMatch[1]);
     }
 
+    // Static file fallback for non-API GETs (main site + admin.html)
+    if (method === 'GET') {
+      return handleStatic(req, res, pathname);
+    }
+
     jsonResponse(res, 404, { error: 'Not found' });
   } catch (err) {
     jsonResponse(res, 500, { error: err.message || 'Internal server error' });
@@ -570,6 +605,6 @@ async function router(req, res) {
 
 const server = http.createServer(router);
 server.listen(PORT, () => {
-  console.log(`Admin server running at http://localhost:${PORT}`);
-  console.log('Main site: http://localhost:3000');
+  console.log(`Main site:    http://localhost:${PORT}/`);
+  console.log(`Admin editor: http://localhost:${PORT}/admin.html`);
 });
