@@ -396,22 +396,38 @@ img.card-thumb { background: var(--tint-1); }
 }
 
 /* Immersive mode: hide top bar, back btn, controls, thumbs, scrubber.
-   Triggered by center tap or auto-hide timer. */
-#slide-view.is-immersive .player-back,
+   Triggered by center tap or auto-hide timer. Uses max-height:0 +
+   padding:0 in addition to opacity so the chrome actually releases its
+   layout box and the slide stage expands to fill the viewport. */
+.player-topbar,
+.player-controls,
+.thumb-strip,
+.player-scrubber {
+  max-height: 200px;
+  overflow: hidden;
+  transition:
+    opacity var(--chrome-fade) ease,
+    max-height var(--chrome-fade) ease,
+    padding var(--chrome-fade) ease;
+}
+.player-back {
+  transition: opacity var(--chrome-fade) ease, background var(--t);
+}
+#slide-view.is-immersive .player-back {
+  opacity: 0;
+  pointer-events: none;
+}
 #slide-view.is-immersive .player-topbar,
 #slide-view.is-immersive .player-controls,
 #slide-view.is-immersive .thumb-strip,
 #slide-view.is-immersive .player-scrubber {
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--chrome-fade) ease;
-}
-.player-back,
-.player-topbar,
-.player-controls,
-.thumb-strip,
-.player-scrubber {
-  transition: opacity var(--chrome-fade) ease;
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-top-width: 0;
+  border-bottom-width: 0;
 }
 
 .player-back {
@@ -459,7 +475,7 @@ img.card-thumb { background: var(--tint-1); }
 .player-stage {
   flex: 1;
   display: flex; align-items: center; justify-content: center;
-  padding: 0 40px 24px;
+  padding: 0;
   position: relative;
   overflow: hidden;
   touch-action: pan-y pinch-zoom;
@@ -469,23 +485,19 @@ img.card-thumb { background: var(--tint-1); }
 .player-stage.tool-pen   { cursor: none; touch-action: none; }
 
 .player-frame {
-  width: min(100%, 900px);
-  aspect-ratio: 4 / 3;
-  border-radius: 12px;
-  background:
-    linear-gradient(135deg, rgba(255,255,255,0.06) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.06) 50%, rgba(255,255,255,0.06) 75%, transparent 75%) 0 0/16px 16px,
-    var(--player-bg-2);
+  width: 100%;
+  height: 100%;
+  background: var(--player-bg);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   position: relative;
-  padding: 32px;
+  padding: 0;
   overflow: hidden;
 }
 
 .slide-image {
-  max-width: 100%;
-  max-height: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
-  border-radius: 8px;
   transition: opacity var(--t);
   -webkit-user-drag: none;
 }
@@ -1080,7 +1092,7 @@ img.card-thumb { background: var(--tint-1); }
 @media (max-width: 768px) {
   .home-wrap, .calc-wrap { padding: 20px 16px 60px; }
   .player-topbar { padding: 14px 16px 14px 130px; }
-  .player-stage { padding: 0 16px 16px; }
+  .player-stage { padding: 0; }
   .player-controls { padding: 12px 16px; flex-wrap: wrap; gap: 12px; }
   .calc-layout { grid-template-columns: 1fr; gap: 16px; }
   .result-sticky { position: static; }

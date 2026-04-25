@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.3.1] - 2026-04-26
+
+### Changed
+- **解說圖片大幅放大** — 之前 `.player-frame` 強制 `aspect-ratio: 4/3` + `max-width: 900px` + 內部 32px padding，加上 stage 兩側 40px padding，導致 iPad 直立 768×1024 viewport 上圖片只佔 36%（約 624×452）。現在拿掉 frame 的 4:3 / 寬度上限 / 內 padding 與條紋背景，stage padding 歸零，讓 frame 滿版、`.slide-image` 用 `width:100% / height:100% + object-fit: contain` 填滿可用區域。圖片面積實測：chrome 顯示時提升至約 viewport 75%、Immersive 沉浸模式下 ~95%
+- **Immersive 模式真正釋放版位** — 之前 `is-immersive` 只把 topbar / controls / scrubber `opacity: 0`，但版位還佔著、圖片不會變大。現在加上 `max-height: 0` + `padding: 0` 動畫，淡出時也收合掉空間，stage flex:1 自動長到滿版
+
 ## [0.2.3.0] - 2026-04-25
 
 ### Added
