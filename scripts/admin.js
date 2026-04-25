@@ -353,6 +353,162 @@ async function handlePostImages(req, res, id) {
   }
 }
 
+async function handlePutProcedure(req, res, id) {
+  const procPath = path.join(ROOT, 'procedures', `${id}.json`);
+  const resolvedProc = path.resolve(procPath);
+  if (!resolvedProc.startsWith(path.join(ROOT, 'procedures'))) {
+    return jsonResponse(res, 400, { error: 'Invalid id' });
+  }
+  if (!fs.existsSync(procPath)) {
+    return jsonResponse(res, 404, { error: `Procedure "${id}" not found` });
+  }
+
+  let parts;
+  try {
+    parts = await parseMultipart(req);
+  } catch (err) {
+    const status = err.statusCode || 400;
+    return jsonResponse(res, status, { error: err.message });
+  }
+
+  const payloadPart = parts.find((p) => p.fieldName === 'payload');
+  if (!payloadPart) {
+    return jsonResponse(res, 400, { error: 'Missing payload field' });
+  }
+
+  let payload;
+  try {
+    payload = JSON.parse(payloadPart.data.toString('utf8'));
+  } catch (e) {
+    return jsonResponse(res, 400, { error: 'Invalid JSON payload' });
+  }
+
+  const { title, category, steps } = payload;
+  if (!title) return jsonResponse(res, 400, { error: 'Missing required field: title' });
+  if (!category) return jsonResponse(res, 400, { error: 'Missing required field: category' });
+  if (!Array.isArray(steps) || steps.length === 0) {
+    return jsonResponse(res, 400, { error: 'steps must be a non-empty array' });
+  }
+
+  const imagesDir = path.join(ROOT, 'images', id);
+  const resolvedImagesDir = path.resolve(imagesDir);
+  if (!resolvedImagesDir.startsWith(path.join(ROOT, 'images'))) {
+    return jsonResponse(res, 400, { error: 'Invalid id' });
+  }
+
+  const imagePrefix = `images/${id}/`;
+  for (const s of steps) {
+    if (s.image && !s.image.startsWith(imagePrefix)) {
+      return jsonResponse(res, 400, { error: 'Step image path outside procedure folder' });
+    }
+  }
+
+  try {
+    const oldProcedure = readJsonFile(procPath);
+    const oldImagePaths = new Set((oldProcedure.steps || []).map((s) => s.image).filter(Boolean));
+    fs.mkdirSync(imagesDir, { recursive: true });
+
+    const newSteps = steps.map((s) => ({
+      title: (s.title || '').toString().trim(),
+      description: (s.description || '').toString(),
+      alt: (s.alt || '').toString(),
+      image: (s.image || '').toString(),
+    }));
+
+    for (const part of parts) {
+      const m = part.fieldName.match(/^step(\d+)_image$/);
+      if (!m) continue;
+      const stepIdx = parseInt(m[1], 10) - 1;
+      if (stepIdx < 0 || stepIdx >= newSteps.length) continue;
+      const ext = extFromContentType(part.contentType);
+      const suffix = `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+      const fname = `step${stepIdx + 1}-${suffix}${ext}`;
+      fs.writeFileSync(path.join(imagesDir, fname), part.data);
+      newSteps[stepIdx].image = `${imagePrefix}${fname}`;
+    }
+
+    for (let i = 0; i < newSteps.length; i++) {
+      if (!newSteps[i].title) {
+        return jsonResponse(res, 400, { error: `Step ${i + 1} missing title` });
+      }
+      if (!newSteps[i].image) {
+        return jsonResponse(res, 400, { error: `Step ${i + 1} missing image` });
+      }
+    }
+
+    const newProcedure = {
+      id,
+      title,
+      category,
+      steps: newSteps,
+    };
+    writeJsonFile(procPath, newProcedure);
+
+    const newImagePaths = new Set(newSteps.map((s) => s.image));
+    for (const oldPath of oldImagePaths) {
+      if (newImagePaths.has(oldPath)) continue;
+      if (!oldPath.startsWith(imagePrefix)) continue;
+      const abs = path.resolve(path.join(ROOT, oldPath));
+      if (!abs.startsWith(resolvedImagesDir)) continue;
+      if (fs.existsSync(abs)) {
+        try { fs.unlinkSync(abs); } catch (_) { /* best-effort */ }
+      }
+    }
+
+    const indexPath = path.join(ROOT, 'procedures', 'index.json');
+    let index;
+    try { index = readJsonFile(indexPath); } catch { index = { categories: [], procedures: [] }; }
+    if (!Array.isArray(index.procedures)) index.procedures = [];
+    const entry = index.procedures.find((p) => p.id === id);
+    if (entry) {
+      entry.title = title;
+      entry.category = category;
+      if (typeof entry.slides === 'number') entry.slides = newSteps.length;
+    }
+    writeJsonFile(indexPath, index);
+
+    jsonResponse(res, 200, newProcedure);
+  } catch (err) {
+    jsonResponse(res, 500, { error: err.message || 'Internal server error' });
+  }
+}
+
+function handleDeleteProcedure(req, res, id) {
+  const procPath = path.join(ROOT, 'procedures', `${id}.json`);
+  const resolvedProc = path.resolve(procPath);
+  const proceduresRoot = path.join(ROOT, 'procedures');
+  if (!resolvedProc.startsWith(proceduresRoot)) {
+    return jsonResponse(res, 400, { error: 'Invalid id' });
+  }
+  if (!fs.existsSync(procPath)) {
+    return jsonResponse(res, 404, { error: `Procedure "${id}" not found` });
+  }
+
+  try {
+    fs.unlinkSync(procPath);
+
+    const imagesDir = path.join(ROOT, 'images', id);
+    const resolvedImagesDir = path.resolve(imagesDir);
+    const imagesRoot = path.join(ROOT, 'images');
+    if (resolvedImagesDir.startsWith(imagesRoot) && resolvedImagesDir !== imagesRoot && fs.existsSync(imagesDir)) {
+      fs.rmSync(imagesDir, { recursive: true, force: true });
+    }
+
+    const indexPath = path.join(ROOT, 'procedures', 'index.json');
+    try {
+      const index = readJsonFile(indexPath);
+      if (Array.isArray(index.procedures)) {
+        index.procedures = index.procedures.filter((p) => p.id !== id);
+        writeJsonFile(indexPath, index);
+      }
+    } catch (_) { /* best-effort */ }
+
+    jsonResponse(res, 200, { deleted: id });
+  } catch (err) {
+    jsonResponse(res, 500, { error: err.message || 'Internal server error' });
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Router
 // ---------------------------------------------------------------------------
@@ -360,7 +516,7 @@ async function handlePostImages(req, res, id) {
 async function router(req, res) {
   // CORS for local dev
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') {
@@ -382,10 +538,13 @@ async function router(req, res) {
       return handleGetIndex(req, res);
     }
 
-    // GET /api/procedures/:id
-    const procGetMatch = pathname.match(/^\/api\/procedures\/([a-z0-9-]+)$/);
-    if (method === 'GET' && procGetMatch) {
-      return handleGetProcedure(req, res, procGetMatch[1]);
+    // /api/procedures/:id — GET / PUT / DELETE
+    const procIdMatch = pathname.match(/^\/api\/procedures\/([a-z0-9-]+)$/);
+    if (procIdMatch) {
+      const idParam = procIdMatch[1];
+      if (method === 'GET') return handleGetProcedure(req, res, idParam);
+      if (method === 'PUT') return await handlePutProcedure(req, res, idParam);
+      if (method === 'DELETE') return handleDeleteProcedure(req, res, idParam);
     }
 
     // POST /api/procedures

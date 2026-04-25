@@ -17,6 +17,8 @@
   --text-disabled: #8aa3a0;
   --overlay: rgba(15,42,66,0.78);
   --border-light: #eaf2ef;
+  --danger: #b91c1c;
+  --danger-bg: #fde8e8;
   --radius: 10px;
   --space-xs: 8px;
   --space-sm: 16px;
@@ -113,6 +115,20 @@ body {
   color: var(--text-muted);
 }
 
+.btn-row {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.btn-row:hover { background: var(--bg-muted); }
+.btn-row-danger { color: var(--danger); border-color: var(--danger-bg); }
+.btn-row-danger:hover { background: var(--danger-bg); }
+
 /* Form */
 .form-card {
   background: var(--bg-primary);
@@ -128,6 +144,16 @@ body {
   font-size: 1.125rem;
   font-weight: 600;
 }
+
+.mode-banner {
+  display: none;
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  padding: var(--space-xs);
+  border-radius: 6px;
+  font-size: 0.8125rem;
+}
+.mode-banner.active { display: block; }
 
 label {
   display: block;
@@ -156,6 +182,12 @@ select:focus {
   border-color: var(--accent);
 }
 
+input[type="text"][readonly] {
+  background: var(--bg-muted);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
 input[type="file"] {
   font-size: 0.8125rem;
 }
@@ -181,7 +213,7 @@ input[type="file"] {
   flex-direction: column;
   gap: var(--space-xs);
   cursor: pointer;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, opacity 0.15s;
   position: relative;
 }
 
@@ -189,11 +221,36 @@ input[type="file"] {
   border-color: var(--accent);
 }
 
+.step-card.dragging {
+  opacity: 0.4;
+}
+
+.step-card.drag-over {
+  border-color: var(--accent);
+  border-style: dashed;
+}
+
 .step-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
+
+.step-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.drag-handle {
+  cursor: grab;
+  color: var(--text-disabled);
+  font-size: 1.125rem;
+  user-select: none;
+  padding: 0 4px;
+  line-height: 1;
+}
+.drag-handle:active { cursor: grabbing; }
 
 .step-badge {
   background: var(--accent);
@@ -213,6 +270,42 @@ input[type="file"] {
   padding: 2px 4px;
 }
 
+.step-existing-image {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs);
+  background: rgba(255,255,255,0.6);
+  border-radius: 6px;
+}
+
+.step-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+
+.step-existing-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+.step-existing-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+.step-existing-path {
+  font-size: 0.75rem;
+  color: var(--text-disabled);
+  font-family: ui-monospace, "SF Mono", Menlo, Monaco, monospace;
+  word-break: break-all;
+}
+
 .btn-add-step {
   background: none;
   border: 2px dashed var(--border-light);
@@ -223,6 +316,7 @@ input[type="file"] {
   color: var(--accent);
   width: 100%;
   transition: border-color 0.15s;
+  font-family: inherit;
 }
 
 .btn-add-step:hover {
@@ -240,6 +334,7 @@ input[type="file"] {
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s;
+  font-family: inherit;
 }
 
 .btn-submit:hover {
@@ -250,6 +345,21 @@ input[type="file"] {
   background: var(--text-disabled);
   cursor: not-allowed;
 }
+
+.btn-cancel {
+  width: 100%;
+  padding: 8px;
+  background: none;
+  color: var(--text-muted);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-family: inherit;
+  display: none;
+}
+.btn-cancel.active { display: block; }
+.btn-cancel:hover { background: var(--bg-muted); }
 
 /* Status area */
 .status {
@@ -267,8 +377,8 @@ input[type="file"] {
 
 .status.error {
   display: block;
-  background: #fde8e8;
-  color: #b91c1c;
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .status a {
@@ -406,9 +516,11 @@ input[type="file"] {
       </div>
     </div>
 
-    <!-- New procedure form -->
+    <!-- New / edit procedure form -->
     <form id="procForm" class="form-card" autocomplete="off">
-      <h2>新增衛教</h2>
+      <h2 id="formTitle">新增衛教</h2>
+
+      <div id="modeBanner" class="mode-banner"></div>
 
       <div class="field-group">
         <label for="procId">識別碼</label>
@@ -428,12 +540,13 @@ input[type="file"] {
       </div>
 
       <div class="steps-section">
-        <h3>步驟</h3>
+        <h3>步驟（拖曳左側 ≡ 可調整順序）</h3>
         <div id="stepsContainer"></div>
         <button type="button" class="btn-add-step" id="btnAddStep">➕ 新增步驟</button>
       </div>
 
       <button type="submit" class="btn-submit" id="btnSubmit">建立衛教</button>
+      <button type="button" class="btn-cancel" id="btnCancel">取消編輯</button>
 
       <div id="statusArea" class="status"></div>
     </form>
@@ -461,16 +574,25 @@ input[type="file"] {
 <script>
 (function () {
   var API_BASE = 'http://localhost:3001';
+  var SITE_BASE = 'http://localhost:3000';
   var focusedStepIndex = 0;
+  var mode = 'add';        // 'add' | 'edit'
+  var editingId = null;
+  var draggedCard = null;
 
-  // DOM refs
+  // Form refs
   var procListContent = document.getElementById('procListContent');
+  var formTitle = document.getElementById('formTitle');
+  var modeBanner = document.getElementById('modeBanner');
+  var procId = document.getElementById('procId');
+  var procTitle = document.getElementById('procTitle');
   var procCategory = document.getElementById('procCategory');
   var stepsContainer = document.getElementById('stepsContainer');
   var btnAddStep = document.getElementById('btnAddStep');
   var procForm = document.getElementById('procForm');
   var statusArea = document.getElementById('statusArea');
   var btnSubmit = document.getElementById('btnSubmit');
+  var btnCancel = document.getElementById('btnCancel');
 
   // Preview refs
   var previewImage = document.getElementById('previewImage');
@@ -489,6 +611,10 @@ input[type="file"] {
     return node;
   }
 
+  function clear(node) {
+    while (node.firstChild) node.removeChild(node.firstChild);
+  }
+
   // ── Load index ──
   function loadIndex() {
     fetch(API_BASE + '/api/index')
@@ -497,40 +623,54 @@ input[type="file"] {
         return res.json();
       })
       .then(function (data) {
-        // Populate categories
-        procCategory.textContent = '';
+        // Categories
+        var currentCategoryValue = procCategory.value;
+        clear(procCategory);
         var defaultOpt = document.createElement('option');
         defaultOpt.value = '';
         defaultOpt.disabled = true;
         defaultOpt.selected = true;
         defaultOpt.textContent = '選擇分類…';
         procCategory.appendChild(defaultOpt);
-
         (data.categories || []).forEach(function (cat) {
           var opt = document.createElement('option');
           opt.value = cat.id || cat;
           opt.textContent = cat.title || cat;
           procCategory.appendChild(opt);
         });
+        if (currentCategoryValue) procCategory.value = currentCategoryValue;
 
-        // Populate procedures list
+        // Procedures
         var procs = data.procedures || [];
-        procListContent.textContent = '';
+        clear(procListContent);
         if (procs.length === 0) {
           procListContent.appendChild(el('div', 'proc-list-empty', '尚無衛教資料'));
         } else {
           procs.forEach(function (p) {
             var row = el('div', 'proc-row');
+
             var titleSpan = el('span', null, p.title || p.id);
             titleSpan.style.flex = '1';
             row.appendChild(titleSpan);
+
             row.appendChild(el('span', 'badge', p.category || ''));
+
+            var editBtn = el('button', 'btn-row', '編輯');
+            editBtn.type = 'button';
+            editBtn.addEventListener('click', function () { enterEditMode(p.id, p.category); });
+            row.appendChild(editBtn);
+
+            var delBtn = el('button', 'btn-row btn-row-danger', '刪除');
+            delBtn.type = 'button';
+            delBtn.addEventListener('click', function () { deleteProc(p.id, p.title); });
+            row.appendChild(delBtn);
+
             procListContent.appendChild(row);
           });
         }
       })
       .catch(function (err) {
-        procListContent.textContent = '';
+        clear(procListContent);
         procListContent.appendChild(el('div', 'proc-list-empty', '無法載入：' + err.message));
       });
   }
@@ -552,95 +692,175 @@ input[type="file"] {
 
   function buildField(labelText, inputEl) {
     var group = el('div', 'field-group');
-    var lbl = el('label', null, labelText);
-    group.appendChild(lbl);
+    group.appendChild(el('label', null, labelText));
     group.appendChild(inputEl);
     return group;
   }
 
-  function createStepCard() {
+  function createStepCard(initial) {
+    initial = initial || {};
     var card = el('div', 'step-card');
+    card.draggable = true;
 
-    // Header
+    // Header — drag handle + badge + remove
     var header = el('div', 'step-card-header');
+    var leftSide = el('div', 'step-card-header-left');
+    var dragHandle = el('span', 'drag-handle', '☰'); // ≡
+    dragHandle.title = '拖曳調整順序';
     var badge = el('span', 'step-badge', '步驟 ?');
+    leftSide.appendChild(dragHandle);
+    leftSide.appendChild(badge);
+    header.appendChild(leftSide);
+
     var removeBtn = document.createElement('button');
     removeBtn.type = 'button';
     removeBtn.className = 'btn-remove-step';
     removeBtn.title = '移除步驟';
-    removeBtn.textContent = '\u274C';
-    header.appendChild(badge);
+    removeBtn.textContent = '❌';
     header.appendChild(removeBtn);
     card.appendChild(header);
 
-    // Step title
+    // Title (required)
     var titleInput = document.createElement('input');
     titleInput.type = 'text';
     titleInput.className = 'step-title';
     titleInput.required = true;
+    if (initial.title) titleInput.value = initial.title;
     card.appendChild(buildField('步驟標題', titleInput));
 
-    // Description
+    // Description (optional)
     var descArea = document.createElement('textarea');
     descArea.className = 'step-desc';
     descArea.rows = 3;
-    descArea.required = true;
-    card.appendChild(buildField('說明', descArea));
+    if (initial.description) descArea.value = initial.description;
+    card.appendChild(buildField('說明（選填）', descArea));
 
-    // Alt text
-    var altInput = document.createElement('input');
-    altInput.type = 'text';
-    altInput.className = 'step-alt';
-    altInput.required = true;
-    card.appendChild(buildField('圖片描述（無障礙）', altInput));
+    // Hidden alt — preserve existing data without exposing UI
+    var altHidden = document.createElement('input');
+    altHidden.type = 'hidden';
+    altHidden.className = 'step-alt';
+    altHidden.value = initial.alt || '';
+    card.appendChild(altHidden);
+
+    // Hidden image path (existing)
+    var imagePathHidden = document.createElement('input');
+    imagePathHidden.type = 'hidden';
+    imagePathHidden.className = 'step-image-path';
+    imagePathHidden.value = initial.image || '';
+    card.appendChild(imagePathHidden);
+
+    // Existing image preview
+    if (initial.image) {
+      var thumbWrap = el('div', 'step-existing-image');
+      var thumbImg = document.createElement('img');
+      thumbImg.src = SITE_BASE + '/' + initial.image + '?t=' + Date.now();
+      thumbImg.alt = '';
+      thumbImg.className = 'step-thumb';
+      thumbImg.onerror = function () { thumbWrap.style.display = 'none'; };
+      thumbWrap.appendChild(thumbImg);
+
+      var meta = el('div', 'step-existing-meta');
+      meta.appendChild(el('span', 'step-existing-label', '目前圖片'));
+      meta.appendChild(el('span', 'step-existing-path', initial.image.split('/').pop()));
+      thumbWrap.appendChild(meta);
+      card.appendChild(thumbWrap);
+    }
 
     // File input
     var fileInput = document.createElement('input');
     fileInput.type = 'file';
     fileInput.className = 'step-image';
     fileInput.accept = 'image/*';
-    card.appendChild(buildField('圖片', fileInput));
+    fileInput.required = !initial.image;
+    var fileLabel = initial.image ? '替換圖片（選填）' : '圖片';
+    card.appendChild(buildField(fileLabel, fileInput));
 
-    // Bind events
+    // Click → focus
     card.addEventListener('click', function (e) {
       if (e.target.closest('.btn-remove-step')) return;
+      if (e.target.closest('.drag-handle')) return;
       focusStep(parseInt(card.dataset.index, 10));
     });
 
-    removeBtn.addEventListener('click', function () {
+    removeBtn.addEventListener('click', function (e) {
+      e.stopPropagation();
       removeStep(card);
     });
 
-    // Live preview on input
-    [titleInput, descArea, altInput].forEach(function (inp) {
+    // Drag handlers
+    card.addEventListener('dragstart', onDragStart);
+    card.addEventListener('dragover', onDragOver);
+    card.addEventListener('dragleave', onDragLeave);
+    card.addEventListener('drop', onDrop);
+    card.addEventListener('dragend', onDragEnd);
+
+    // Live preview
+    [titleInput, descArea].forEach(function (inp) {
       inp.addEventListener('input', function () {
-        if (parseInt(card.dataset.index, 10) === focusedStepIndex) {
-          updatePreview();
-        }
+        if (parseInt(card.dataset.index, 10) === focusedStepIndex) updatePreview();
       });
     });
-
     fileInput.addEventListener('change', function () {
-      if (parseInt(card.dataset.index, 10) === focusedStepIndex) {
-        updatePreview();
-      }
+      if (parseInt(card.dataset.index, 10) === focusedStepIndex) updatePreview();
     });
 
     return card;
   }
 
-  function addStep() {
-    var card = createStepCard();
+  // ── Drag-and-drop reorder ──
+  function onDragStart(e) {
+    draggedCard = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', this.dataset.index || ''); } catch (_) {}
+  }
+
+  function onDragOver(e) {
+    if (!draggedCard || draggedCard === this) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    this.classList.add('drag-over');
+  }
+
+  function onDragLeave() {
+    this.classList.remove('drag-over');
+  }
+
+  function onDrop(e) {
+    e.preventDefault();
+    this.classList.remove('drag-over');
+    if (!draggedCard || draggedCard === this) return;
+    var rect = this.getBoundingClientRect();
+    var dropAfter = (e.clientY - rect.top) > rect.height / 2;
+    if (dropAfter) {
+      this.parentNode.insertBefore(draggedCard, this.nextSibling);
+    } else {
+      this.parentNode.insertBefore(draggedCard, this);
+    }
+    renumberSteps();
+    focusStep(parseInt(draggedCard.dataset.index, 10));
+  }
+
+  function onDragEnd() {
+    if (draggedCard) draggedCard.classList.remove('dragging');
+    getStepCards().forEach(function (c) { c.classList.remove('drag-over'); });
+    draggedCard = null;
+  }
+
+  // ── Step CRUD ──
+  function addStep(initial) {
+    var card = createStepCard(initial);
     stepsContainer.appendChild(card);
     renumberSteps();
     focusStep(getStepCards().length - 1);
   }
 
   function removeStep(stepEl) {
+    if (getStepCards().length <= 1) return;
     stepEl.remove();
     renumberSteps();
-    var cards = getStepCards();
-    focusedStepIndex = Math.min(focusedStepIndex, Math.max(0, cards.length - 1));
+    var remaining = getStepCards();
+    focusedStepIndex = Math.min(focusedStepIndex, Math.max(0, remaining.length - 1));
     focusStep(focusedStepIndex);
   }
 
@@ -650,11 +870,7 @@ input[type="file"] {
     if (index < 0) index = 0;
     if (index >= cards.length) index = cards.length - 1;
     focusedStepIndex = index;
-
-    cards.forEach(function (c, i) {
-      c.classList.toggle('focused', i === index);
-    });
-
+    cards.forEach(function (c, i) { c.classList.toggle('focused', i === index); });
     updatePreview();
   }
 
@@ -675,8 +891,8 @@ input[type="file"] {
     var card = cards[focusedStepIndex];
     var title = card.querySelector('.step-title').value || '步驟標題';
     var desc = card.querySelector('.step-desc').value || '說明文字';
-    var alt = card.querySelector('.step-alt').value || '';
     var fileInput = card.querySelector('.step-image');
+    var existingPath = card.querySelector('.step-image-path').value;
 
     previewStepTitle.textContent = title;
     previewStepDesc.textContent = desc;
@@ -696,7 +912,17 @@ input[type="file"] {
         previewPlaceholder.style.display = 'flex';
       };
       previewImage.src = url;
-      previewImage.alt = alt;
+      previewImage.alt = '';
+      previewImage.style.display = 'block';
+      previewPlaceholder.style.display = 'none';
+    } else if (existingPath) {
+      previewImage.onload = null;
+      previewImage.onerror = function () {
+        previewImage.style.display = 'none';
+        previewPlaceholder.style.display = 'flex';
+      };
+      previewImage.src = SITE_BASE + '/' + existingPath + '?t=' + Date.now();
+      previewImage.alt = '';
       previewImage.style.display = 'block';
       previewPlaceholder.style.display = 'none';
     } else {
@@ -705,117 +931,205 @@ input[type="file"] {
     }
   }
 
-  // Preview navigation
-  btnPrev.addEventListener('click', function () {
-    focusStep(focusedStepIndex - 1);
-  });
+  btnPrev.addEventListener('click', function () { focusStep(focusedStepIndex - 1); });
+  btnNext.addEventListener('click', function () { focusStep(focusedStepIndex + 1); });
 
-  btnNext.addEventListener('click', function () {
-    focusStep(focusedStepIndex + 1);
-  });
+  // ── Edit / Delete ──
+  function enterEditMode(id, fallbackCategory) {
+    fetch(API_BASE + '/api/procedures/' + encodeURIComponent(id))
+      .then(function (res) {
+        if (!res.ok) {
+          return res.text().then(function (t) { throw new Error('讀取失敗 (' + res.status + ')：' + t); });
+        }
+        return res.json();
+      })
+      .then(function (data) {
+        mode = 'edit';
+        editingId = id;
+        formTitle.textContent = '編輯衛教';
+        modeBanner.textContent = '編輯中：' + (data.title || data.id) + '（識別碼鎖定）';
+        modeBanner.classList.add('active');
+        procId.value = data.id;
+        procId.readOnly = true;
+        procTitle.value = data.title || '';
+        procCategory.value = data.category || fallbackCategory || '';
+        clear(stepsContainer);
+        var steps = (data.steps && data.steps.length) ? data.steps : [{}];
+        steps.forEach(function (s) { addStep(s); });
+        focusStep(0);
+        btnSubmit.textContent = '儲存變更';
+        btnCancel.classList.add('active');
+        statusArea.style.display = 'none';
+        statusArea.className = 'status';
+        procForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      })
+      .catch(function (err) {
+        statusArea.className = 'status error';
+        statusArea.textContent = '❌ ' + err.message;
+        statusArea.style.display = 'block';
+      });
+  }
+
+  function exitEditMode() {
+    mode = 'add';
+    editingId = null;
+    formTitle.textContent = '新增衛教';
+    modeBanner.classList.remove('active');
+    modeBanner.textContent = '';
+    procForm.reset();
+    procId.readOnly = false;
+    clear(stepsContainer);
+    addStep();
+    focusStep(0);
+    btnSubmit.textContent = '建立衛教';
+    btnCancel.classList.remove('active');
+  }
+
+  function deleteProc(id, title) {
+    var label = title || id;
+    var msg = '確定刪除「' + label + '」？\n\n會連同 procedures/' + id + '.json 與 images/' + id + '/ 資料夾一併刪除，無法復原。';
+    if (!window.confirm(msg)) return;
+    fetch(API_BASE + '/api/procedures/' + encodeURIComponent(id), { method: 'DELETE' })
+      .then(function (res) {
+        if (!res.ok) {
+          return res.text().then(function (t) { throw new Error('刪除失敗 (' + res.status + ')：' + t); });
+        }
+        return res.json();
+      })
+      .then(function () {
+        statusArea.className = 'status success';
+        statusArea.textContent = '✅ 已刪除：' + id;
+        statusArea.style.display = 'block';
+        if (mode === 'edit' && editingId === id) exitEditMode();
+        loadIndex();
+      })
+      .catch(function (err) {
+        statusArea.className = 'status error';
+        statusArea.textContent = '❌ ' + err.message;
+        statusArea.style.display = 'block';
+      });
+  }
 
   // ── Submit ──
+  function showSuccess(msg, id) {
+    statusArea.className = 'status success';
+    clear(statusArea);
+    statusArea.appendChild(document.createTextNode('✅ ' + msg + ' '));
+    var link = document.createElement('a');
+    link.href = SITE_BASE + '/#/' + id;
+    link.target = '_blank';
+    link.textContent = '在主站查看';
+    statusArea.appendChild(link);
+    statusArea.style.display = 'block';
+  }
+
+  function showError(err) {
+    statusArea.className = 'status error';
+    statusArea.textContent = '❌ ' + err.message;
+    statusArea.style.display = 'block';
+  }
+
   function submitForm(e) {
     e.preventDefault();
-    statusArea.className = 'status';
     statusArea.style.display = 'none';
+    statusArea.className = 'status';
     btnSubmit.disabled = true;
+    var originalText = btnSubmit.textContent;
     btnSubmit.textContent = '提交中…';
 
-    var id = document.getElementById('procId').value.trim();
-    var title = document.getElementById('procTitle').value.trim();
+    var title = procTitle.value.trim();
     var category = procCategory.value;
     var cards = getStepCards();
 
+    var done = function () {
+      btnSubmit.disabled = false;
+      btnSubmit.textContent = originalText;
+    };
+
+    if (mode === 'add') {
+      submitAdd(procId.value.trim(), title, category, cards).then(done, function (err) { showError(err); done(); });
+    } else {
+      submitEdit(editingId, title, category, cards).then(done, function (err) { showError(err); done(); });
+    }
+  }
+
+  function submitAdd(id, title, category, cards) {
     var steps = cards.map(function (card) {
       return {
         title: card.querySelector('.step-title').value.trim(),
         description: card.querySelector('.step-desc').value.trim(),
-        alt: card.querySelector('.step-alt').value.trim()
+        alt: card.querySelector('.step-alt').value || ''
       };
     });
 
-    // Phase 1: POST procedure JSON
-    fetch(API_BASE + '/api/procedures', {
+    return fetch(API_BASE + '/api/procedures', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: id, title: title, category: category, steps: steps })
     })
-    .then(function (res1) {
-      if (!res1.ok) {
-        return res1.text().then(function (t) {
-          throw new Error('Phase 1 失敗 (' + res1.status + ')：' + t);
+      .then(function (res) {
+        if (!res.ok) return res.text().then(function (t) { throw new Error('建立失敗 (' + res.status + ')：' + t); });
+        return res.json();
+      })
+      .then(function () {
+        var fd = new FormData();
+        var thumbAppended = false;
+        cards.forEach(function (card, i) {
+          var fi = card.querySelector('.step-image');
+          if (fi.files && fi.files[0]) {
+            if (!thumbAppended) { fd.append('thumb', fi.files[0]); thumbAppended = true; }
+            fd.append('step' + (i + 1), fi.files[0]);
+          }
         });
-      }
-      return res1.json();
-    })
-    .then(function () {
-      // Phase 2: POST images if any
-      var hasAnyImage = cards.some(function (card) {
-        var fi = card.querySelector('.step-image');
-        return fi.files && fi.files[0];
+        return fetch(API_BASE + '/api/procedures/' + encodeURIComponent(id) + '/images', {
+          method: 'POST', body: fd
+        }).then(function (res2) {
+          if (!res2.ok) return res2.text().then(function (t) { throw new Error('圖片上傳失敗 (' + res2.status + ')：' + t); });
+        });
+      })
+      .then(function () {
+        showSuccess('建立完成！', id);
+        exitEditMode();
+        loadIndex();
       });
-
-      if (!hasAnyImage) return Promise.resolve();
-
-      var fd = new FormData();
-      var thumbAppended = false;
-      cards.forEach(function (card, i) {
-        var fi = card.querySelector('.step-image');
-        if (fi.files && fi.files[0]) {
-          if (!thumbAppended) { fd.append('thumb', fi.files[0]); thumbAppended = true; }
-          fd.append('step' + (i + 1), fi.files[0]);
-        }
-      });
-
-      return fetch(API_BASE + '/api/procedures/' + encodeURIComponent(id) + '/images', {
-        method: 'POST',
-        body: fd
-      }).then(function (res2) {
-        if (!res2.ok) {
-          return res2.text().then(function (t) {
-            throw new Error('衛教已建立，但圖片上傳失敗 (' + res2.status + ')：' + t + '。請手動補充圖片至 images/' + id + '/ 目錄。');
-          });
-        }
-      });
-    })
-    .then(function () {
-      // Success
-      statusArea.className = 'status success';
-      statusArea.textContent = '';
-      statusArea.appendChild(document.createTextNode('\u2705 建立完成！ '));
-      var link = document.createElement('a');
-      link.href = 'http://localhost:3000/#/' + id;
-      link.target = '_blank';
-      link.textContent = '在主站查看';
-      statusArea.appendChild(link);
-      statusArea.style.display = 'block';
-      resetForm();
-      loadIndex();
-    })
-    .catch(function (err) {
-      statusArea.className = 'status error';
-      statusArea.textContent = '\u274C ' + err.message;
-      statusArea.style.display = 'block';
-    })
-    .then(function () {
-      btnSubmit.disabled = false;
-      btnSubmit.textContent = '建立衛教';
-    });
   }
 
-  function resetForm() {
-    procForm.reset();
-    stepsContainer.textContent = '';
-    addStep();
-    focusStep(0);
+  function submitEdit(id, title, category, cards) {
+    var fd = new FormData();
+    var steps = cards.map(function (card, i) {
+      var fi = card.querySelector('.step-image');
+      var hasNewFile = fi.files && fi.files[0];
+      if (hasNewFile) fd.append('step' + (i + 1) + '_image', fi.files[0]);
+      return {
+        title: card.querySelector('.step-title').value.trim(),
+        description: card.querySelector('.step-desc').value.trim(),
+        alt: card.querySelector('.step-alt').value || '',
+        image: hasNewFile ? '' : card.querySelector('.step-image-path').value
+      };
+    });
+
+    fd.append('payload', JSON.stringify({ title: title, category: category, steps: steps }));
+
+    return fetch(API_BASE + '/api/procedures/' + encodeURIComponent(id), {
+      method: 'PUT', body: fd
+    })
+      .then(function (res) {
+        if (!res.ok) return res.text().then(function (t) { throw new Error('儲存失敗 (' + res.status + ')：' + t); });
+        return res.json();
+      })
+      .then(function () {
+        showSuccess('已儲存變更！', id);
+        exitEditMode();
+        loadIndex();
+      });
   }
 
   // ── Init ──
-  btnAddStep.addEventListener('click', addStep);
+  btnAddStep.addEventListener('click', function () { addStep(); });
+  btnCancel.addEventListener('click', exitEditMode);
   procForm.addEventListener('submit', submitForm);
 
-  addStep(); // start with 1 step
+  addStep();
   loadIndex();
 })();
 </script>

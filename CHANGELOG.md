@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.3.0] - 2026-04-25
+
+### Added
+- **衛教管理可編輯與刪除** — `npm run admin` 之前只能新增，現在每篇衛教在列表多了「編輯 / 刪除」按鈕。編輯模式載入 title / category / steps、識別碼鎖定不可改，可改文字、替換單張步驟圖、增減步驟；後端 `PUT /api/procedures/:id` 儲存時自動回收沒被引用的舊圖檔。刪除為硬刪除：同步移除 `procedures/{id}.json`、`images/{id}/` 資料夾、`index.json` 條目
+- **步驟拖拉排序** — 步驟卡片左上加 ≡ drag handle，HTML5 native drag-and-drop 任意調整順序，submit 時依目前 DOM 順序送出
+- **編輯模式圖片預覽** — 步驟卡片顯示目前圖片縮圖 + 檔名，替換前可先確認；新上傳的圖以 `step{idx}-{timestamp}-{rand}.{ext}` 命名避免覆蓋衝突
+
+### Changed
+- **必填欄位調整** — 步驟標題、圖片設為必填；說明（description）改選填；無障礙描述（alt）欄位從 admin UI 移除（JSON schema 與既有資料保留），對診間內部 PWA 沒實際用處
+- **admin server 新增路由** — `PUT /api/procedures/:id`（multipart payload + 可選圖片附件）、`DELETE /api/procedures/:id`；CORS `Access-Control-Allow-Methods` 加入 `PUT, DELETE`
+
 ## [0.2.2.0] - 2026-04-25
 
 ### Added
