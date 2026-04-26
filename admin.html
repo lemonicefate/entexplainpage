@@ -573,6 +573,68 @@ input[type="file"] {
 
 <script>
 (function () {
+  // Local-only tool: admin.js (Node) is required for the /api/* endpoints.
+  // GitHub Pages can't run the server, so bail out with a clear message
+  // instead of letting fetch() failures render as a broken UI.
+  var host = location.hostname;
+  var isLocal = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '';
+  if (!isLocal) {
+    document.title = '衛教管理 — 僅限本機使用';
+    while (document.body.firstChild) document.body.removeChild(document.body.firstChild);
+
+    var card = document.createElement('div');
+    card.style.cssText =
+      'max-width:560px;margin:10vh auto;padding:32px;background:#fff;' +
+      'border-radius:12px;box-shadow:0 4px 16px rgba(15,42,66,0.08);' +
+      "font-family:'Noto Sans TC',-apple-system,sans-serif;color:#0f2a42;line-height:1.6;";
+
+    var h1 = document.createElement('h1');
+    h1.style.cssText = 'font-size:1.5rem;margin-bottom:16px;color:#0e7c7b;';
+    h1.textContent = '衛教管理工具';
+    card.appendChild(h1);
+
+    var pStrong = document.createElement('p');
+    pStrong.style.cssText = 'margin-bottom:12px;';
+    var strong = document.createElement('strong');
+    strong.textContent = '此工具僅供診間本機編輯使用。';
+    pStrong.appendChild(strong);
+    card.appendChild(pStrong);
+
+    var pInfo = document.createElement('p');
+    pInfo.style.cssText = 'margin-bottom:16px;color:#56706c;';
+    pInfo.textContent = 'admin 介面需要本機 Node server 才能存取 / 寫入衛教資料,GitHub Pages 是純靜態主機,無法執行後端。';
+    card.appendChild(pInfo);
+
+    var pCmdLabel = document.createElement('p');
+    pCmdLabel.style.cssText = 'margin-bottom:8px;font-weight:600;';
+    pCmdLabel.textContent = '在本機開啟方式:';
+    card.appendChild(pCmdLabel);
+
+    var pre = document.createElement('pre');
+    pre.style.cssText =
+      'background:#f5faf8;padding:12px 16px;border-radius:8px;' +
+      "font-family:'SF Mono',Menlo,Consolas,monospace;font-size:0.875rem;" +
+      'border:1px solid #eaf2ef;margin-bottom:20px;overflow-x:auto;';
+    pre.textContent =
+      'git clone … && cd entexplainpage\n' +
+      'npm install\n' +
+      'npm run admin\n' +
+      '# 開啟 http://localhost:3001/admin.html';
+    card.appendChild(pre);
+
+    var pBack = document.createElement('p');
+    pBack.style.cssText = 'margin-bottom:0;';
+    var a = document.createElement('a');
+    a.href = '/';
+    a.style.cssText = 'color:#0e7c7b;text-decoration:none;font-weight:600;';
+    a.textContent = '← 回到主站';
+    pBack.appendChild(a);
+    card.appendChild(pBack);
+
+    document.body.appendChild(card);
+    return;
+  }
+
   // Same-origin: admin.js serves both /api/* and the main site's static files.
   var API_BASE = '';
   var SITE_BASE = '';

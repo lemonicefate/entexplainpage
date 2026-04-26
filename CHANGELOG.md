@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.3.2] - 2026-04-26
+
+### Fixed
+- **線上 admin.html 顯示「Failed to fetch index」破圖** — GitHub Pages 是純靜態主機,跑不了 `scripts/admin.js` (Node) 提供的 `/api/*` endpoints,導致 `https://lemonicefate.github.io/entexplainpage/admin.html` 只會看到「無法載入」+ 空表單。線上版從來就無法真正寫入,寫入保護不變(沒有後端可寫),但 UI 看起來像壞掉。現在加上 hostname 偵測,非 localhost / 127.0.0.1 / ::1 直接顯示「此工具僅供診間本機編輯使用」說明卡 + 本機啟動指令 + 回主站連結;localhost 完全不受影響
+
 ## [0.2.3.1] - 2026-04-26
 
 ### Changed
