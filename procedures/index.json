@@ -41,7 +41,11 @@
     {
       "id": "snore",
       "title": "打呼",
+      "subtitle": "成因解說 · 7 步驟",
       "category": "ent",
+      "type": "explain",
+      "region": "頭頸",
+      "slides": 7,
       "thumbnail": "images/snore/thumb.png"
     }
   ]
