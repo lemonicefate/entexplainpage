@@ -1,6 +1,7 @@
 {
   "id": "vocal-cord",
   "title": "聲帶",
+  "type": "explain",
   "category": "ent",
   "steps": [
     {

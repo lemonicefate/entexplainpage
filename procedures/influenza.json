@@ -1,6 +1,7 @@
 {
   "id": "influenza",
   "title": "流感",
+  "type": "explain",
   "category": "ent",
   "steps": [
     {

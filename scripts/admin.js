@@ -255,13 +255,17 @@ function handlePostProcedures(req, res) {
       return jsonResponse(res, 400, { error: 'Invalid JSON body' });
     }
 
-    const { id, title, category, steps } = payload;
+    const { id, title, type, category, steps } = payload;
 
     // Validate id
     if (!id || !/^[a-z0-9-]+$/.test(id)) {
       return jsonResponse(res, 400, { error: 'Invalid id: must match /^[a-z0-9-]+$/' });
     }
     if (!title) return jsonResponse(res, 400, { error: 'Missing required field: title' });
+    if (!type) return jsonResponse(res, 400, { error: 'Missing required field: type' });
+    if (type !== 'explain' && type !== 'surgery') {
+      return jsonResponse(res, 400, { error: 'Invalid type: must be "explain" or "surgery"' });
+    }
     if (!category) return jsonResponse(res, 400, { error: 'Missing required field: category' });
     if (!Array.isArray(steps)) return jsonResponse(res, 400, { error: 'Missing required field: steps (array)' });
 
@@ -285,6 +289,7 @@ function handlePostProcedures(req, res) {
       const procedure = {
         id,
         title,
+        type,
         category,
         steps: steps.map((step, i) => ({
           image: `images/${id}/step${i + 1}.webp`,
@@ -309,6 +314,7 @@ function handlePostProcedures(req, res) {
       index.procedures.push({
         id,
         title,
+        type,
         category,
         thumbnail: `images/${id}/thumb.webp`,
       });
@@ -417,8 +423,12 @@ async function handlePutProcedure(req, res, id) {
     return jsonResponse(res, 400, { error: 'Invalid JSON payload' });
   }
 
-  const { title, category, steps } = payload;
+  const { title, type, category, steps } = payload;
   if (!title) return jsonResponse(res, 400, { error: 'Missing required field: title' });
+  if (!type) return jsonResponse(res, 400, { error: 'Missing required field: type' });
+  if (type !== 'explain' && type !== 'surgery') {
+    return jsonResponse(res, 400, { error: 'Invalid type: must be "explain" or "surgery"' });
+  }
   if (!category) return jsonResponse(res, 400, { error: 'Missing required field: category' });
   if (!Array.isArray(steps) || steps.length === 0) {
     return jsonResponse(res, 400, { error: 'steps must be a non-empty array' });
@@ -473,6 +483,7 @@ async function handlePutProcedure(req, res, id) {
     const newProcedure = {
       id,
       title,
+      type,
       category,
       steps: newSteps,
     };
@@ -496,6 +507,7 @@ async function handlePutProcedure(req, res, id) {
     const entry = index.procedures.find((p) => p.id === id);
     if (entry) {
       entry.title = title;
+      entry.type = type;
       entry.category = category;
       if (typeof entry.slides === 'number') entry.slides = newSteps.length;
     }

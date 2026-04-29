@@ -31,18 +31,21 @@
     {
       "id": "nasal-obstruction",
       "title": "鼻塞",
+      "type": "explain",
       "category": "ent",
       "thumbnail": "images/nasal-obstruction/thumb.webp"
     },
     {
       "id": "vocal-cord",
       "title": "聲帶",
+      "type": "explain",
       "category": "ent",
       "thumbnail": "images/vocal-cord/thumb.jpg"
     },
     {
       "id": "influenza",
       "title": "流感",
+      "type": "explain",
       "category": "ent",
       "thumbnail": "images/influenza/thumb.png"
     }

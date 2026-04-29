@@ -1,6 +1,7 @@
 {
   "id": "snore",
   "title": "打呼",
+  "type": "explain",
   "category": "ent",
   "steps": [
     {

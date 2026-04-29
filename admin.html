@@ -533,6 +533,15 @@ input[type="file"] {
       </div>
 
       <div class="field-group">
+        <label for="procType">類型</label>
+        <select id="procType" name="type" required>
+          <option value="" disabled selected>選擇類型…</option>
+          <option value="explain">解釋病情</option>
+          <option value="surgery">手術流程</option>
+        </select>
+      </div>
+
+      <div class="field-group">
         <label for="procCategory">分類</label>
         <select id="procCategory" name="category" required>
           <option value="" disabled selected>選擇分類…</option>
@@ -649,6 +658,7 @@ input[type="file"] {
   var modeBanner = document.getElementById('modeBanner');
   var procId = document.getElementById('procId');
   var procTitle = document.getElementById('procTitle');
+  var procType = document.getElementById('procType');
   var procCategory = document.getElementById('procCategory');
   var stepsContainer = document.getElementById('stepsContainer');
   var btnAddStep = document.getElementById('btnAddStep');
@@ -720,7 +730,7 @@ input[type="file"] {
 
             var editBtn = el('button', 'btn-row', '編輯');
             editBtn.type = 'button';
-            editBtn.addEventListener('click', function () { enterEditMode(p.id, p.category); });
+            editBtn.addEventListener('click', function () { enterEditMode(p.id, p.category, p.type); });
             row.appendChild(editBtn);
 
             var delBtn = el('button', 'btn-row btn-row-danger', '刪除');
@@ -998,7 +1008,7 @@ input[type="file"] {
   btnNext.addEventListener('click', function () { focusStep(focusedStepIndex + 1); });
 
   // ── Edit / Delete ──
-  function enterEditMode(id, fallbackCategory) {
+  function enterEditMode(id, fallbackCategory, fallbackType) {
     fetch(API_BASE + '/api/procedures/' + encodeURIComponent(id))
       .then(function (res) {
         if (!res.ok) {
@@ -1015,6 +1025,7 @@ input[type="file"] {
         procId.value = data.id;
         procId.readOnly = true;
         procTitle.value = data.title || '';
+        procType.value = data.type || fallbackType || '';
         procCategory.value = data.category || fallbackCategory || '';
         clear(stepsContainer);
         var steps = (data.steps && data.steps.length) ? data.steps : [{}];
@@ -1101,6 +1112,7 @@ input[type="file"] {
     btnSubmit.textContent = '提交中…';
 
     var title = procTitle.value.trim();
+    var type = procType.value;
     var category = procCategory.value;
     var cards = getStepCards();
 
@@ -1110,13 +1122,13 @@ input[type="file"] {
     };
 
     if (mode === 'add') {
-      submitAdd(procId.value.trim(), title, category, cards).then(done, function (err) { showError(err); done(); });
+      submitAdd(procId.value.trim(), title, type, category, cards).then(done, function (err) { showError(err); done(); });
     } else {
-      submitEdit(editingId, title, category, cards).then(done, function (err) { showError(err); done(); });
+      submitEdit(editingId, title, type, category, cards).then(done, function (err) { showError(err); done(); });
     }
   }
 
-  function submitAdd(id, title, category, cards) {
+  function submitAdd(id, title, type, category, cards) {
     var steps = cards.map(function (card) {
       return {
         title: card.querySelector('.step-title').value.trim(),
@@ -1128,7 +1140,7 @@ input[type="file"] {
     return fetch(API_BASE + '/api/procedures', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: id, title: title, category: category, steps: steps })
+      body: JSON.stringify({ id: id, title: title, type: type, category: category, steps: steps })
     })
       .then(function (res) {
         if (!res.ok) return res.text().then(function (t) { throw new Error('建立失敗 (' + res.status + ')：' + t); });
@@ -1157,7 +1169,7 @@ input[type="file"] {
       });
   }
 
-  function submitEdit(id, title, category, cards) {
+  function submitEdit(id, title, type, category, cards) {
     var fd = new FormData();
     var steps = cards.map(function (card, i) {
       var fi = card.querySelector('.step-image');
@@ -1171,7 +1183,7 @@ input[type="file"] {
       };
     });
 
-    fd.append('payload', JSON.stringify({ title: title, category: category, steps: steps }));
+    fd.append('payload', JSON.stringify({ title: title, type: type, category: category, steps: steps }));
 
     return fetch(API_BASE + '/api/procedures/' + encodeURIComponent(id), {
       method: 'PUT', body: fd
