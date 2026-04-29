@@ -1,0 +1,31 @@
+{
+  "id": "influenza",
+  "title": "流感",
+  "category": "ent",
+  "steps": [
+    {
+      "image": "images/influenza/step1.png",
+      "title": "流感公費條件",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/influenza/step2.png",
+      "title": "流感公費慢性病條件",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/influenza/step3.jpg",
+      "title": "Tamiflu兒童劑量",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/influenza/step4.png",
+      "title": "Tamiflu肝腎功能調整劑量",
+      "description": "",
+      "alt": ""
+    }
+  ]
+}

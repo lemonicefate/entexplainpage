@@ -1,0 +1,31 @@
+{
+  "id": "nasal-obstruction",
+  "title": "鼻塞",
+  "category": "ent",
+  "steps": [
+    {
+      "image": "images/nasal-obstruction/step1.webp",
+      "title": "下鼻甲示意圖",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/nasal-obstruction/step2.jpg",
+      "title": "鼻中膈示意圖",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/nasal-obstruction/step3.jpg",
+      "title": "下鼻甲肥大程度示意圖",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/nasal-obstruction/step4.jpg",
+      "title": "下鼻甲無線電射頻手術示意圖",
+      "description": "",
+      "alt": ""
+    }
+  ]
+}

@@ -19,26 +19,6 @@
   ],
   "procedures": [
     {
-      "id": "appendectomy",
-      "title": "闌尾切除術",
-      "subtitle": "腹腔鏡微創 · 5 步驟",
-      "category": "surgery",
-      "type": "surgery",
-      "region": "腹",
-      "slides": 5,
-      "thumbnail": "images/appendectomy/thumb.webp"
-    },
-    {
-      "id": "hernia-repair",
-      "title": "疝氣修補術",
-      "subtitle": "腹股溝疝氣 · 修補流程",
-      "category": "surgery",
-      "type": "surgery",
-      "region": "腹",
-      "slides": 4,
-      "thumbnail": "images/hernia-repair/thumb.webp"
-    },
-    {
       "id": "snore",
       "title": "打呼",
       "subtitle": "成因解說 · 7 步驟",
@@ -47,6 +27,24 @@
       "region": "頭頸",
       "slides": 7,
       "thumbnail": "images/snore/thumb.png"
+    },
+    {
+      "id": "nasal-obstruction",
+      "title": "鼻塞",
+      "category": "ent",
+      "thumbnail": "images/nasal-obstruction/thumb.webp"
+    },
+    {
+      "id": "vocal-cord",
+      "title": "聲帶",
+      "category": "ent",
+      "thumbnail": "images/vocal-cord/thumb.jpg"
+    },
+    {
+      "id": "influenza",
+      "title": "流感",
+      "category": "ent",
+      "thumbnail": "images/influenza/thumb.png"
     }
   ]
 }
