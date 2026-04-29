@@ -1,12 +1,12 @@
 # entexplainpage Roadmap
 
 **Status**: 🟡 Maintenance
-**Last updated**: 2026-04-27
-**Current version**: v0.2.3.2 (GitHub Pages 上線中)
+**Last updated**: 2026-04-30
+**Current version**: v0.2.3.2 (GitHub Pages 上線中；之後僅 content / chore 累積，未發新版)
 
 ## 🔧 Active maintenance
-- [ ] 持續修補 admin.html 在 GitHub Pages 純靜態環境下的 UX 邊界（最近 v0.2.3.2 已加 hostname 偵測、main site link 修正）
-- [ ] `procedures/index.json` 資料完整性巡檢（最近修補 snore 條目缺欄位）
+- [ ] 持續修補 admin.html 在 GitHub Pages 純靜態環境下的 UX 邊界（v0.2.3.2 已加 hostname 偵測、main site link 修正）
+- [ ] `procedures/index.json` 資料完整性巡檢（v0.2.3.2 之後已補完 snore 條目缺漏欄位）
 - [ ] iPad Safari 加到主畫面後的 PWA 行為回歸測試（每次 SW cache bump 後）
 
 ## 📅 Up next
@@ -21,9 +21,12 @@
 - 超過 20 步驟手術的 scrubber `requestAnimationFrame` 節流（觸發條件：`max(proc.steps.length) > 20`，現在每支手術 4–5 步驟還不需要）
 - 圖片預載 AbortController 修正 `preloadAbort` dead code（已排程遠程 agent 於 2026-05-08 09:00 處理，trigger `trig_016HpfGshq8NjmNS9yv7ebLv`）
 - 新計算機：eGFR（CKD-EPI 2021）— README 範例中提到的下一支候選
-- 衛教 / 手術項目持續擴充（目前 appendectomy、hernia-repair、snore）
+- 衛教 / 手術項目持續擴充（目前 13 篇 explain：snore、nasal-obstruction、vocal-cord、influenza、quit-smoke、oral-ulcer、menieres、tinnitus、ssnhl、otitis-media-effusion、vitd、atopic-dermatitis、testosterone；尚無 surgery 類型實體資料）
 
 ## ✅ Recently done
+- [x] 內容批次擴充（v0.2.3.2 之後）— 新增 9 篇衛教：quit-smoke / oral-ulcer / menieres / tinnitus / ssnhl / otitis-media-effusion / vitd / atopic-dermatitis / testosterone
+- [x] admin 表單補 `type` 欄位（explain / surgery）— 之前只有 category，無法分類首頁解釋病情 / 手術流程 chip；同步 backfill snore / nasal-obstruction / vocal-cord / influenza
+- [x] `.gitattributes` 強制 LF 行尾 — WSL ↔ Windows 編輯器會 silently rewrite CRLF，污染 diff
 - [x] v0.2.3.2 — admin.html 在 GitHub Pages 顯示 local-only 說明卡，避免破圖
 - [x] v0.2.3.1 — 解說圖片大幅放大（拿掉 4:3 / 寬度上限）、Immersive 模式真正釋放版位
 - [x] v0.2.3.0 — admin 編輯 / 刪除衛教、步驟拖拉排序、編輯模式圖片預覽

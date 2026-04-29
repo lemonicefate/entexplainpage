@@ -27,10 +27,10 @@ entexplainpage/
 ├── js/app.js                # IIFE 單檔應用程式
 ├── procedures/
 │   ├── index.json           # 分類 + 衛教/手術列表
-│   ├── appendectomy.json    # 單篇步驟資料
-│   └── hernia-repair.json
+│   ├── snore.json           # 單篇步驟資料（每篇一檔）
+│   └── nasal-obstruction.json
 ├── images/{id}/             # 對應的縮圖與步驟圖
-│   ├── thumb.webp
+│   ├── thumb.webp           # 也接受 png/jpg
 │   └── step1.webp ...
 ├── admin.html               # 網頁版編輯器（搭配 scripts/admin.js）
 ├── scripts/admin.js         # 本機編輯用 API server
@@ -184,16 +184,19 @@ gh pr merge --squash --delete-branch
 
 欄位：
 
-| 欄位 | 說明 |
-|---|---|
-| `id` | 必須與 JSON 檔名、`images/{id}/` 資料夾名一致 |
-| `category` | 對應 `categories` 其中之一：`surgery` / `ent` / `weight` / `functional` |
-| `type` | `explain`（解釋病情）或 `surgery`（手術流程）——決定首頁篩選籤 |
-| `region` | 身體區域標記，顯示在卡片上 |
-| `slides` | 步驟數，必須等於步驟 JSON 裡 `steps.length` |
-| `thumbnail` | 首頁卡片縮圖路徑 |
+| 欄位 | 必填 | 說明 |
+|---|---|---|
+| `id` | ✅ | 必須與 JSON 檔名、`images/{id}/` 資料夾名一致 |
+| `title` | ✅ | 卡片標題 |
+| `category` | ✅ | 對應 `categories` 其中之一：`surgery` / `ent` / `weight` / `functional` |
+| `type` | ✅ | `explain`（解釋病情）或 `surgery`（手術流程）——決定首頁篩選籤 |
+| `thumbnail` | ✅ | 首頁卡片縮圖路徑 |
+| `subtitle` | 選填 | 卡片副標；省略則不顯示 |
+| `region` | 選填 | 身體區域標記；省略時卡片改顯示 `type` |
+| `slides` | 選填 | 步驟數；省略時卡片顯示 `slides`，提供時須等於步驟 JSON 的 `steps.length` |
 
 新增分類就編 `categories` 陣列。
+> 資料慣例：snore 是早期完整範例（含 subtitle / region / slides），新加入的條目目前只填必填欄位。
 
 **4. 或使用網頁版編輯器**
 

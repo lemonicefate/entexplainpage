@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- **admin 表單新增 `type` 欄位** — 之前 admin.html 只能填 category（ent/surgery/weight/functional），但首頁篩選 chip 與 `app.js` 的 `item.type` 過濾需要獨立的 `type` 欄位（explain / surgery）。新增 `<select>`、串到 `enterEditMode` / `submitAdd` / `submitEdit`，後端 `handlePostProcedures` 與 `handlePutProcedure` 驗證並寫入 procedure file 與 index.json。Backfill 既有 4 篇（snore / nasal-obstruction / vocal-cord / influenza）為 `type: "explain"`
+- **內容批次擴充（content）** — 新增 9 篇衛教：quit-smoke / oral-ulcer / menieres / tinnitus / ssnhl / otitis-media-effusion / vitd / atopic-dermatitis / testosterone（皆 `type: "explain"`，分屬 ent / functional 分類）
+
+### Changed
+- **`.gitattributes` 強制 LF 行尾** — Repo 之前未設 `core.autocrlf` 也沒有 `.gitattributes`，WSL ↔ Windows 編輯器會 silently rewrite CRLF / LF，污染 diff。新增 `* text=auto eol=lf`，圖片 / 字型等二進位明確標 `binary`
+
 ## [0.2.3.2] - 2026-04-26
 
 ### Fixed
