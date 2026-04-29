@@ -1,0 +1,26 @@
+{
+  "id": "quit-smoke",
+  "title": "戒菸",
+  "type": "explain",
+  "category": "ent",
+  "steps": [
+    {
+      "image": "images/quit-smoke/step1.png",
+      "title": "戒菸療程",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/quit-smoke/step2.png",
+      "title": "戒菸開立週數條件",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/quit-smoke/step3.png",
+      "title": "Champix衛教",
+      "description": "",
+      "alt": ""
+    }
+  ]
+}

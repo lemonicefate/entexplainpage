@@ -48,6 +48,41 @@
       "type": "explain",
       "category": "ent",
       "thumbnail": "images/influenza/thumb.png"
+    },
+    {
+      "id": "quit-smoke",
+      "title": "戒菸",
+      "type": "explain",
+      "category": "ent",
+      "thumbnail": "images/quit-smoke/thumb.png"
+    },
+    {
+      "id": "oral-ulcer",
+      "title": "口腔潰瘍",
+      "type": "explain",
+      "category": "ent",
+      "thumbnail": "images/oral-ulcer/thumb.png"
+    },
+    {
+      "id": "menieres",
+      "title": "梅尼爾氏症",
+      "type": "explain",
+      "category": "ent",
+      "thumbnail": "images/menieres/thumb.png"
+    },
+    {
+      "id": "tinnitus",
+      "title": "耳鳴",
+      "type": "explain",
+      "category": "ent",
+      "thumbnail": "images/tinnitus/thumb.png"
+    },
+    {
+      "id": "ssnhl",
+      "title": "突發性耳聾",
+      "type": "explain",
+      "category": "ent",
+      "thumbnail": "images/ssnhl/thumb.png"
     }
   ]
 }
