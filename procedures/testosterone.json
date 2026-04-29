@@ -1,0 +1,20 @@
+{
+  "id": "testosterone",
+  "title": "睪固酮",
+  "type": "explain",
+  "category": "functional",
+  "steps": [
+    {
+      "image": "images/testosterone/step1.png",
+      "title": "什麼是睪固酮",
+      "description": "",
+      "alt": "什麼是睪固酮"
+    },
+    {
+      "image": "images/testosterone/step2.png",
+      "title": "ADAM 問卷",
+      "description": "",
+      "alt": "睪固酮ADAM問卷"
+    }
+  ]
+}

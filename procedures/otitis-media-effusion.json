@@ -1,0 +1,20 @@
+{
+  "id": "otitis-media-effusion",
+  "title": "小兒中耳積水",
+  "type": "explain",
+  "category": "ent",
+  "steps": [
+    {
+      "image": "images/otitis-media-effusion/step1.png",
+      "title": "生活處方",
+      "description": "",
+      "alt": "小兒中耳積水生活處方"
+    },
+    {
+      "image": "images/otitis-media-effusion/step2.png",
+      "title": "營養處方",
+      "description": "",
+      "alt": "小兒中耳積水營養處方"
+    }
+  ]
+}

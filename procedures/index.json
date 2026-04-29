@@ -83,6 +83,34 @@
       "type": "explain",
       "category": "ent",
       "thumbnail": "images/ssnhl/thumb.png"
+    },
+    {
+      "id": "otitis-media-effusion",
+      "title": "小兒中耳積水",
+      "type": "explain",
+      "category": "ent",
+      "thumbnail": "images/otitis-media-effusion/thumb.png"
+    },
+    {
+      "id": "vitd",
+      "title": "維他命D補充",
+      "type": "explain",
+      "category": "functional",
+      "thumbnail": "images/vitd/thumb.png"
+    },
+    {
+      "id": "atopic-dermatitis",
+      "title": "異位性皮膚炎",
+      "type": "explain",
+      "category": "functional",
+      "thumbnail": "images/atopic-dermatitis/thumb.png"
+    },
+    {
+      "id": "testosterone",
+      "title": "睪固酮",
+      "type": "explain",
+      "category": "functional",
+      "thumbnail": "images/testosterone/thumb.png"
     }
   ]
 }

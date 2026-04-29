@@ -1,0 +1,26 @@
+{
+  "id": "atopic-dermatitis",
+  "title": "異位性皮膚炎",
+  "type": "explain",
+  "category": "functional",
+  "steps": [
+    {
+      "image": "images/atopic-dermatitis/step1.png",
+      "title": "什麼是異位性皮膚炎",
+      "description": "",
+      "alt": "什麼是異位性皮膚炎"
+    },
+    {
+      "image": "images/atopic-dermatitis/step2.png",
+      "title": "年齡表現",
+      "description": "",
+      "alt": "異位性皮膚炎年齡表現"
+    },
+    {
+      "image": "images/atopic-dermatitis/step3.png",
+      "title": "診斷標準",
+      "description": "",
+      "alt": "異位性皮膚炎診斷標準"
+    }
+  ]
+}
