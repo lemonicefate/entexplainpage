@@ -585,10 +585,11 @@ img.card-thumb { background: var(--tint-1); }
 .tap-zone-prev   { flex-basis: 33%; }
 .tap-zone-toggle { flex-basis: 34%; }
 .tap-zone-next   { flex-basis: 33%; }
-.tap-zone:focus-visible {
-  outline: 2px dashed rgba(255,255,255,0.35);
-  outline-offset: -6px;
-}
+/* tap zones are tabindex=-1 + aria-hidden — they should never show a focus ring;
+   browsers can otherwise flash :focus-visible after a click, leaving a stray
+   dashed rectangle over the image. */
+.tap-zone:focus,
+.tap-zone:focus-visible { outline: 0; }
 /* Disable tap zones while a drawing tool is active so pen/spot/laser work */
 .player-stage.tool-pen   #tap-zones,
 .player-stage.tool-spot  #tap-zones,
