@@ -132,32 +132,23 @@ img { display: block; max-width: 100%; }
   margin-bottom: 32px;
 }
 
-.brand { display: flex; align-items: center; gap: 10px; }
-.brand-mark {
-  width: 36px; height: 36px; border-radius: 10px;
-  background: var(--teal); color: #fff;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 16px;
-  letter-spacing: 0.02em;
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  font-family: "Microsoft JhengHei", "微軟正黑體", "PingFang TC", sans-serif;
+}
+.brand-logo {
+  height: 36px; width: auto;
+  border-radius: 8px;
+  object-fit: contain;
+  display: block;
 }
 .brand-name { font-weight: 700; font-size: 18px; color: var(--ink); }
 .brand-sub {
-  font-family: var(--font-serif);
-  font-weight: 400; font-style: italic;
+  font-weight: 400;
   color: var(--teal-2);
   font-size: 14px;
   letter-spacing: 0.06em;
   margin-left: 4px;
-}
-
-.user-chip {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 13px; color: var(--muted);
-}
-.avatar {
-  width: 30px; height: 30px; border-radius: 50%;
-  background: var(--tint-1);
-  border: 1px solid var(--line);
 }
 
 .search-wrap {
@@ -1102,7 +1093,6 @@ img.card-thumb { background: var(--tint-1); }
   .ph-title { font-size: 22px; }
   .ph-desc { font-size: 14px; }
   .home-topbar { flex-wrap: wrap; gap: 12px; }
-  .user-chip { font-size: 12px; }
   /* mobile: scrubber replaces thumb strip for one-handed scrubbing */
   .thumb-strip { display: none; }
   .player-scrubber { display: flex; }
