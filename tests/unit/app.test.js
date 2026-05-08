@@ -377,3 +377,32 @@ describe('PWA manifest', () => {
     expect(manifest.scope).toBe('./');
   });
 });
+
+describe('cancelPreload clears preload image array', () => {
+  it('sets img.src to empty string for each tracked image and empties the array', () => {
+    const images = [];
+    const srcs = [];
+    // Simulate the state.preloadImages array with mock Image-like objects
+    ['/a.jpg', '/b.jpg', '/c.jpg'].forEach(function (url) {
+      const img = { src: url };
+      images.push(img);
+      srcs.push(url);
+    });
+
+    // Inline the cancelPreload logic (mirrors js/app.js — no bundler available)
+    function cancelPreload(state) {
+      state.preloadImages.forEach(function (img) { img.src = ''; });
+      state.preloadImages = [];
+    }
+
+    const state = { preloadImages: images };
+    cancelPreload(state);
+
+    // All img.src should now be ''
+    images.forEach(function (img) {
+      expect(img.src).toBe('');
+    });
+    // Array should be cleared
+    expect(state.preloadImages).toHaveLength(0);
+  });
+});

@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.3.3] - 2026-05-08
+
+### Fixed
+- **preload cancel 真正取消圖片載入** — `state.preloadAbort`（AbortController）是 dead code：`new Image()` 不接受 AbortSignal，`cancelPreload()` 呼叫後什麼都不做，快速切換手術時舊的圖片請求會繼續搶頻寬。改用 `state.preloadImages: []` 追蹤 Image 物件，`cancelPreload()` 逐一設 `img.src = ''` 通知瀏覽器中止載入，再清空陣列。
+
 ### Added
 - **admin 表單新增 `type` 欄位** — 之前 admin.html 只能填 category（ent/surgery/weight/functional），但首頁篩選 chip 與 `app.js` 的 `item.type` 過濾需要獨立的 `type` 欄位（explain / surgery）。新增 `<select>`、串到 `enterEditMode` / `submitAdd` / `submitEdit`，後端 `handlePostProcedures` 與 `handlePutProcedure` 驗證並寫入 procedure file 與 index.json。Backfill 既有 4 篇（snore / nasal-obstruction / vocal-cord / influenza）為 `type: "explain"`
 - **內容批次擴充（content）** — 新增 9 篇衛教：quit-smoke / oral-ulcer / menieres / tinnitus / ssnhl / otitis-media-effusion / vitd / atopic-dermatitis / testosterone（皆 `type: "explain"`，分屬 ent / functional 分類）
