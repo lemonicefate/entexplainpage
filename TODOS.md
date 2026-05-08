@@ -42,8 +42,9 @@ tests/unit/
 
 ### AbortController 用於圖片預載
 **Priority:** Medium
+**Completed:** v0.2.3.3 (2026-05-08)
 **What:** 醫師點錯手術立即返回再點另一個時，前一個的預載請求應該被取消，不跟新的搶頻寬。
-**Status:** 已排程 remote agent 於 2026-05-08 09:00 處理（trigger `trig_016HpfGshq8NjmNS9yv7ebLv`），將用 image array + `img.src = ''` 取消方式修正 `preloadAbort` dead code。
+**Fix:** 移除 dead code `state.preloadAbort` (AbortController，但 `new Image()` 無法訂閱 signal)；改用 `state.preloadImages: []` 追蹤 Image 物件，`cancelPreload()` 逐一設 `img.src = ''` 通知瀏覽器停止載入，再清空陣列。
 
 ### Keyboard navigation + ARIA 無障礙支援
 **Priority:** Medium

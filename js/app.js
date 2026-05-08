@@ -16,7 +16,7 @@
     stepIndex: 0,
     activeTool: null,            // pen | spot | laser | null
     wakeLock: null,
-    preloadAbort: null,
+    preloadImages: [],
     chromeHidden: false,
     chromeTimer: null
   };
@@ -757,11 +757,13 @@
   // ============================================================
   function preloadImages(steps) {
     cancelPreload();
-    state.preloadAbort = new AbortController();
-    (steps || []).forEach(function (s) { if (s.image) { var img = new Image(); img.src = s.image; } });
+    (steps || []).forEach(function (s) {
+      if (s.image) { var img = new Image(); img.src = s.image; state.preloadImages.push(img); }
+    });
   }
   function cancelPreload() {
-    if (state.preloadAbort) { state.preloadAbort.abort(); state.preloadAbort = null; }
+    state.preloadImages.forEach(function (img) { img.src = ''; });
+    state.preloadImages = [];
   }
 
   // ============================================================
