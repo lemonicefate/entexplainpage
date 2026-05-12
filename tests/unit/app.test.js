@@ -358,6 +358,101 @@ describe('Service worker', () => {
   });
 });
 
+describe('Mounjaro calculator math', () => {
+  // Load app.js inside a jsdom window via <script> injection so the IIFE
+  // exposes its pure helpers (__mounjaroCalc, __formatNum) on window.
+  // init() may throw on missing fetch under jsdom — that's fine, helpers
+  // are exposed on window before the boot block.
+  let win;
+
+  beforeEach(() => {
+    const appSrc = fs.readFileSync(path.resolve(__dirname, '../../js/app.js'), 'utf-8');
+    const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
+      url: 'http://localhost/',
+      runScripts: 'dangerously',
+      pretendToBeVisual: true
+    });
+    win = dom.window;
+    win.addEventListener('error', () => { /* swallow init throws */ });
+    const script = win.document.createElement('script');
+    script.textContent = appSrc;
+    try { win.document.body.appendChild(script); }
+    catch (e) { /* IIFE throw is fine — helpers already exposed */ }
+  });
+
+  it('exposes pure helpers on window', () => {
+    expect(typeof win.__mounjaroCalc).toBe('function');
+    expect(typeof win.__formatNum).toBe('function');
+  });
+
+  it('5 mg pen: mg → ml/clicks/units', () => {
+    const r = win.__mounjaroCalc(5, 'mg', 2.5);
+    expect(r.ml).toBeCloseTo(0.3, 6);
+    expect(r.clicks).toBeCloseTo(30, 6);
+    expect(r.units).toBeCloseTo(30, 6);
+    expect(r.mg).toBeCloseTo(2.5, 6);
+  });
+
+  it('10 mg pen: residual 0.43 ml → mg', () => {
+    const r = win.__mounjaroCalc(10, 'ml', 0.43);
+    expect(r.mg).toBeCloseTo(7.16667, 4);
+    expect(r.clicks).toBeCloseTo(43, 6);
+    expect(r.units).toBeCloseTo(43, 6);
+  });
+
+  it('15 mg pen: 30 clicks → 7.5 mg (half a labeled dose)', () => {
+    const r = win.__mounjaroCalc(15, 'clicks', 30);
+    expect(r.mg).toBeCloseTo(7.5, 6);
+    expect(r.ml).toBeCloseTo(0.3, 6);
+    expect(r.units).toBeCloseTo(30, 6);
+  });
+
+  it('full labeled dose: 60 clicks always equals pen strength in mg', () => {
+    [2.5, 5, 7.5, 10, 12.5, 15].forEach(pen => {
+      const r = win.__mounjaroCalc(pen, 'clicks', 60);
+      expect(r.mg).toBeCloseTo(pen, 6);
+      expect(r.ml).toBeCloseTo(0.6, 6);
+    });
+  });
+
+  it('units field is equivalent to clicks (1 unit = 1 click)', () => {
+    const a = win.__mounjaroCalc(10, 'units', 25);
+    const b = win.__mounjaroCalc(10, 'clicks', 25);
+    expect(a).toEqual(b);
+  });
+
+  it('pen change preserves anchor (mg=3 → 5mg pen vs 10mg pen)', () => {
+    const r5 = win.__mounjaroCalc(5, 'mg', 3);
+    const r10 = win.__mounjaroCalc(10, 'mg', 3);
+    expect(r5.ml).toBeCloseTo(0.36, 6);
+    expect(r5.clicks).toBeCloseTo(36, 6);
+    expect(r10.ml).toBeCloseTo(0.18, 6);
+    expect(r10.clicks).toBeCloseTo(18, 6);
+  });
+
+  it('invalid inputs return zeros (no pen / negative / NaN)', () => {
+    expect(win.__mounjaroCalc(null, 'mg', 5)).toEqual({ mg: 0, ml: 0, clicks: 0, units: 0 });
+    expect(win.__mounjaroCalc(5, 'mg', -3)).toEqual({ mg: 0, ml: 0, clicks: 0, units: 0 });
+    expect(win.__mounjaroCalc(5, 'mg', 'abc')).toEqual({ mg: 0, ml: 0, clicks: 0, units: 0 });
+  });
+
+  it('formatNum: strips trailing zeros, keeps significant digits', () => {
+    expect(win.__formatNum(5)).toBe('5');
+    expect(win.__formatNum(5.0)).toBe('5');
+    expect(win.__formatNum(3.58333)).toBe('3.583');
+    expect(win.__formatNum(0.1)).toBe('0.1');
+    expect(win.__formatNum(0)).toBe('0');
+    expect(win.__formatNum(0.583)).toBe('0.583');
+    expect(win.__formatNum(1.2)).toBe('1.2');
+  });
+
+  it('formatNum: handles empty / non-finite', () => {
+    expect(win.__formatNum(null)).toBe('');
+    expect(win.__formatNum(NaN)).toBe('');
+    expect(win.__formatNum(Infinity)).toBe('');
+  });
+});
+
 describe('PWA manifest', () => {
   let manifest;
 

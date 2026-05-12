@@ -76,7 +76,8 @@
   var CALCULATORS = [
     {id:'bmi',       title:'BMI 與肥胖分級',  subtitle:'身高體重 → BMI + 國健署分級',  type:'calc', kind:'calc'},
     {id:'lipid',     title:'血脂風險與 Statin 給付', subtitle:'LDL/HDL/TG + 共病 → ASCVD 風險 + 健保判讀', type:'calc', kind:'calc'},
-    {id:'peds-dose', title:'小兒劑量（mg/kg）', subtitle:'體重 + 目標劑量 → 總 mg + ml 數', type:'calc', kind:'calc'}
+    {id:'peds-dose', title:'小兒劑量（mg/kg）', subtitle:'體重 + 目標劑量 → 總 mg + ml 數', type:'calc', kind:'calc'},
+    {id:'mounjaro',  title:'猛健樂針劑換算 (Mounjaro)', subtitle:'Tirzepatide 筆針劑量、刻度與殘劑互算', type:'calc', kind:'calc'}
   ];
 
   var TYPE_LABELS = { explain: '解釋病情', surgery: '手術流程', calc: '計算機' };
@@ -818,7 +819,8 @@
   var calcDefs = [
     { id: 'bmi',       label: 'BMI' },
     { id: 'lipid',     label: '血脂風險' },
-    { id: 'peds-dose', label: '小兒劑量' }
+    { id: 'peds-dose', label: '小兒劑量' },
+    { id: 'mounjaro',  label: '猛健樂' }
   ];
 
   function setupCalcShell() {
@@ -842,6 +844,7 @@
     if (id === 'bmi') renderBmi();
     else if (id === 'lipid') renderLipid();
     else if (id === 'peds-dose') renderPeds();
+    else if (id === 'mounjaro') renderMounjaro();
   }
 
   // ---------- Shared calc helpers ----------
@@ -1136,6 +1139,202 @@
     update();
   }
 
+  // ---------- Mounjaro (tirzepatide KwikPen) split-draw / residual ----------
+  // KwikPen: 2.4 ml total, 4 doses × 0.6 ml, 60 clicks per labeled dose,
+  // 1 click = 0.01 ml. 6 strengths share fixed volume; concentration scales.
+  var MOUNJARO_PENS = [2.5, 5, 7.5, 10, 12.5, 15];
+  var MOUNJARO_PEN_VOL_ML = 2.4;
+  var MOUNJARO_DOSE_VOL_ML = 0.6;
+  var MOUNJARO_RESIDUAL_LO_ML = 0.3;
+  var MOUNJARO_RESIDUAL_HI_ML = 0.6;
+
+  // Pure math: given pen mg-strength + which field anchors + its value,
+  // return all four linked values { mg, ml, clicks, units }.
+  // Empty/invalid anchor -> all zeros.
+  function mounjaroCalc(pen, anchor, value) {
+    var v = Number(value);
+    if (!pen || !isFinite(v) || v < 0) return { mg: 0, ml: 0, clicks: 0, units: 0 };
+    var conc = pen / MOUNJARO_DOSE_VOL_ML; // mg/ml
+    var ml;
+    if (anchor === 'mg')          ml = v / conc;
+    else if (anchor === 'ml')     ml = v;
+    else if (anchor === 'clicks') ml = v / 100;
+    else if (anchor === 'units')  ml = v / 100;
+    else                          ml = 0;
+    return { mg: ml * conc, ml: ml, clicks: ml * 100, units: ml * 100 };
+  }
+
+  // Display: round to 3 decimals, strip trailing zeros.
+  function formatNum(n) {
+    if (n == null || !isFinite(n)) return '';
+    var rounded = Math.round(n * 1000) / 1000;
+    if (rounded === 0) return '0';
+    var s = rounded.toFixed(3);
+    return s.replace(/\.?0+$/, '');
+  }
+
+  function renderMounjaro() {
+    var s = { pen: null, mg: '', ml: '', clicks: '', units: '', lastEdited: null };
+
+    function recompute() {
+      if (!s.pen || !s.lastEdited) return;
+      var anchor = s.lastEdited;
+      var anchorVal = s[anchor];
+      if (anchorVal === '' || anchorVal == null) return;
+      var r = mounjaroCalc(s.pen, anchor, anchorVal);
+      // Write all four, but skip the anchor itself so user keeps typing freely.
+      if (anchor !== 'mg')     s.mg     = formatNum(r.mg);
+      if (anchor !== 'ml')     s.ml     = formatNum(r.ml);
+      if (anchor !== 'clicks') s.clicks = formatNum(r.clicks);
+      if (anchor !== 'units')  s.units  = formatNum(r.units);
+    }
+
+    function makePenPicker() {
+      var seg = el('div', { class: 'seg' });
+      MOUNJARO_PENS.forEach(function (p) {
+        var b = el('button', { type: 'button', class: s.pen === p ? 'is-on' : '' }, [p + ' mg']);
+        b.addEventListener('click', function () {
+          s.pen = p;
+          Array.prototype.forEach.call(seg.children, function (x) { x.classList.remove('is-on'); });
+          b.classList.add('is-on');
+          recompute();
+          rerender();
+        });
+        seg.appendChild(b);
+      });
+      return el('div', { class: 'field' }, [
+        el('div', null, [el('label', { class: 'field-label' }, ['Pen 規格'])]),
+        seg,
+        el('span', { class: 'field-unit' }, [''])
+      ]);
+    }
+
+    function makeField(key, label, hint, unit) {
+      var input = el('input', {
+        type: 'number', class: 'field-input',
+        value: s[key],
+        step: 'any',
+        min: '0',
+        oninput: function (e) {
+          s[key] = e.target.value;
+          s.lastEdited = key;
+          recompute();
+          // Re-render only the other three fields' DOM values, not the whole tree,
+          // so the user's caret position in this input isn't reset.
+          ['mg', 'ml', 'clicks', 'units'].forEach(function (k) {
+            if (k === key) return;
+            var other = document.querySelector('[data-mj-field="' + k + '"]');
+            if (other) other.value = s[k];
+          });
+          updateResult();
+        }
+      });
+      input.setAttribute('data-mj-field', key);
+      var labelWrap = el('div', null, [
+        el('label', { class: 'field-label' }, [label]),
+        hint ? el('span', { class: 'field-hint' }, [hint]) : null
+      ]);
+      return el('div', { class: 'field' }, [labelWrap, input, el('span', { class: 'field-unit' }, [unit])]);
+    }
+
+    function refLine() {
+      if (!s.pen) {
+        return el('p', { class: 'lead' }, ['請先選擇 pen 規格。']);
+      }
+      var conc = s.pen / MOUNJARO_DOSE_VOL_ML;
+      var total = s.pen * 4;
+      var perClick = formatNum(conc / 100);
+      var resLo = formatNum(MOUNJARO_RESIDUAL_LO_ML * conc);
+      var resHi = formatNum(MOUNJARO_RESIDUAL_HI_ML * conc);
+      return el('p', { class: 'lead' }, [
+        s.pen + ' mg pen:標示總容量 ' + MOUNJARO_PEN_VOL_ML + ' ml(4 × ' + MOUNJARO_DOSE_VOL_ML + ' ml)= ' + total + ' mg。' +
+        '每喀噠 ≈ ' + perClick + ' mg。' +
+        '4 劑後殘量約 ' + MOUNJARO_RESIDUAL_LO_ML + '–' + MOUNJARO_RESIDUAL_HI_ML + ' ml(≈ ' + resLo + '–' + resHi + ' mg)。'
+      ]);
+    }
+
+    function safetyLine() {
+      return el('p', { class: 'field-hint', style: 'margin-top:12px;line-height:1.6' }, [
+        '分抽與殘劑使用屬 off-label,請注意:單支 pen 限同一病人、重複穿刺橡膠塞有 sterility 風險、開封後保存期依藥廠規範。'
+      ]);
+    }
+
+    function updateResult() {
+      if (!s.pen) {
+        setResult(el('div', { class: 'result-card' }, [
+          el('div', { class: 'result-head' }, [el('div', { class: 'result-label' }, ['等待輸入'])]),
+          el('div', { class: 'result-body' }, [el('p', { class: 'lead' }, ['選擇 pen 規格後,任一欄輸入數字即會即時換算。'])])
+        ]));
+        return;
+      }
+      var hasInput = ['mg','ml','clicks','units'].some(function (k) { return s[k] !== '' && s[k] != null; });
+      if (!hasInput) {
+        setResult(el('div', { class: 'result-card' }, [
+          el('div', { class: 'result-head' }, [el('div', { class: 'result-label' }, [s.pen + ' mg pen 已選'])]),
+          el('div', { class: 'result-body' }, [el('p', { class: 'lead' }, ['任一欄輸入數字即會即時換算其他三欄。'])])
+        ]));
+        return;
+      }
+      var mg = formatNum(Number(s.mg));
+      var ml = formatNum(Number(s.ml));
+      var clicks = formatNum(Number(s.clicks));
+      var units = formatNum(Number(s.units));
+      var explain = explainBlock([
+        [{ strong: s.pen + ' mg pen' }, ' · 濃度 ', { strong: formatNum(s.pen / MOUNJARO_DOSE_VOL_ML) + ' mg/ml' }],
+        ['抽取體積 ', { strong: ml + ' ml' }, ' = 劑量 ', { strong: mg + ' mg' }],
+        ['= 旋鈕 ', { strong: clicks + ' 喀噠' }, ' = 針筒 ', { strong: units + ' units (U-100)' }]
+      ]);
+      setResult(resultCard({
+        label: '目標劑量', value: mg, unit: 'mg',
+        verdict: { label: '抽 ' + ml + ' ml / 數 ' + clicks + ' 喀噠', kind: 'info', shape: '●' },
+        body: [explain, summary('從 ' + s.pen + ' mg pen 抽取 ' + ml + ' ml,相當於 ' + mg + ' mg(' + clicks + ' 喀噠 / ' + units + ' units)。')]
+      }));
+    }
+
+    var inputsHost;
+
+    function rerender() {
+      var card = el('div', { class: 'calc-card' }, [
+        el('h3', null, ['猛健樂針劑換算 (Mounjaro)']),
+        el('p', { class: 'lead' }, ['Tirzepatide KwikPen 分抽 / 殘劑換算。選 pen 規格後,任一欄輸入即時連動其他三欄。']),
+        section('Pen 規格', [makePenPicker()]),
+        section('劑量換算(4 欄連動)', [
+          makeField('mg',     '目標劑量',       null,        'mg'),
+          makeField('ml',     '抽取體積',       null,        'ml'),
+          makeField('clicks', '旋鈕喀噠數',     '1 喀噠 = 0.01 ml', '喀噠'),
+          makeField('units',  'U-100 針筒刻度', '1 unit = 0.01 ml', 'units')
+        ]),
+        refLine(),
+        safetyLine()
+      ]);
+      if (inputsHost && inputsHost.parentNode) {
+        inputsHost.parentNode.replaceChild(card, inputsHost);
+      } else {
+        mountCalcLayout(card);
+      }
+      inputsHost = card;
+      updateResult();
+    }
+
+    rerender();
+  }
+
+  // Expose pure helpers for tests + browser debugging (must run before init()
+  // so jsdom-based tests can access them even if init throws on missing fetch).
+  if (typeof window !== 'undefined') {
+    window.__mounjaroCalc = mounjaroCalc;
+    window.__formatNum = formatNum;
+  }
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+      state: state,
+      goNext: goNext,
+      goPrev: goPrev,
+      mounjaroCalc: mounjaroCalc,
+      formatNum: formatNum
+    };
+  }
+
   // ============================================================
   // Boot
   // ============================================================
@@ -1143,9 +1342,5 @@
     document.addEventListener('DOMContentLoaded', init);
   } else {
     init();
-  }
-
-  if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { state: state, goNext: goNext, goPrev: goPrev };
   }
 })();
