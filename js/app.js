@@ -1201,10 +1201,9 @@
         });
         seg.appendChild(b);
       });
-      return el('div', { class: 'field' }, [
+      return el('div', { class: 'field field-wide' }, [
         el('div', null, [el('label', { class: 'field-label' }, ['Pen 規格'])]),
-        seg,
-        el('span', { class: 'field-unit' }, [''])
+        seg
       ]);
     }
 
