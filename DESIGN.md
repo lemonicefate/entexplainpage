@@ -260,7 +260,8 @@ CSS custom property 定義於 `:root`，禁止 hardcode hex（測試會擋）。
 | Tag pill | `.tag.tag-explain` `.tag-surgery` `.tag-calc` |
 | Pin button | `.pin-btn`（`.is-on` 高亮） |
 | Skeleton | `.skeleton-thumb` `.skeleton-line` |
-| 計算欄位 | `.field`, `.field-label`, `.field-input`, `.field-unit` |
+| 計算欄位 | `.field`, `.field-label`, `.field-input`, `.field-unit`；`.field.field-wide` 用 `auto 1fr` 容納寬 picker（如 Mounjaro 6 顆 dose seg） |
+| Segmented picker | `.seg`, `.seg button`（`.is-on` 高亮）— 多選一橫排按鈕；放進 `.field` 第二欄時欄寬只夠 2–3 顆，>=4 顆請改用 `.field-wide` |
 | Checkbox | `.check`（`.is-on` 高亮） |
 | 區塊 label | `.section-label` |
 | 結果卡 | `.result-card`, `.result-head`, `.verdict`, `.rules`, `.rule`, `.summary` |
@@ -292,7 +293,7 @@ CSS custom property 定義於 `:root`，禁止 hardcode hex（測試會擋）。
 |------|------|
 | `` 或 `#` | 首頁 |
 | `#/<id>` | 播放器，載入 `procedures/<id>.json` |
-| `#/calc` 或 `#/calc/<id>` | 計算機（id: `bmi` / `lipid` / `peds-dose`） |
+| `#/calc` 或 `#/calc/<id>` | 計算機（id: `bmi` / `lipid` / `peds-dose` / `mounjaro`） |
 
 LocalStorage：
 - `clinic_pins`：已釘選 id 陣列

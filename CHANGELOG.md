@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **Mounjaro pen 規格 picker 在桌機被擠成直排** — `.seg` 6 顆 dose 按鈕(2.5/5/7.5/10/12.5/15 mg)被放進 `.field` 預設 grid (`200px 140px auto`) 的 140px 第二欄,`flex-wrap: wrap` 讓每顆按鈕換行變直列。新增 `.field.field-wide { grid-template-columns: auto 1fr }` 變體,`makePenPicker()` 套用後 label 縮到自然寬、seg 取得剩餘空間,6 顆一字橫排;手機 ≤768px 一行容兩顆換行可讀。同步 bump SW cache v7 → v8 強制更新樣式
+
 ### Added
 - **Mounjaro 針劑分抽 / 殘劑換算計算機** — 第 4 支內建 calc，`#/calc/mounjaro`。處理 Tirzepatide KwikPen 在診間實務中常見的 off-label 情境:大規格 pen 抽小劑量（分抽）、4 劑用完後底部殘留液抽出再用（殘劑）。Pen 規格 picker(2.5/5/7.5/10/12.5/15 mg)+ 3 欄連動(mg / ml / 旋鈕喀噠),free decimal,以最後編輯欄位作為 pen 切換錨點。每支 pen 顯示總容量、每喀噠 mg、4 劑後殘量參考(≈ 0.3–0.6 ml)。常駐 off-label 安全提示。新 helper `mounjaroCalc()` / `formatNum()` 以 `window.__*` 暴露供測試。9 個 golden-file 測試在 `tests/unit/app.test.js` 的 `Mounjaro calculator math` describe(濃度表、anchor 保留、無效輸入歸零、格式化規則)
 - **admin 表單新增 `type` 欄位** — 之前 admin.html 只能填 category（ent/surgery/weight/functional），但首頁篩選 chip 與 `app.js` 的 `item.type` 過濾需要獨立的 `type` 欄位（explain / surgery）。新增 `<select>`、串到 `enterEditMode` / `submitAdd` / `submitEdit`，後端 `handlePostProcedures` 與 `handlePutProcedure` 驗證並寫入 procedure file 與 index.json。Backfill 既有 4 篇（snore / nasal-obstruction / vocal-cord / influenza）為 `type: "explain"`
