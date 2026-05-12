@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- **Mounjaro 針劑分抽 / 殘劑換算計算機** — 第 4 支內建 calc，`#/calc/mounjaro`。處理 Tirzepatide KwikPen 在診間實務中常見的 off-label 情境:大規格 pen 抽小劑量（分抽）、4 劑用完後底部殘留液抽出再用（殘劑）。Pen 規格 picker(2.5/5/7.5/10/12.5/15 mg)+ 4 欄連動(mg / ml / 旋鈕喀噠 / U-100 units),free decimal,以最後編輯欄位作為 pen 切換錨點。每支 pen 顯示總容量、每喀噠 mg、4 劑後殘量參考(≈ 0.3–0.6 ml)。常駐 off-label 安全提示。新 helper `mounjaroCalc()` / `formatNum()` 以 `window.__*` 暴露供測試。10 個 golden-file 測試在 `tests/unit/app.test.js` 的 `Mounjaro calculator math` describe(濃度表、anchor 保留、無效輸入歸零、格式化規則)
+- **Mounjaro 針劑分抽 / 殘劑換算計算機** — 第 4 支內建 calc，`#/calc/mounjaro`。處理 Tirzepatide KwikPen 在診間實務中常見的 off-label 情境:大規格 pen 抽小劑量（分抽）、4 劑用完後底部殘留液抽出再用（殘劑）。Pen 規格 picker(2.5/5/7.5/10/12.5/15 mg)+ 3 欄連動(mg / ml / 旋鈕喀噠),free decimal,以最後編輯欄位作為 pen 切換錨點。每支 pen 顯示總容量、每喀噠 mg、4 劑後殘量參考(≈ 0.3–0.6 ml)。常駐 off-label 安全提示。新 helper `mounjaroCalc()` / `formatNum()` 以 `window.__*` 暴露供測試。9 個 golden-file 測試在 `tests/unit/app.test.js` 的 `Mounjaro calculator math` describe(濃度表、anchor 保留、無效輸入歸零、格式化規則)
 - **admin 表單新增 `type` 欄位** — 之前 admin.html 只能填 category（ent/surgery/weight/functional），但首頁篩選 chip 與 `app.js` 的 `item.type` 過濾需要獨立的 `type` 欄位（explain / surgery）。新增 `<select>`、串到 `enterEditMode` / `submitAdd` / `submitEdit`，後端 `handlePostProcedures` 與 `handlePutProcedure` 驗證並寫入 procedure file 與 index.json。Backfill 既有 4 篇（snore / nasal-obstruction / vocal-cord / influenza）為 `type: "explain"`
 - **內容批次擴充（content）** — 新增 9 篇衛教：quit-smoke / oral-ulcer / menieres / tinnitus / ssnhl / otitis-media-effusion / vitd / atopic-dermatitis / testosterone（皆 `type: "explain"`，分屬 ent / functional 分類）
 

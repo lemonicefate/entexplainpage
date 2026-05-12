@@ -26,7 +26,7 @@
 - 衛教 / 手術項目持續擴充（目前 13 篇 explain：snore、nasal-obstruction、vocal-cord、influenza、quit-smoke、oral-ulcer、menieres、tinnitus、ssnhl、otitis-media-effusion、vitd、atopic-dermatitis、testosterone；尚無 surgery 類型實體資料）
 
 ## ✅ Recently done
-- [x] **Mounjaro 針劑分抽 / 殘劑換算計算機**（2026-05-12）— 第 4 支 calc，`#/calc/mounjaro`。Pen 規格 picker（2.5/5/7.5/10/12.5/15 mg）+ 4 欄連動（mg / ml / 旋鈕喀噠 / U-100 units），lastEdited 作為 pen 切換錨點。包含 off-label 安全提示 + 每支 pen 殘量參考。10 個單元測試在 `tests/unit/app.test.js` 的 `Mounjaro calculator math`
+- [x] **Mounjaro 針劑分抽 / 殘劑換算計算機**（2026-05-12）— 第 4 支 calc，`#/calc/mounjaro`。Pen 規格 picker（2.5/5/7.5/10/12.5/15 mg）+ 3 欄連動（mg / ml / 旋鈕喀噠），lastEdited 作為 pen 切換錨點。包含 off-label 安全提示 + 每支 pen 殘量參考。9 個單元測試在 `tests/unit/app.test.js` 的 `Mounjaro calculator math`
 - [x] 內容批次擴充（v0.2.3.2 之後）— 新增 9 篇衛教：quit-smoke / oral-ulcer / menieres / tinnitus / ssnhl / otitis-media-effusion / vitd / atopic-dermatitis / testosterone
 - [x] admin 表單補 `type` 欄位（explain / surgery）— 之前只有 category，無法分類首頁解釋病情 / 手術流程 chip；同步 backfill snore / nasal-obstruction / vocal-cord / influenza
 - [x] `.gitattributes` 強制 LF 行尾 — WSL ↔ Windows 編輯器會 silently rewrite CRLF，污染 diff
