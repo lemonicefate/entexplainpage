@@ -1,8 +1,8 @@
 # entexplainpage Roadmap
 
 **Status**: 🟡 Maintenance
-**Last updated**: 2026-04-30
-**Current version**: v0.2.3.2 (GitHub Pages 上線中；之後僅 content / chore 累積，未發新版)
+**Last updated**: 2026-05-12
+**Current version**: v0.2.3.2 (GitHub Pages 上線中；之後累積 content / chore 與 Mounjaro 計算機，未發新版)
 
 ## 🔧 Active maintenance
 - [ ] 持續修補 admin.html 在 GitHub Pages 純靜態環境下的 UX 邊界（v0.2.3.2 已加 hostname 偵測、main site link 修正）
@@ -15,15 +15,18 @@
   - BMI：國健署分級邊界（18.5 / 24 / 27 / 30 / 35）golden-file
   - Lipid / Statin：健保給付規則矩陣（等換掉現行湊出來的 ASCVD 公式後才寫）
   - Peds-dose：藥典 mg/kg 對照表 edge cases
+  - Mounjaro：濃度表 + 四欄連動數學已有 10 個 golden 測試（暫放 `tests/unit/app.test.js` 內 `Mounjaro calculator math` describe，待測試分層落地時搬到獨立檔）
 - [ ] 替換 Lipid 計算機現行湊出來的 `rf*3.2+...` ASCVD 估算為有依據的演算法（或明確標示「僅供參考」）
 
 ## 🗂️ Backlog
 - 超過 20 步驟手術的 scrubber `requestAnimationFrame` 節流（觸發條件：`max(proc.steps.length) > 20`，現在每支手術 4–5 步驟還不需要）
 - 圖片預載 AbortController 修正 `preloadAbort` dead code（已排程遠程 agent 於 2026-05-08 09:00 處理，trigger `trig_016HpfGshq8NjmNS9yv7ebLv`）
 - 新計算機：eGFR（CKD-EPI 2021）— README 範例中提到的下一支候選
+- Mounjaro 對應的衛教 procedure JSON（目前只有計算機，沒有圖卡解說「分抽 / 殘劑使用注意事項」）
 - 衛教 / 手術項目持續擴充（目前 13 篇 explain：snore、nasal-obstruction、vocal-cord、influenza、quit-smoke、oral-ulcer、menieres、tinnitus、ssnhl、otitis-media-effusion、vitd、atopic-dermatitis、testosterone；尚無 surgery 類型實體資料）
 
 ## ✅ Recently done
+- [x] **Mounjaro 針劑分抽 / 殘劑換算計算機**（2026-05-12）— 第 4 支 calc，`#/calc/mounjaro`。Pen 規格 picker（2.5/5/7.5/10/12.5/15 mg）+ 4 欄連動（mg / ml / 旋鈕喀噠 / U-100 units），lastEdited 作為 pen 切換錨點。包含 off-label 安全提示 + 每支 pen 殘量參考。10 個單元測試在 `tests/unit/app.test.js` 的 `Mounjaro calculator math`
 - [x] 內容批次擴充（v0.2.3.2 之後）— 新增 9 篇衛教：quit-smoke / oral-ulcer / menieres / tinnitus / ssnhl / otitis-media-effusion / vitd / atopic-dermatitis / testosterone
 - [x] admin 表單補 `type` 欄位（explain / surgery）— 之前只有 category，無法分類首頁解釋病情 / 手術流程 chip；同步 backfill snore / nasal-obstruction / vocal-cord / influenza
 - [x] `.gitattributes` 強制 LF 行尾 — WSL ↔ Windows 編輯器會 silently rewrite CRLF，污染 diff
