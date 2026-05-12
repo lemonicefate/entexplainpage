@@ -1299,10 +1299,10 @@
         el('p', { class: 'lead' }, ['Tirzepatide KwikPen 分抽 / 殘劑換算。選 pen 規格後,任一欄輸入即時連動其他三欄。']),
         section('Pen 規格', [makePenPicker()]),
         section('劑量換算(4 欄連動)', [
-          makeField('mg',     '目標劑量',       null,        'mg'),
-          makeField('ml',     '抽取體積',       null,        'ml'),
-          makeField('clicks', '旋鈕喀噠數',     '1 喀噠 = 0.01 ml', '喀噠'),
-          makeField('units',  'U-100 針筒刻度', '1 unit = 0.01 ml', 'units')
+          makeField('mg',     '目標劑量 (mg)',          null,                'mg'),
+          makeField('ml',     '抽取體積 (ml)',          null,                'ml'),
+          makeField('clicks', '旋鈕喀噠數',             '1 喀噠 = 0.01 ml',  '喀噠'),
+          makeField('units',  'U-100 針筒刻度 (units)', '1 unit = 0.01 ml',  'units')
         ]),
         refLine(),
         safetyLine()
