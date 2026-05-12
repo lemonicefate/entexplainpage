@@ -415,12 +415,6 @@ describe('Mounjaro calculator math', () => {
     });
   });
 
-  it('units field is equivalent to clicks (1 unit = 1 click)', () => {
-    const a = win.__mounjaroCalc(10, 'units', 25);
-    const b = win.__mounjaroCalc(10, 'clicks', 25);
-    expect(a).toEqual(b);
-  });
-
   it('pen change preserves anchor (mg=3 → 5mg pen vs 10mg pen)', () => {
     const r5 = win.__mounjaroCalc(5, 'mg', 3);
     const r10 = win.__mounjaroCalc(10, 'mg', 3);

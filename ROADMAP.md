@@ -15,7 +15,7 @@
   - BMI：國健署分級邊界（18.5 / 24 / 27 / 30 / 35）golden-file
   - Lipid / Statin：健保給付規則矩陣（等換掉現行湊出來的 ASCVD 公式後才寫）
   - Peds-dose：藥典 mg/kg 對照表 edge cases
-  - Mounjaro：濃度表 + 四欄連動數學已有 10 個 golden 測試（暫放 `tests/unit/app.test.js` 內 `Mounjaro calculator math` describe，待測試分層落地時搬到獨立檔）
+  - Mounjaro：濃度表 + 三欄連動數學已有 9 個 golden 測試（暫放 `tests/unit/app.test.js` 內 `Mounjaro calculator math` describe，待測試分層落地時搬到獨立檔）
 - [ ] 替換 Lipid 計算機現行湊出來的 `rf*3.2+...` ASCVD 估算為有依據的演算法（或明確標示「僅供參考」）
 
 ## 🗂️ Backlog

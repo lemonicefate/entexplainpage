@@ -1174,7 +1174,7 @@
   }
 
   function renderMounjaro() {
-    var s = { pen: null, mg: '', ml: '', clicks: '', units: '', lastEdited: null };
+    var s = { pen: null, mg: '', ml: '', clicks: '', lastEdited: null };
 
     function recompute() {
       if (!s.pen || !s.lastEdited) return;
@@ -1182,11 +1182,10 @@
       var anchorVal = s[anchor];
       if (anchorVal === '' || anchorVal == null) return;
       var r = mounjaroCalc(s.pen, anchor, anchorVal);
-      // Write all four, but skip the anchor itself so user keeps typing freely.
+      // Write all three, but skip the anchor itself so user keeps typing freely.
       if (anchor !== 'mg')     s.mg     = formatNum(r.mg);
       if (anchor !== 'ml')     s.ml     = formatNum(r.ml);
       if (anchor !== 'clicks') s.clicks = formatNum(r.clicks);
-      if (anchor !== 'units')  s.units  = formatNum(r.units);
     }
 
     function makePenPicker() {
@@ -1219,9 +1218,9 @@
           s[key] = e.target.value;
           s.lastEdited = key;
           recompute();
-          // Re-render only the other three fields' DOM values, not the whole tree,
+          // Re-render only the other fields' DOM values, not the whole tree,
           // so the user's caret position in this input isn't reset.
-          ['mg', 'ml', 'clicks', 'units'].forEach(function (k) {
+          ['mg', 'ml', 'clicks'].forEach(function (k) {
             if (k === key) return;
             var other = document.querySelector('[data-mj-field="' + k + '"]');
             if (other) other.value = s[k];
@@ -1267,7 +1266,7 @@
         ]));
         return;
       }
-      var hasInput = ['mg','ml','clicks','units'].some(function (k) { return s[k] !== '' && s[k] != null; });
+      var hasInput = ['mg','ml','clicks'].some(function (k) { return s[k] !== '' && s[k] != null; });
       if (!hasInput) {
         setResult(el('div', { class: 'result-card' }, [
           el('div', { class: 'result-head' }, [el('div', { class: 'result-label' }, [s.pen + ' mg pen 已選'])]),
@@ -1278,16 +1277,15 @@
       var mg = formatNum(Number(s.mg));
       var ml = formatNum(Number(s.ml));
       var clicks = formatNum(Number(s.clicks));
-      var units = formatNum(Number(s.units));
       var explain = explainBlock([
         [{ strong: s.pen + ' mg pen' }, ' · 濃度 ', { strong: formatNum(s.pen / MOUNJARO_DOSE_VOL_ML) + ' mg/ml' }],
         ['抽取體積 ', { strong: ml + ' ml' }, ' = 劑量 ', { strong: mg + ' mg' }],
-        ['= 旋鈕 ', { strong: clicks + ' 喀噠' }, ' = 針筒 ', { strong: units + ' units (U-100)' }]
+        ['= 旋鈕 ', { strong: clicks + ' 喀噠' }]
       ]);
       setResult(resultCard({
         label: '目標劑量', value: mg, unit: 'mg',
         verdict: { label: '抽 ' + ml + ' ml / 數 ' + clicks + ' 喀噠', kind: 'info', shape: '●' },
-        body: [explain, summary('從 ' + s.pen + ' mg pen 抽取 ' + ml + ' ml,相當於 ' + mg + ' mg(' + clicks + ' 喀噠 / ' + units + ' units)。')]
+        body: [explain, summary('從 ' + s.pen + ' mg pen 抽取 ' + ml + ' ml,相當於 ' + mg + ' mg(' + clicks + ' 喀噠)。')]
       }));
     }
 
@@ -1298,11 +1296,10 @@
         el('h3', null, ['猛健樂針劑換算 (Mounjaro)']),
         el('p', { class: 'lead' }, ['Tirzepatide KwikPen 分抽 / 殘劑換算。選 pen 規格後,任一欄輸入即時連動其他三欄。']),
         section('Pen 規格', [makePenPicker()]),
-        section('劑量換算(4 欄連動)', [
-          makeField('mg',     '目標劑量 (mg)',          null,                'mg'),
-          makeField('ml',     '抽取體積 (ml)',          null,                'ml'),
-          makeField('clicks', '旋鈕喀噠數',             '1 喀噠 = 0.01 ml',  '喀噠'),
-          makeField('units',  'U-100 針筒刻度 (units)', '1 unit = 0.01 ml',  'units')
+        section('劑量換算(3 欄連動)', [
+          makeField('mg',     '目標劑量 (mg)', null,                'mg'),
+          makeField('ml',     '抽取體積 (ml)', null,                'ml'),
+          makeField('clicks', '旋鈕喀噠數',    '1 喀噠 = 0.01 ml',  '喀噠')
         ]),
         refLine(),
         safetyLine()
