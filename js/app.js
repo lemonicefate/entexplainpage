@@ -965,7 +965,6 @@
     var body = el('div', { class: 'result-body' }, [verdict].concat(opts.body || []));
 
     var actions = el('div', { class: 'result-actions' }, [
-      el('button', { class: 'primary', type: 'button' }, ['投影給病人看']),
       el('button', {
         class: 'ghost', type: 'button',
         onclick: function () { window.print(); }

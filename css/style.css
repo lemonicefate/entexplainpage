@@ -1026,8 +1026,6 @@ img.card-thumb { background: var(--tint-1); }
   font-size: 13px; font-weight: 600;
   transition: all var(--t);
 }
-.result-actions .primary { background: var(--teal); color: #fff; }
-.result-actions .primary:hover { background: var(--teal-deep); }
 .result-actions .ghost {
   background: #fff; color: var(--fg);
   border: 1px solid var(--line-strong);
