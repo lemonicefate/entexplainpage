@@ -12,7 +12,7 @@
 - **離線可用**：Service Worker 預載核心資源，iPad 連線不穩也能解說。
 - **Reader 模式**：仿電子書體驗——點左右換頁、點中間叫出工具列、下方拖拉桿快速跳頁、3 秒後工具自動淡出。
 - **診間工具**：畫筆、聚光燈、雷射指標，支援滑鼠、觸控、Apple Pencil（Pointer Events 統一處理）。
-- **內建計算機**：BMI、血脂 / Statin 給付判讀、小兒劑量、Mounjaro 針劑分抽 / 殘劑換算。
+- **內建計算機**：BMI、血脂異常用藥健保給付（Statin / Fibrate）、小兒劑量、Mounjaro 針劑分抽 / 殘劑換算。
 
 ---
 
@@ -227,7 +227,7 @@ npm run admin
 ```js
 var CALCULATORS = [
   {id:'bmi',       title:'BMI 與肥胖分級',  subtitle:'...', type:'calc', kind:'calc'},
-  {id:'lipid',     title:'血脂風險...',   subtitle:'...', type:'calc', kind:'calc'},
+  {id:'lipid',     title:'血脂異常用藥健保給付', subtitle:'...', type:'calc', kind:'calc'},
   {id:'peds-dose', title:'小兒劑量（mg/kg）', subtitle:'...', type:'calc', kind:'calc'},
   // 新增：
   {id:'egfr',      title:'eGFR 腎功能估算', subtitle:'CKD-EPI 2021', type:'calc', kind:'calc'}
@@ -241,7 +241,7 @@ var CALCULATORS = [
 ```js
 var calcDefs = [
   { id: 'bmi',       label: 'BMI' },
-  { id: 'lipid',     label: '血脂風險' },
+  { id: 'lipid',     label: '血脂給付' },
   { id: 'peds-dose', label: '小兒劑量' },
   { id: 'egfr',      label: 'eGFR' }
 ];
@@ -313,8 +313,8 @@ test('eGFR calculator tab exists', async () => {
 每個計算機風險等級不同，測試覆蓋策略要對齊（詳見 `TODOS.md`）：
 
 - **依據明確指引**（例：BMI 分級依國健署）→ 必須有邊界值測試。
-- **健保給付判讀**（例：lipid/statin）→ 必須測給付條件每一條分支。
-- **估計型公式**（例：小兒 mg/kg、自製 ASCVD 估算）→ 不鑽牛角尖到單元測試寫規格；明確註記「僅供參考」。
+- **健保給付判讀**（例：lipid 的 Statin / Fibrate 給付）→ 必須測給付條件每一條分支（見 `tests/unit/calc/lipid.test.js`）。
+- **估計型公式**（例：小兒 mg/kg 換算）→ 不鑽牛角尖到單元測試寫規格；明確註記「僅供參考」。
 
 ---
 

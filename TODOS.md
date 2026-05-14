@@ -9,7 +9,7 @@
 | 情境 | 要測嗎 | 理由 |
 |---|---|---|
 | 演算法抄自權威來源（國健署 BMI 分級、健保 Statin 給付條文、藥典 mg/kg 標準） | **一定要** | 測試就是「抄對了嗎」的 golden-file。規範更新時，測試會逼你同步 |
-| 演算法是自創或估算（例：現行 Lipid 那個 `rf*3.2+...` 湊出來的 ASCVD） | **不要** | 鎖死湊出來的公式 = 把 bug 變成規格 |
+| 演算法是自創或估算（例：早期 Lipid 那個 `rf*3.2+...` 湊出來的 ASCVD，已於 v0.2.3.2 後移除） | **不要** | 鎖死湊出來的公式 = 把 bug 變成規格 |
 | 純 UI / layout calc（只做輸入顯示、無臨床計算） | **不要** | e2e smoke 就夠 |
 
 **檔案結構（每個 calc 獨立檔）：**
@@ -17,9 +17,9 @@
 tests/unit/
 ├── app.test.js              （結構/SW/manifest — 共用）
 └── calc/
-    ├── bmi.test.js          （國健署 BMI 分級邊界：18.5 / 24 / 27 / 30 / 35）
-    ├── lipid.test.js        （健保 Statin 給付規則矩陣 — 等換掉現行湊公式後才寫）
-    ├── peds-abx.test.js     （小兒抗生素 mg/kg 對照表 edge cases）
+    ├── bmi.test.js          （國健署 BMI 分級邊界：18.5 / 24 / 27 / 30 / 35 — 待補）
+    ├── lipid.test.js        （✅ 已落地：健保 031170 Statin / Fibrate 給付規則矩陣，39 測試）
+    ├── peds-abx.test.js     （小兒抗生素 mg/kg 對照表 edge cases — 待補）
     └── ...
 ```
 每檔 10–20 測試獨立、不互相污染，`npm test` 一指令跑全部。
@@ -28,8 +28,8 @@ tests/unit/
 
 **Why:** 醫療 app 的測試重點不是 coverage %，是 safety-critical 路徑鎖死。抄自 guideline 的規則錯了，病人吃錯藥或被錯誤分級；湊出來的公式本來就不該被當成 ground truth。
 
-**Context:** 現行 v0.2.0.0 的 BMI/Lipid/Peds 是 demo placeholder，Lipid 的 ASCVD 公式是湊的，先不寫測試。等真實 calc 上線時，**每個 calc 的 PR 自帶 tests/unit/calc/{id}.test.js**，用這個分層表判斷哪些 rule 要鎖死。
-**Depends on:** 每個真實 calculator 上線時同 PR 處理。
+**Context:** 早期 v0.2.0.0 的 BMI/Lipid/Peds 是 demo placeholder。Lipid 已於 2026-05-14 改寫為健保 031170 給付查表並同 PR 自帶 `tests/unit/calc/lipid.test.js`（39 測試）。剩 BMI、peds-dose 仍是 placeholder，待真實 calc 上線時同 PR 自帶測試檔。
+**Depends on:** BMI / peds-dose 各自真實上線時同 PR 處理。
 
 ## TODO: Scrubber rAF throttle（等 steps 多再做）
 **Priority:** Low
