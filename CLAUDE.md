@@ -14,6 +14,7 @@
 | `CHANGELOG.md` | 已發布的變更(release 的 source of truth) |
 | `CLAUDE.md` | 本檔 — 專案慣例與已知限制 |
 | `README.md` | 給接手者的上手說明 |
+| `DESIGN.md` | 設計系統與元件規格(色彩 token、元件 class、無障礙、資料格式);改 UI 同步更新 |
 
 ## 已知限制
 

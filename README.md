@@ -247,7 +247,7 @@ else if (id === 'egfr') renderEgfr();   // ← 新增
 
 **3. 寫 render 函式**
 
-仿照 `renderBmi()`（約 975 行）。可用的共用 helpers：
+仿照 `renderBmi()`（約 995 行）。可用的共用 helpers：
 
 - `field(label, hint, value, unit, onInput, opts)` —— 數字輸入欄位
 - `check(label, checked, onChange)` —— checkbox

@@ -15,6 +15,9 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - **血脂計算機改寫為健保給付查表** — `#/calc/lipid` 原本以一個無實證依據的 `rf*3.2+...` 公式估算「10 年 ASCVD 風險 %」當主結果（`TODOS.md` 已標記為「湊出來、刻意不寫測試」）。現依健保署降血脂藥物給付規定（文件 031170）整個改寫:移除風險百分比與 CKD、年齡/性別欄;改為輸入血脂值 + 病人類別(CVD/糖尿病、5 項危險因子)→ 逐條核對 **Statin** 與 **Fibrate** 兩種藥物的健保給付資格、起始閾值、目標值與非藥物治療要求,以兩張獨立 result-card 呈現。糖尿病改為與 CVD 同級的最高類別(不再誤算為危險因子);新增 Fibrate 給付判定(原本完全沒有);Fibrate 符合且 LDL-C≧100 時提示 Statin 併用的橫紋肌溶解症風險。給付規則邏輯抽成純函式 `lipidCoverage()` 並以 `window.__lipidCoverage` 暴露,新增 `tests/unit/calc/lipid.test.js` 39 個 golden-file 測試鎖死健保規則矩陣。決策記於 `docs/adr/0001-lipid-calc-nhi-lookup.md`,領域語彙記於 `CONTEXT.md`
 - **`.gitattributes` 強制 LF 行尾** — Repo 之前未設 `core.autocrlf` 也沒有 `.gitattributes`，WSL ↔ Windows 編輯器會 silently rewrite CRLF / LF，污染 diff。新增 `* text=auto eol=lf`，圖片 / 字型等二進位明確標 `binary`
+- **血脂計算機檢驗值欄位改預設空白** — `#/calc/lipid` 四個檢驗值欄位（LDL-C / HDL-C / TG / TC）原本預填示範數值，改為預設空白。`field()` helper 新增 `allowEmpty` 選項，清空欄位回傳空字串而非強制歸零；`lipidCoverage()` 的 `hdlLow` 加空白守衛，空白不計為 HDL-C<40。HDL-C<40 自動判定列改用 checkbox 外觀，與「危險因子」其他列一致（移除孤兒 CSS `.derived-mark`）
+- **計算機分頁列改 flex-wrap 降級 + 合併計算機註冊表** — `.calc-tabs` 加 `flex-wrap: wrap`（移除 `width: fit-content`），計算機變多時換行不再撐破版面。`js/app.js` 原本有 `CALCULATORS` 與 `calcDefs` 兩份計算機註冊表、新增計算機要改兩處，合併為單一 `CALCULATORS`（每筆加 `tabLabel` 短標籤），`calcDefs` 移除。修正 `#calc-tabs` 名實不符的 `aria-label`（計算機分類 → 計算機）。同步 bump SW cache v9 → v11
+- **移除計算機結果卡的無功能「投影給病人看」按鈕** — 該按鈕從未綁定任何 handler（純死碼 UI），結果卡只保留「列印」按鈕；同步移除孤兒 CSS `.result-actions .primary`
 
 ## [0.2.3.2] - 2026-04-26
 

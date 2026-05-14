@@ -246,7 +246,7 @@ CSS custom property 定義於 `:root`，禁止 hardcode hex（測試會擋）。
 - 結果卡頭部：teal 漸層
 - 規則 RuleList：`●` 符合（綠）/ `○` 不符合（灰）
 - 摘要：虛線邊框 + `--tint-2` 底色
-- 行動按鈕：「投影給病人看」（primary teal）/「列印」（ghost）
+- 行動按鈕：「列印」（ghost）
 - ≤768px：單欄；結果卡取消 sticky
 
 ### 4.4 共用元件清單
@@ -260,9 +260,10 @@ CSS custom property 定義於 `:root`，禁止 hardcode hex（測試會擋）。
 | Tag pill | `.tag.tag-explain` `.tag-surgery` `.tag-calc` |
 | Pin button | `.pin-btn`（`.is-on` 高亮） |
 | Skeleton | `.skeleton-thumb` `.skeleton-line` |
+| 計算機分頁列 | `.calc-tabs`, `.calc-tab`（`.is-active` 高亮）— pill 內分段切換；`flex-wrap: wrap` 自動換行，計算機變多時不撐破版面 |
 | 計算欄位 | `.field`, `.field-label`, `.field-input`, `.field-unit`；`.field.field-wide` 用 `auto 1fr` 容納寬 picker（如 Mounjaro 6 顆 dose seg） |
 | Segmented picker | `.seg`, `.seg button`（`.is-on` 高亮）— 多選一橫排按鈕；放進 `.field` 第二欄時欄寬只夠 2–3 顆，>=4 顆請改用 `.field-wide` |
-| Checkbox | `.check`（`.is-on` 高亮） |
+| Checkbox | `.check`（`.is-on` 高亮）；`.check-derived` 為唯讀衍生列，由其他輸入自動判定（如 lipid 的 HDL-C<40） |
 | 區塊 label | `.section-label` |
 | 結果卡 | `.result-card`, `.result-head`, `.verdict`, `.rules`, `.rule`, `.summary` |
 | Disclaimer | `.result-disclaimer` |
@@ -399,7 +400,6 @@ LocalStorage：
 ## 11. 待實作 / 下一步
 
 - [ ] 畫筆工具實際繪圖功能（Canvas）
-- [ ] 「投影給病人看」全螢幕模式（隱藏醫師操作面板）
 - [ ] 計算機列印版型（@media print）
 - [ ] 更多計算機：CHA₂DS₂-VASc、CrCl、IV 流速、GLP-1 NHI、FESS NHI
 - [ ] 流程圖分支播放（A→D / B→1 條件式跳頁）
