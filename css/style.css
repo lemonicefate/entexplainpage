@@ -747,12 +747,11 @@ img.card-thumb { background: var(--tint-1); }
 .calc-title { font-size: 24px; font-weight: 700; color: var(--ink); }
 
 .calc-tabs {
-  display: flex; gap: 4px;
+  display: flex; flex-wrap: wrap; gap: 4px;
   margin-bottom: 24px;
   padding: 4px;
   background: var(--tint-2);
   border-radius: var(--r);
-  width: fit-content;
 }
 .calc-tab {
   padding: 8px 16px;

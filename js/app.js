@@ -74,10 +74,10 @@
   // Static metadata: built-in calculators (separate from JSON data)
   // ============================================================
   var CALCULATORS = [
-    {id:'bmi',       title:'BMI 與肥胖分級',  subtitle:'身高體重 → BMI + 國健署分級',  type:'calc', kind:'calc'},
-    {id:'lipid',     title:'血脂異常用藥健保給付', subtitle:'LDL/HDL/TG/TC + 病人類別 → Statin / Fibrate 健保給付判定', type:'calc', kind:'calc'},
-    {id:'peds-dose', title:'小兒劑量（mg/kg）', subtitle:'體重 + 目標劑量 → 總 mg + ml 數', type:'calc', kind:'calc'},
-    {id:'mounjaro',  title:'猛健樂針劑換算 (Mounjaro)', subtitle:'Tirzepatide 筆針劑量、刻度與殘劑互算', type:'calc', kind:'calc'}
+    {id:'bmi',       title:'BMI 與肥胖分級',  subtitle:'身高體重 → BMI + 國健署分級',  type:'calc', kind:'calc', tabLabel:'BMI'},
+    {id:'lipid',     title:'血脂異常用藥健保給付', subtitle:'LDL/HDL/TG/TC + 病人類別 → Statin / Fibrate 健保給付判定', type:'calc', kind:'calc', tabLabel:'血脂給付'},
+    {id:'peds-dose', title:'小兒劑量（mg/kg）', subtitle:'體重 + 目標劑量 → 總 mg + ml 數', type:'calc', kind:'calc', tabLabel:'小兒劑量'},
+    {id:'mounjaro',  title:'猛健樂針劑換算 (Mounjaro)', subtitle:'Tirzepatide 筆針劑量、刻度與殘劑互算', type:'calc', kind:'calc', tabLabel:'猛健樂'}
   ];
 
   var TYPE_LABELS = { explain: '解釋病情', surgery: '手術流程', calc: '計算機' };
@@ -816,27 +816,20 @@
   // ============================================================
   // Calculator page
   // ============================================================
-  var calcDefs = [
-    { id: 'bmi',       label: 'BMI' },
-    { id: 'lipid',     label: '血脂給付' },
-    { id: 'peds-dose', label: '小兒劑量' },
-    { id: 'mounjaro',  label: '猛健樂' }
-  ];
-
   function setupCalcShell() {
-    calcDefs.forEach(function (c) {
+    CALCULATORS.forEach(function (c) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'calc-tab';
       btn.dataset.calc = c.id;
-      btn.textContent = c.label;
+      btn.textContent = c.tabLabel;
       btn.addEventListener('click', function () { window.location.hash = '#/calc/' + c.id; });
       calcTabs.appendChild(btn);
     });
   }
 
   function enterCalc(id) {
-    if (calcDefs.findIndex(function (c) { return c.id === id; }) < 0) id = 'bmi';
+    if (CALCULATORS.findIndex(function (c) { return c.id === id; }) < 0) id = 'bmi';
     switchView(calcView);
     Array.prototype.forEach.call(calcTabs.children, function (b) {
       b.classList.toggle('is-active', b.dataset.calc === id);
