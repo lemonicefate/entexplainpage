@@ -220,34 +220,21 @@ npm run admin
 
 ### 步驟
 
-**1. 登記 metadata**
+**1. 登記 metadata（含分頁標籤）**
 
-`js/app.js` 找到 `CALCULATORS` 陣列（約第 76 行），加一筆：
+`js/app.js` 找到 `CALCULATORS` 陣列（約第 76 行），加一筆；`tabLabel` 是分頁列的短標題：
 
 ```js
 var CALCULATORS = [
-  {id:'bmi',       title:'BMI 與肥胖分級',  subtitle:'...', type:'calc', kind:'calc'},
-  {id:'lipid',     title:'血脂異常用藥健保給付', subtitle:'...', type:'calc', kind:'calc'},
-  {id:'peds-dose', title:'小兒劑量（mg/kg）', subtitle:'...', type:'calc', kind:'calc'},
+  {id:'bmi',       tabLabel:'BMI',     title:'BMI 與肥胖分級',  subtitle:'...', type:'calc', kind:'calc'},
+  {id:'lipid',     tabLabel:'血脂給付', title:'血脂異常用藥健保給付', subtitle:'...', type:'calc', kind:'calc'},
+  {id:'peds-dose', tabLabel:'小兒劑量', title:'小兒劑量（mg/kg）', subtitle:'...', type:'calc', kind:'calc'},
   // 新增：
-  {id:'egfr',      title:'eGFR 腎功能估算', subtitle:'CKD-EPI 2021', type:'calc', kind:'calc'}
+  {id:'egfr',      tabLabel:'eGFR',    title:'eGFR 腎功能估算', subtitle:'CKD-EPI 2021', type:'calc', kind:'calc'}
 ];
 ```
 
-**2. 加到分頁列**
-
-同檔案 `calcDefs` 陣列（約第 818 行）：
-
-```js
-var calcDefs = [
-  { id: 'bmi',       label: 'BMI' },
-  { id: 'lipid',     label: '血脂給付' },
-  { id: 'peds-dose', label: '小兒劑量' },
-  { id: 'egfr',      label: 'eGFR' }
-];
-```
-
-**3. 接 router**
+**2. 接 router**
 
 `enterCalc(id)` 函式（約第 836 行）加一個分支：
 
@@ -258,7 +245,7 @@ else if (id === 'peds-dose') renderPeds();
 else if (id === 'egfr') renderEgfr();   // ← 新增
 ```
 
-**4. 寫 render 函式**
+**3. 寫 render 函式**
 
 仿照 `renderBmi()`（約 975 行）。可用的共用 helpers：
 

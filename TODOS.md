@@ -68,7 +68,7 @@ tests/unit/
 **Priority:** Low
 **What:** 第 5 支內建計算機,腎功能估算,用 CKD-EPI 2021 公式。
 **Why:** README「新增計算機」範例中提到的下一支候選。
-**Context:** 屬「依據明確指引」型,需配 golden-file 測試（見 Calculator 測試策略 TODO）。寫在 `js/app.js` 的 `renderEgfr()`,加進 `CALCULATORS` 與 `calcDefs`。
+**Context:** 屬「依據明確指引」型,需配 golden-file 測試（見 Calculator 測試策略 TODO）。寫在 `js/app.js` 的 `renderEgfr()`,加進 `CALCULATORS`（含 `tabLabel` 欄位）。
 **Depends on:** 無。
 
 ## TODO: Mounjaro 對應的衛教 procedure JSON
@@ -91,6 +91,13 @@ tests/unit/
 **Why:** 醫師點錯手術立即返回再點另一個時,前一個的預載請求應該被取消,不跟新的搶頻寬。曾排程遠程 agent 於 2026-05-08 處理,程式碼現在看起來已接上 `new AbortController()` + `.abort()`,但需實測驗證再關掉。
 **Context:** 原本是 `preloadAbort` dead code。驗證方式：快速切換手術,確認 network 面板舊請求被 cancel。
 **Depends on:** 無。
+
+## TODO: /calc 標籤列策展機制（等計算機多再做）
+**Priority:** Low
+**What:** 當內建計算機超過 ~10 支、`.calc-tabs` 換行後變成 2–3 列佔用過多頂部空間時，為標籤列加策展機制（釘選 / 常用集合），bar 只顯示少數，長尾交給首頁 grid。
+**Why:** `.calc-tabs` 的定位是「快速切換器」，不是計算機索引 — 索引已經是首頁 grid（搜尋 +「計算機」篩選 chip + 釘選）。計算機還少時，扁平列出全部 + `flex-wrap` 降級就夠；現在就蓋策展系統是為假想需求設計。
+**Context:** 2026-05-14 的 grill 決定：先做 `flex-wrap` 降級 + 合併 `CALCULATORS` / `calcDefs` 兩份註冊表，策展延後。策展可沿用既有 `state.pins`。觸發條件到了再回來。
+**Depends on:** 內建計算機數量增長到 ~10 支。
 
 ## TODO: Scrubber rAF throttle（等 steps 多再做）
 **Priority:** Low
