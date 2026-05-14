@@ -57,6 +57,13 @@ tests/unit/
 **Context:** v0.2.3.2 已加 hostname 偵測（非 localhost 顯示 local-only 說明卡）、main site link 修正。後續若再發現破圖 / 誤導訊息再補。
 **Depends on:** 無（被動修補，發現一個修一個）。
 
+## TODO: 頭暈鑑別診斷流程圖 — 評估 C→A 升級
+**Priority:** Medium
+**What:** `dizziness-flowchart-draft.html` 是 clinician-facing 的 TiTrATE/ATTEST 頭暈問診流程圖草稿(獨立檔,未接進 SPA)。在診間實際用幾次後,決定是否升級為正式 content type。
+**Why:** 這是 app 第一個「臨床決策輔助」型內容,會把使命從「病情溝通輔助」擴張。先用最低承諾的獨立檔(plan C)驗證價值,確認有用且病人反應 OK 再投入整合成本。
+**Context:** 2026-05-15 的 grill 決定。Q1–Q5 定案:擴張使命(A)、單一流程圖 clinician-primary 但可給病人看、靜態原生 HTML + 點擊聚焦互動(總覽地圖 → 點區塊放大滿版,解決診間字太小)、完整保真、先 plan C(獨立檔 + iPad 書籤)。升級路徑 = plan A:`index.json` 新增 `type:"flowchart"` + `app.js` 新 renderer(DESIGN.md §11 已列「流程圖分支播放」)。**升級時需補 ADR**(擴張使命屬不可逆決策)。評估點:診間實用性、紅底危險診斷卡會不會嚇到病人、頂部「草稿」標籤是否該移除。領域語彙見 `CONTEXT.md`「頭暈問診」段。
+**Depends on:** 在診間實際使用累積經驗。
+
 ## TODO: procedures/index.json 資料完整性巡檢
 **Priority:** Low
 **What:** 定期巡檢 `procedures/index.json` 與各 `procedures/{id}.json` 的欄位完整性（type / category / steps 等）。
