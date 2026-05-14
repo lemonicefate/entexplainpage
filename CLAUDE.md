@@ -1,18 +1,27 @@
+# entexplainpage
 
-## Skill routing
+診間病情溝通輔助 PWA — 衛教圖卡、手術流程、醫學計算機,Vanilla JS,部署於 GitHub Pages。
 
-When the user's request matches an available skill, ALWAYS invoke it using the Skill
-tool as your FIRST action. Do NOT answer directly, do NOT use other tools first.
-The skill has specialized workflows that produce better results than ad-hoc answers.
+## 文件體系
 
-Key routing rules:
-- Product ideas, "is this worth building", brainstorming → invoke office-hours
-- Bugs, errors, "why is this broken", 500 errors → invoke investigate
-- Ship, deploy, push, create PR → invoke ship
-- QA, test the site, find bugs → invoke qa
-- Code review, check my diff → invoke review
-- Update docs after shipping → invoke document-release
-- Weekly retro → invoke retro
-- Design system, brand → invoke design-consultation
-- Visual audit, design polish → invoke design-review
-- Architecture review → invoke plan-eng-review
+本專案用 grill-with-docs skill 體系維護知識,不使用 gstack skills。各檔職責不重疊:
+
+| 檔案 | 職責 |
+|---|---|
+| `CONTEXT.md` | 領域語彙(對領域專家有意義的術語) |
+| `docs/adr/` | 架構決策記錄 |
+| `TODOS.md` | 唯一的待辦追蹤(每筆自帶 Priority/What/Why/Context/Depends-on) |
+| `CHANGELOG.md` | 已發布的變更(release 的 source of truth) |
+| `CLAUDE.md` | 本檔 — 專案慣例與已知限制 |
+| `README.md` | 給接手者的上手說明 |
+
+## 已知限制
+
+- **admin.html 線上版無寫入能力** — GitHub Pages 是純靜態主機,跑不了 `scripts/admin.js` 提供的 `/api/*`。編輯衛教只能在 localhost(`npm run admin`)。線上版靠 hostname 偵測顯示 local-only 說明卡。
+- **Service Worker 只在 production 生效** — 本機快取行為與線上不一致,debug 快取問題時要注意。
+
+## 慣例
+
+- **每次 bump `sw.js` 的 `CACHE_NAME` 後**,在 iPad Safari「加到主畫面」的 PWA 情境做一次回歸測試 — SW 快取更新在 iOS PWA 上行為特殊。
+- 計算機是寫在 `js/app.js` 的靜態邏輯(不走 JSON);新增計算機的步驟見 `README.md`「新增計算機」。
+- 「權威抄寫型」計算機規則(健保給付、國健署分級、藥典劑量)一律配 `tests/unit/calc/{id}.test.js` golden-file 測試鎖死;自創 / 估算公式不寫單元測試以免把 bug 變規格。詳見 `TODOS.md` 的 Calculator 測試策略。

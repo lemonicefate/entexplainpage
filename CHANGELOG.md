@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file.
 - **內容批次擴充（content）** — 新增 9 篇衛教：quit-smoke / oral-ulcer / menieres / tinnitus / ssnhl / otitis-media-effusion / vitd / atopic-dermatitis / testosterone（皆 `type: "explain"`，分屬 ent / functional 分類）
 
 ### Changed
-- **血脂計算機改寫為健保給付查表** — `#/calc/lipid` 原本以一個無實證依據的 `rf*3.2+...` 公式估算「10 年 ASCVD 風險 %」當主結果（ROADMAP/TODOS 已標記為「湊出來、刻意不寫測試」）。現依健保署降血脂藥物給付規定（文件 031170）整個改寫:移除風險百分比與 CKD、年齡/性別欄;改為輸入血脂值 + 病人類別(CVD/糖尿病、5 項危險因子)→ 逐條核對 **Statin** 與 **Fibrate** 兩種藥物的健保給付資格、起始閾值、目標值與非藥物治療要求,以兩張獨立 result-card 呈現。糖尿病改為與 CVD 同級的最高類別(不再誤算為危險因子);新增 Fibrate 給付判定(原本完全沒有);Fibrate 符合且 LDL-C≧100 時提示 Statin 併用的橫紋肌溶解症風險。給付規則邏輯抽成純函式 `lipidCoverage()` 並以 `window.__lipidCoverage` 暴露,新增 `tests/unit/calc/lipid.test.js` 39 個 golden-file 測試鎖死健保規則矩陣。決策記於 `docs/adr/0001-lipid-calc-nhi-lookup.md`,領域語彙記於 `CONTEXT.md`
+- **血脂計算機改寫為健保給付查表** — `#/calc/lipid` 原本以一個無實證依據的 `rf*3.2+...` 公式估算「10 年 ASCVD 風險 %」當主結果（`TODOS.md` 已標記為「湊出來、刻意不寫測試」）。現依健保署降血脂藥物給付規定（文件 031170）整個改寫:移除風險百分比與 CKD、年齡/性別欄;改為輸入血脂值 + 病人類別(CVD/糖尿病、5 項危險因子)→ 逐條核對 **Statin** 與 **Fibrate** 兩種藥物的健保給付資格、起始閾值、目標值與非藥物治療要求,以兩張獨立 result-card 呈現。糖尿病改為與 CVD 同級的最高類別(不再誤算為危險因子);新增 Fibrate 給付判定(原本完全沒有);Fibrate 符合且 LDL-C≧100 時提示 Statin 併用的橫紋肌溶解症風險。給付規則邏輯抽成純函式 `lipidCoverage()` 並以 `window.__lipidCoverage` 暴露,新增 `tests/unit/calc/lipid.test.js` 39 個 golden-file 測試鎖死健保規則矩陣。決策記於 `docs/adr/0001-lipid-calc-nhi-lookup.md`,領域語彙記於 `CONTEXT.md`
 - **`.gitattributes` 強制 LF 行尾** — Repo 之前未設 `core.autocrlf` 也沒有 `.gitattributes`，WSL ↔ Windows 編輯器會 silently rewrite CRLF / LF，污染 diff。新增 `* text=auto eol=lf`，圖片 / 字型等二進位明確標 `binary`
 
 ## [0.2.3.2] - 2026-04-26
