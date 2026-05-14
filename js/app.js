@@ -75,7 +75,7 @@
   // ============================================================
   var CALCULATORS = [
     {id:'bmi',       title:'BMI 與肥胖分級',  subtitle:'身高體重 → BMI + 國健署分級',  type:'calc', kind:'calc'},
-    {id:'lipid',     title:'血脂風險與 Statin 給付', subtitle:'LDL/HDL/TG + 共病 → ASCVD 風險 + 健保判讀', type:'calc', kind:'calc'},
+    {id:'lipid',     title:'血脂異常用藥健保給付', subtitle:'LDL/HDL/TG/TC + 病人類別 → Statin / Fibrate 健保給付判定', type:'calc', kind:'calc'},
     {id:'peds-dose', title:'小兒劑量（mg/kg）', subtitle:'體重 + 目標劑量 → 總 mg + ml 數', type:'calc', kind:'calc'},
     {id:'mounjaro',  title:'猛健樂針劑換算 (Mounjaro)', subtitle:'Tirzepatide 筆針劑量、刻度與殘劑互算', type:'calc', kind:'calc'}
   ];
@@ -818,7 +818,7 @@
   // ============================================================
   var calcDefs = [
     { id: 'bmi',       label: 'BMI' },
-    { id: 'lipid',     label: '血脂風險' },
+    { id: 'lipid',     label: '血脂給付' },
     { id: 'peds-dose', label: '小兒劑量' },
     { id: 'mounjaro',  label: '猛健樂' }
   ];
@@ -882,7 +882,10 @@
   function check(label, checked, onChange) {
     var input = el('input', { type: 'checkbox' });
     input.checked = checked;
-    var wrap = el('label', { class: 'check' + (checked ? ' is-on' : '') }, [input, el('span', null, [label])]);
+    // Plain <div>, not <label>: a <label> wrapping its own checkbox fires
+    // the click handler AND native label activation, double-toggling to a
+    // no-op. The input keeps pointer-events:none, so the div handler owns it.
+    var wrap = el('div', { class: 'check' + (checked ? ' is-on' : '') }, [input, el('span', null, [label])]);
     wrap.addEventListener('click', function (e) {
       if (e.target.tagName !== 'INPUT') input.checked = !input.checked;
       wrap.classList.toggle('is-on', input.checked);
@@ -913,6 +916,24 @@
       el('strong', { class: 'summary-label' }, ['建議摘要']),
       document.createTextNode(text)
     ]);
+  }
+
+  function note(text, kind) {
+    return el('div', { class: 'calc-note' + (kind ? ' ' + kind : '') }, [text]);
+  }
+
+  // Static, non-interactive checkbox-style row whose state is derived from
+  // other inputs (e.g. HDL-C < 40 follows the HDL-C number field).
+  function derivedRow(label, ok) {
+    var mark = el('span', { class: 'derived-mark' }, [ok ? '✓' : '—']);
+    var row = el('div', { class: 'check check-derived' + (ok ? ' is-on' : '') }, [
+      mark, el('span', null, [label])
+    ]);
+    row.setState = function (next) {
+      row.classList.toggle('is-on', next);
+      mark.textContent = next ? '✓' : '—';
+    };
+    return row;
   }
 
   function explainBlock(parts) {
@@ -1013,93 +1034,201 @@
     update();
   }
 
-  // ---------- Lipid / Statin ----------
+  // ---------- Lipid / Statin / Fibrate ----------
+  // Pure NHI reimbursement lookup, transcribed from 健保 降血脂藥物給付規定
+  // (文件 031170). No clinical risk scoring — see docs/adr/0001.
+  var LIPID_STATIN_TIERS = {
+    'cvd-dm': { label: '心血管疾病或糖尿病病人', startTC: 160,  startLDL: 100, parallel: true },
+    'rf2':    { label: '2 個危險因子或以上',     startTC: 200,  startLDL: 130, parallel: false },
+    'rf1':    { label: '1 個危險因子',           startTC: 240,  startLDL: 160, parallel: false },
+    'rf0':    { label: '0 個危險因子',           startTC: null, startLDL: 190, parallel: false }
+  };
+  var LIPID_MONITOR_NOTE =
+    '處方規定：第一年每 3–6 個月抽血一次，第二年以後至少每 6–12 個月一次，' +
+    '並注意肝功能異常與橫紋肌溶解症。';
+
+  // s = { ldl, hdl, tg, tc, cvd, dm, htn, ageRisk, fhx, smoke }
+  function lipidCoverage(s) {
+    var hdlLow = s.hdl < 40;
+    var rfCount = (s.htn ? 1 : 0) + (s.ageRisk ? 1 : 0) + (s.fhx ? 1 : 0) +
+                  (hdlLow ? 1 : 0) + (s.smoke ? 1 : 0);
+    var highTier = !!(s.cvd || s.dm);
+
+    var statinCat = highTier ? 'cvd-dm'
+                  : rfCount >= 2 ? 'rf2'
+                  : rfCount === 1 ? 'rf1'
+                  : 'rf0';
+    var tier = LIPID_STATIN_TIERS[statinCat];
+    var byTC = tier.startTC != null && s.tc >= tier.startTC;
+    var byLDL = s.ldl >= tier.startLDL;
+
+    var ratio = s.hdl > 0 ? s.tc / s.hdl : 0;
+    var fibrateQualified = highTier
+      ? (s.tg >= 200 && (ratio > 5 || hdlLow))
+      : (s.tg >= 500);
+
+    return {
+      hdlLow: hdlLow,
+      rfCount: rfCount,
+      highTier: highTier,
+      statin: {
+        category: statinCat,
+        startTC: tier.startTC,
+        startLDL: tier.startLDL,
+        byTC: byTC,
+        byLDL: byLDL,
+        qualified: byTC || byLDL,
+        parallel: tier.parallel
+      },
+      fibrate: {
+        category: highTier ? 'cvd-dm' : 'non-cvd-dm',
+        ratio: ratio,
+        qualified: fibrateQualified,
+        parallel: highTier,
+        comboWarning: fibrateQualified && s.ldl >= 100
+      }
+    };
+  }
+
   function renderLipid() {
     var s = {
       ldl: 168, hdl: 38, tg: 220, tc: 248,
-      age: 58, sex: 'M',
-      dm: true, htn: true, cvd: false, ckd: false, smoke: false, fhx: false
+      cvd: false, dm: true,
+      htn: true, ageRisk: true, fhx: false, smoke: false
     };
 
-    function update() {
-      var rf = 0;
-      if (s.dm) rf++;
-      if (s.htn) rf++;
-      if (s.smoke) rf++;
-      if (s.fhx) rf++;
-      if (s.hdl < 40) rf++;
-      if ((s.sex === 'M' && s.age >= 45) || (s.sex === 'F' && s.age >= 55)) rf++;
+    var hdlRow = derivedRow('HDL-C < 40 mg/dL（依 HDL-C 數值自動判定）', s.hdl < 40);
 
-      var risk = s.cvd ? 25 : Math.min(rf * 3.2 + (s.ldl > 130 ? 4 : 0) + (s.age > 55 ? 3 : 0), 35);
-      var grade = s.cvd ? { label: '極高風險（次級預防）', kind: 'danger', shape: '▲' }
-                : risk > 15  ? { label: '高風險',   kind: 'danger', shape: '▲' }
-                : risk > 7.5 ? { label: '中高風險', kind: 'warn',   shape: '■' }
-                              : { label: '中低風險', kind: 'ok',     shape: '●' };
+    function statinCard(r) {
+      var st = r.statin;
+      var tier = LIPID_STATIN_TIERS[st.category];
+      var startText = st.startTC != null
+        ? 'TC ≧ ' + st.startTC + ' 或 LDL-C ≧ ' + st.startLDL
+        : 'LDL-C ≧ ' + st.startLDL;
+      var targetText = st.startTC != null
+        ? 'TC < ' + st.startTC + ' 或 LDL-C < ' + st.startLDL
+        : 'LDL-C < ' + st.startLDL;
 
       var rules = [
-        { ok: s.cvd,                                   text: '次級預防（已知 CVD 事件）' },
-        { ok: s.dm && s.ldl >= 100,                    text: '糖尿病 + LDL ≥ 100 mg/dL' },
-        { ok: rf >= 2 && s.ldl >= 130,                 text: '風險因子 ≥ 2 項 + LDL ≥ 130' },
-        { ok: s.ldl >= 190,                            text: 'LDL ≥ 190 mg/dL（家族性高膽固醇血症）' },
-        { ok: s.ckd && s.ldl >= 100,                   text: 'CKD Stage ≥ 3 + LDL ≥ 100' },
-        { ok: s.tc >= 240 && rf >= 2,                  text: 'TC ≥ 240 + 風險因子 ≥ 2' }
+        { ok: st.byLDL, text: 'LDL-C ' + s.ldl + ' mg/dL ≧ ' + st.startLDL }
       ];
-      var qualified = rules.some(function (r) { return r.ok; });
+      if (st.startTC != null) {
+        rules.push({ ok: st.byTC, text: 'TC ' + s.tc + ' mg/dL ≧ ' + st.startTC });
+      }
 
-      var summaryText = qualified
-        ? '符合健保給付 Statin。建議起始 moderate-intensity statin（如 Atorvastatin 20 mg 或 Rosuvastatin 10 mg），6–12 週後追蹤 LDL。'
-        : '目前未符合健保 Statin 給付條件。建議先以生活型態介入，3–6 個月後再評估。';
+      var summaryText = st.qualified
+        ? '符合健保 Statin 給付。病人類別「' + tier.label + '」，血脂目標值 ' + targetText +
+          '。' + (st.parallel ? '非藥物治療可與藥物並行。' : '健保要求給藥前應有 3–6 個月非藥物治療。')
+        : '尚未達「' + tier.label + '」起始藥物治療閾值（' + startText + '）。' +
+          (st.parallel ? '' : '健保亦要求給藥前應有 3–6 個月非藥物治療。');
 
-      setResult(resultCard({
-        label: '10 年 ASCVD 風險', value: risk.toFixed(1), unit: '%',
-        verdict: grade,
+      // The rf tiers already name the count; only annotate it for cvd-dm,
+      // where the category is set by CVD/DM but the RF count still matters
+      // for the fibrate card and is worth surfacing.
+      var verdictLabel = st.category === 'cvd-dm'
+        ? tier.label + '（危險因子 ' + r.rfCount + ' 項）'
+        : tier.label;
+
+      return resultCard({
+        label: '降膽固醇藥物（Statin）健保給付',
+        value: st.qualified ? '符合' : '不符合',
+        verdict: {
+          label: verdictLabel,
+          kind: st.qualified ? 'ok' : 'warn',
+          shape: st.qualified ? '●' : '○'
+        },
         body: [
-          el('div', { class: 'rules-label' }, ['健保給付條件']),
+          el('div', { class: 'rules-label' }, ['起始藥物治療閾值（' + startText + '）']),
           ruleList(rules),
-          summary(summaryText)
+          summary(summaryText),
+          note(LIPID_MONITOR_NOTE)
         ]
-      }));
+      });
     }
 
-    function sexSeg() {
-      var seg = el('div', { class: 'seg' });
-      [['M', '男'], ['F', '女']].forEach(function (pair) {
-        var b = el('button', { type: 'button', class: s.sex === pair[0] ? 'is-on' : '' }, [pair[1]]);
-        b.addEventListener('click', function () {
-          s.sex = pair[0];
-          Array.prototype.forEach.call(seg.children, function (x) { x.classList.remove('is-on'); });
-          b.classList.add('is-on');
-          update();
-        });
-        seg.appendChild(b);
+    function fibrateCard(r) {
+      var fb = r.fibrate;
+      var rules = fb.category === 'cvd-dm'
+        ? [
+            { ok: s.tg >= 200, text: 'TG ' + s.tg + ' mg/dL ≧ 200' },
+            {
+              ok: fb.ratio > 5 || r.hdlLow,
+              text: 'TC/HDL-C 比值 ' + fb.ratio.toFixed(1) + ' > 5 或 HDL-C < 40' +
+                    '（' + (fb.ratio > 5 ? '比值符合' : r.hdlLow ? 'HDL-C 符合' : '皆未達') + '）'
+            }
+          ]
+        : [
+            { ok: s.tg >= 500, text: 'TG ' + s.tg + ' mg/dL ≧ 500' }
+          ];
+
+      var catLabel = fb.category === 'cvd-dm' ? '心血管疾病或糖尿病病人' : '非 CVD 且非 DM 病人';
+      var startText = fb.category === 'cvd-dm'
+        ? 'TG ≧ 200 且（TC/HDL-C > 5 或 HDL-C < 40）'
+        : 'TG ≧ 500';
+      var targetText = fb.category === 'cvd-dm' ? 'TG < 200' : 'TG < 500';
+
+      var summaryText = fb.qualified
+        ? '符合健保 Fibrate 給付。病人類別「' + catLabel + '」，三酸甘油酯目標值 ' + targetText +
+          '。' + (fb.parallel ? '非藥物治療可與藥物並行。' : '健保要求給藥前應有 3–6 個月非藥物治療。')
+        : '尚未達「' + catLabel + '」起始藥物治療閾值（' + startText + '）。' +
+          (fb.parallel ? '' : '健保亦要求給藥前應有 3–6 個月非藥物治療。');
+
+      var body = [
+        el('div', { class: 'rules-label' }, ['起始藥物治療閾值（' + startText + '）']),
+        ruleList(rules),
+        summary(summaryText)
+      ];
+      if (fb.comboWarning) {
+        body.push(note(
+          '⚠ 此病人 LDL-C ≧ 100 mg/dL，臨床上可能需併用 Statin。Fibrate 與 Statin 併用' +
+          '會增加橫紋肌溶解症與肝功能異常風險，抽血追蹤時須特別注意副作用。', 'warn'));
+      }
+      body.push(note(LIPID_MONITOR_NOTE));
+
+      return resultCard({
+        label: '降三酸甘油酯藥物（Fibrate）健保給付',
+        value: fb.qualified ? '符合' : '不符合',
+        verdict: {
+          label: catLabel,
+          kind: fb.qualified ? 'ok' : 'warn',
+          shape: fb.qualified ? '●' : '○'
+        },
+        body: body
       });
-      return el('div', { class: 'field' }, [
-        el('div', null, [el('label', { class: 'field-label' }, ['性別'])]),
-        seg,
-        el('span', { class: 'field-unit' }, [''])
-      ]);
+    }
+
+    function update() {
+      var r = lipidCoverage(s);
+      hdlRow.setState(r.hdlLow);
+      setResult(el('div', null, [statinCard(r), fibrateCard(r)]));
     }
 
     var inputs = el('div', { class: 'calc-card' }, [
-      el('h3', null, ['血脂風險與 Statin 健保給付']),
-      el('p', { class: 'lead' }, ['依 2024/07 健保規範。即時計算 ASCVD 風險並逐條核對給付條件。']),
+      el('h3', null, ['血脂異常用藥健保給付判定']),
+      el('p', { class: 'lead' }, ['依健保署降血脂藥物給付規定（文件 031170）逐條核對 Statin 與 Fibrate 給付資格。']),
       section('血脂檢驗值', [
         field('LDL-C',             '低密度脂蛋白', s.ldl, 'mg/dL', function (v) { s.ldl = v; update(); }),
         field('HDL-C',             '高密度脂蛋白', s.hdl, 'mg/dL', function (v) { s.hdl = v; update(); }),
         field('Triglyceride',      '三酸甘油酯',   s.tg,  'mg/dL', function (v) { s.tg  = v; update(); }),
         field('Total Cholesterol', '總膽固醇',     s.tc,  'mg/dL', function (v) { s.tc  = v; update(); })
       ]),
-      section('共病與風險因子', [
-        check('糖尿病 (Type 2 DM)',          s.dm,    function (v) { s.dm    = v; update(); }),
-        check('高血壓',                       s.htn,   function (v) { s.htn   = v; update(); }),
-        check('已發生心血管事件（次級預防）', s.cvd,   function (v) { s.cvd   = v; update(); }),
-        check('慢性腎臟病 (CKD Stage ≥ 3)',  s.ckd,   function (v) { s.ckd   = v; update(); }),
-        check('吸菸',                         s.smoke, function (v) { s.smoke = v; update(); }),
-        check('家族史（一等親早發 CVD）',     s.fhx,   function (v) { s.fhx   = v; update(); })
+      section('病人類別', [
+        check('心血管疾病（CVD）', s.cvd, function (v) { s.cvd = v; update(); }),
+        el('p', { class: 'check-hint' }, [
+          '健保定義：心絞痛經心導管／缺氧心電圖／負荷試驗證實、腦梗塞、腦內出血、' +
+          '陣發性腦缺血（TIA）、有症狀之頸動脈狹窄。'
+        ]),
+        check('糖尿病（Type 2 DM）', s.dm, function (v) { s.dm = v; update(); })
       ]),
-      section('基本資料', [
-        field('年齡', null, s.age, '歲', function (v) { s.age = v; update(); }, { min: 18, max: 100 }),
-        sexSeg()
+      section('危險因子（健保定義）', [
+        check('高血壓', s.htn, function (v) { s.htn = v; update(); }),
+        check('年齡符合（男性 ≧45 / 女性 ≧55 或停經）', s.ageRisk, function (v) { s.ageRisk = v; update(); }),
+        check('早發性冠心病家族史（一等親 男 ≦55 / 女 ≦65 發病）', s.fhx, function (v) { s.fhx = v; update(); }),
+        check('吸菸', s.smoke, function (v) { s.smoke = v; update(); }),
+        el('p', { class: 'check-hint' }, [
+          '※ 若僅因吸菸而符合起步治療準則、且未戒菸，健保規定應自費治療。'
+        ]),
+        hdlRow
       ])
     ]);
 
@@ -1320,6 +1449,7 @@
   if (typeof window !== 'undefined') {
     window.__mounjaroCalc = mounjaroCalc;
     window.__formatNum = formatNum;
+    window.__lipidCoverage = lipidCoverage;
   }
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
@@ -1327,7 +1457,8 @@
       goNext: goNext,
       goPrev: goPrev,
       mounjaroCalc: mounjaroCalc,
-      formatNum: formatNum
+      formatNum: formatNum,
+      lipidCoverage: lipidCoverage
     };
   }
 
