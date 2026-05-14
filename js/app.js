@@ -874,7 +874,10 @@
       min: opts.min != null ? String(opts.min) : '',
       max: opts.max != null ? String(opts.max) : '',
       step: opts.step ? String(opts.step) : 'any',
-      oninput: function (e) { onInput(Number(e.target.value) || 0); }
+      oninput: function (e) {
+        var raw = e.target.value;
+        onInput(opts.allowEmpty && raw === '' ? '' : Number(raw) || 0);
+      }
     });
     return el('div', { class: 'field' }, [labelWrap, input, el('span', { class: 'field-unit' }, [unit || ''])]);
   }
@@ -925,13 +928,14 @@
   // Static, non-interactive checkbox-style row whose state is derived from
   // other inputs (e.g. HDL-C < 40 follows the HDL-C number field).
   function derivedRow(label, ok) {
-    var mark = el('span', { class: 'derived-mark' }, [ok ? '✓' : '—']);
+    var input = el('input', { type: 'checkbox' });
+    input.checked = ok;
     var row = el('div', { class: 'check check-derived' + (ok ? ' is-on' : '') }, [
-      mark, el('span', null, [label])
+      input, el('span', null, [label])
     ]);
     row.setState = function (next) {
       row.classList.toggle('is-on', next);
-      mark.textContent = next ? '✓' : '—';
+      input.checked = next;
     };
     return row;
   }
@@ -1048,7 +1052,7 @@
 
   // s = { ldl, hdl, tg, tc, cvd, dm, htn, ageRisk, fhx, smoke }
   function lipidCoverage(s) {
-    var hdlLow = s.hdl < 40;
+    var hdlLow = s.hdl !== '' && s.hdl < 40;
     var rfCount = (s.htn ? 1 : 0) + (s.ageRisk ? 1 : 0) + (s.fhx ? 1 : 0) +
                   (hdlLow ? 1 : 0) + (s.smoke ? 1 : 0);
     var highTier = !!(s.cvd || s.dm);
@@ -1091,12 +1095,12 @@
 
   function renderLipid() {
     var s = {
-      ldl: 168, hdl: 38, tg: 220, tc: 248,
+      ldl: '', hdl: '', tg: '', tc: '',
       cvd: false, dm: true,
       htn: true, ageRisk: true, fhx: false, smoke: false
     };
 
-    var hdlRow = derivedRow('HDL-C < 40 mg/dL（依 HDL-C 數值自動判定）', s.hdl < 40);
+    var hdlRow = derivedRow('HDL-C < 40 mg/dL（依 HDL-C 數值自動判定）', s.hdl !== '' && s.hdl < 40);
 
     function statinCard(r) {
       var st = r.statin;
@@ -1206,10 +1210,10 @@
       el('h3', null, ['血脂異常用藥健保給付判定']),
       el('p', { class: 'lead' }, ['依健保署降血脂藥物給付規定（文件 031170）逐條核對 Statin 與 Fibrate 給付資格。']),
       section('血脂檢驗值', [
-        field('LDL-C',             '低密度脂蛋白', s.ldl, 'mg/dL', function (v) { s.ldl = v; update(); }),
-        field('HDL-C',             '高密度脂蛋白', s.hdl, 'mg/dL', function (v) { s.hdl = v; update(); }),
-        field('Triglyceride',      '三酸甘油酯',   s.tg,  'mg/dL', function (v) { s.tg  = v; update(); }),
-        field('Total Cholesterol', '總膽固醇',     s.tc,  'mg/dL', function (v) { s.tc  = v; update(); })
+        field('LDL-C',             '低密度脂蛋白', s.ldl, 'mg/dL', function (v) { s.ldl = v; update(); }, { allowEmpty: true }),
+        field('HDL-C',             '高密度脂蛋白', s.hdl, 'mg/dL', function (v) { s.hdl = v; update(); }, { allowEmpty: true }),
+        field('Triglyceride',      '三酸甘油酯',   s.tg,  'mg/dL', function (v) { s.tg  = v; update(); }, { allowEmpty: true }),
+        field('Total Cholesterol', '總膽固醇',     s.tc,  'mg/dL', function (v) { s.tc  = v; update(); }, { allowEmpty: true })
       ]),
       section('病人類別', [
         check('心血管疾病（CVD）', s.cvd, function (v) { s.cvd = v; update(); }),

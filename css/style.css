@@ -875,14 +875,6 @@ img.card-thumb { background: var(--tint-1); }
 /* Non-interactive checkbox-style row derived from another input */
 .check-derived { cursor: default; }
 .check-derived:hover { border-color: var(--line); }
-.derived-mark {
-  width: 18px;
-  flex-shrink: 0;
-  text-align: center;
-  font-weight: 700;
-  color: var(--ink-3);
-}
-.check-derived.is-on .derived-mark { color: var(--ok-fg); }
 
 /* Sex picker */
 .seg {
