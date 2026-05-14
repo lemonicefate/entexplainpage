@@ -236,7 +236,7 @@ var CALCULATORS = [
 
 **2. 接 router**
 
-`enterCalc(id)` 函式（約第 836 行）加一個分支：
+`enterCalc(id)` 函式（約第 831 行）加一個分支：
 
 ```js
 if (id === 'bmi') renderBmi();
@@ -283,7 +283,7 @@ function renderEgfr() {
 }
 ```
 
-**5. 補測試**
+**4. 補測試**
 
 `tests/unit/app.test.js` 加一條：
 
