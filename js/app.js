@@ -992,16 +992,26 @@
   }
 
   // ---------- BMI ----------
+  // Pure 國健署成人 BMI 分級查表 (衛福部國民健康署). Golden-file 測試見
+  // tests/unit/calc/bmi.test.js — 標準改版時這兩個函式跟測試一起改。
+  function bmiClassify(bmi) {
+    if (bmi < 18.5) return { code: 'underweight', label: '體重過輕', kind: 'warn',   shape: '■' };
+    if (bmi < 24)   return { code: 'normal',      label: '正常範圍', kind: 'ok',     shape: '●' };
+    if (bmi < 27)   return { code: 'overweight',  label: '過重',     kind: 'warn',   shape: '■' };
+    if (bmi < 30)   return { code: 'obese-1',     label: '輕度肥胖', kind: 'danger', shape: '▲' };
+    if (bmi < 35)   return { code: 'obese-2',     label: '中度肥胖', kind: 'danger', shape: '▲' };
+    return                  { code: 'obese-3',    label: '重度肥胖', kind: 'danger', shape: '▲' };
+  }
+  function bmiAssess(heightCm, weightKg) {
+    var bmi = weightKg / Math.pow(heightCm / 100, 2);
+    return { bmi: bmi, grade: bmiClassify(bmi) };
+  }
   function renderBmi() {
     var s = { h: 170, w: 75 };
     function update() {
-      var bmi = s.w / Math.pow(s.h / 100, 2);
-      var grade = bmi < 18.5 ? { label: '體重過輕', kind: 'warn',   shape: '■' }
-                : bmi < 24   ? { label: '正常範圍', kind: 'ok',     shape: '●' }
-                : bmi < 27   ? { label: '過重',     kind: 'warn',   shape: '■' }
-                : bmi < 30   ? { label: '輕度肥胖', kind: 'danger', shape: '▲' }
-                : bmi < 35   ? { label: '中度肥胖', kind: 'danger', shape: '▲' }
-                              : { label: '重度肥胖', kind: 'danger', shape: '▲' };
+      var r = bmiAssess(s.h, s.w);
+      var bmi = r.bmi;
+      var grade = r.grade;
       var advice = bmi >= 27 ? '建議搭配生活型態介入與藥物治療評估。'
                   : bmi >= 24 ? '建議控制飲食與規律運動。'
                   : bmi < 18.5 ? '建議營養評估。'
@@ -1446,6 +1456,8 @@
     window.__mounjaroCalc = mounjaroCalc;
     window.__formatNum = formatNum;
     window.__lipidCoverage = lipidCoverage;
+    window.__bmiClassify = bmiClassify;
+    window.__bmiAssess = bmiAssess;
   }
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
@@ -1454,7 +1466,9 @@
       goPrev: goPrev,
       mounjaroCalc: mounjaroCalc,
       formatNum: formatNum,
-      lipidCoverage: lipidCoverage
+      lipidCoverage: lipidCoverage,
+      bmiClassify: bmiClassify,
+      bmiAssess: bmiAssess
     };
   }
 
