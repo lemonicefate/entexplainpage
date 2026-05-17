@@ -26,3 +26,4 @@
 - **每次 bump `sw.js` 的 `CACHE_NAME` 後**,在 iPad Safari「加到主畫面」的 PWA 情境做一次回歸測試 — SW 快取更新在 iOS PWA 上行為特殊。
 - 計算機是寫在 `js/app.js` 的靜態邏輯(不走 JSON);新增計算機的步驟見 `README.md`「新增計算機」。
 - 「權威抄寫型」計算機規則(健保給付、國健署分級、藥典劑量)一律配 `tests/unit/calc/{id}.test.js` golden-file 測試鎖死;自創 / 估算公式不寫單元測試以免把 bug 變規格。詳見 `TODOS.md` 的 Calculator 測試策略。
+- **CI gate(`.github/workflows/ci.yml`,2026-05-18 起)**:push 與 PR 自動跑 `unit`(vitest)與 `e2e`(playwright chromium)兩段 job,失敗時上傳 `playwright-report/` 為 artifact。Node 22 固定(Vite 7 要求 ≥ 22.12);同分支重 push 用 `concurrency.cancel-in-progress` 砍前一輪。本機 Node 若 < 22.12 (如 22.11) 須加 `NODE_OPTIONS='--experimental-require-module'` 跑 vitest。

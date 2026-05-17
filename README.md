@@ -47,7 +47,7 @@ entexplainpage/
 
 ## 本機開發
 
-需求：Node.js 18+。
+需求：Node.js 22+（Vite 7 要求 ≥ 22.12；若本機是 22.11.x，跑 vitest 前加 `NODE_OPTIONS='--experimental-require-module'`）。
 
 ```bash
 # 安裝測試相依
@@ -90,6 +90,8 @@ npm run test:e2e
 涵蓋完整使用者流程：首頁、播放器、計算機、Reader 模式（tap zones、scrubber、auto-hide、pen drawing）。
 
 **Commit 前兩種都要過。** 加新功能時，對照 `tests/unit/app.test.js` 的 describe 區塊補測。
+
+> GitHub Actions(`.github/workflows/ci.yml`)會在 push / PR 自動把這兩段都跑一次,失敗會在 PR 上 block,所以本機忘跑時 CI 會接住。
 
 ---
 
