@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **CI/CD GitHub Actions(`.github/workflows/ci.yml`)** — 之前 commit 前的 vitest / playwright 都靠人工跑,容易漏。新增 push + PR 自動跑兩段 job:`unit`(`npm test`)與 `e2e`(`npx playwright install --with-deps chromium` + `npm run test:e2e`),失敗時上傳 `playwright-report/` 為 artifact。固定 Node 22(Vite 7 要求 ≥ 20.19 或 ≥ 22.12),同分支多次 push 用 `concurrency.cancel-in-progress` 砍前一輪
+- **BMI 計算機抽純函式 + 國健署 golden-file 測試(26 測試)** — `renderBmi()` 原本把 BMI 分級寫成 inline ternary,沒有可測表面。抽出 `bmiClassify(bmi)`(BMI → grade)與 `bmiAssess(h, w)`(身高體重 → BMI + grade)兩支純函式,grade 多帶 `code`(underweight/normal/overweight/obese-1/obese-2/obese-3)讓測試穩定。新增 `tests/unit/calc/bmi.test.js` 26 個 golden-file 測試鎖死國健署成人 BMI 分級邊界(18.5/24/27/30/35),含 BMI ≥ 27 健保肥胖症藥物治療門檻、BMI ≥ 35 健保減重手術門檻 safety-critical 驗證。`window.__bmiClassify` / `window.__bmiAssess` 暴露供測試與瀏覽器 debug
+
 ### Fixed
 - **Mounjaro pen 規格 picker 在桌機被擠成直排** — `.seg` 6 顆 dose 按鈕(2.5/5/7.5/10/12.5/15 mg)被放進 `.field` 預設 grid (`200px 140px auto`) 的 140px 第二欄,`flex-wrap: wrap` 讓每顆按鈕換行變直列。新增 `.field.field-wide { grid-template-columns: auto 1fr }` 變體,`makePenPicker()` 套用後 label 縮到自然寬、seg 取得剩餘空間,6 顆一字橫排;手機 ≤768px 一行容兩顆換行可讀。同步 bump SW cache v7 → v8 強制更新樣式
 

@@ -6,13 +6,6 @@ entexplainpage 的**唯一待辦追蹤檔**。已發布的事看 `CHANGELOG.md`,
 
 ---
 
-## TODO: CI/CD — GitHub Actions
-**Priority:** High
-**What:** push / PR 自動跑 Vitest + Playwright,main 綠燈才允許 squash merge。
-**Why:** 目前無 CI,commit 前測試靠人工 `npm test && npm run test:e2e`,容易漏跑或忘跑。
-**Context:** 需要 `.github/workflows/`。注意 dual `node_modules.win` / `node_modules.linux` 模式 — CI 在 ubuntu 上跑,要確保用 linux 版或乾淨 `npm install`。
-**Depends on:** 無。
-
 ## TODO: Calculator 測試策略 — 按「出錯會不會害到病人」分層
 **Priority:** High
 **What:** 每個計算機要有自己的測試檔（不是一個大檔），但只對「權威抄寫型」規則寫 golden-file 測試。
@@ -30,7 +23,7 @@ entexplainpage 的**唯一待辦追蹤檔**。已發布的事看 `CHANGELOG.md`,
 tests/unit/
 ├── app.test.js              （結構/SW/manifest — 共用）
 └── calc/
-    ├── bmi.test.js          （國健署 BMI 分級邊界：18.5 / 24 / 27 / 30 / 35 — 待補）
+    ├── bmi.test.js          （✅ 已落地：國健署 BMI 分級邊界 18.5 / 24 / 27 / 30 / 35 + 健保肥胖症藥物 / 減重手術門檻，26 測試）
     ├── lipid.test.js        （✅ 已落地：健保 031170 Statin / Fibrate 給付規則矩陣，39 測試）
     ├── peds-abx.test.js     （小兒抗生素 mg/kg 對照表 edge cases — 待補）
     └── ...
@@ -38,7 +31,7 @@ tests/unit/
 每檔 10–20 測試獨立、不互相污染，`npm test` 一指令跑全部。
 
 **逐 calc 狀態：**
-- BMI：國健署分級邊界 golden-file — 待補（現為 demo placeholder）
+- BMI：✅ 已落地 `tests/unit/calc/bmi.test.js`(2026-05-18,26 測試)。抽出純函式 `bmiClassify` / `bmiAssess`,鎖死國健署 5 個邊界 + 健保肥胖症藥物治療(BMI ≥ 27)與減重手術(BMI ≥ 35)門檻
 - Lipid：✅ 已落地 `tests/unit/calc/lipid.test.js`（健保 031170 給付規則矩陣，39 測試）
 - Peds-dose：藥典 mg/kg 對照表 edge cases — 待補（現為 demo placeholder）
 - Mounjaro：濃度表 + 三欄連動數學已有 9 個 golden 測試，暫放 `tests/unit/app.test.js` 的 `Mounjaro calculator math` describe，待測試分層落地時搬到獨立檔 `tests/unit/calc/mounjaro.test.js`
@@ -47,8 +40,8 @@ tests/unit/
 
 **Why:** 醫療 app 的測試重點不是 coverage %，是 safety-critical 路徑鎖死。抄自 guideline 的規則錯了，病人吃錯藥或被錯誤分級；湊出來的公式本來就不該被當成 ground truth。
 
-**Context:** 早期 v0.2.0.0 的 BMI/Lipid/Peds 是 demo placeholder。Lipid 已於 2026-05-14 改寫為健保 031170 給付查表並同 PR 自帶 `tests/unit/calc/lipid.test.js`（39 測試）。剩 BMI、peds-dose 仍是 placeholder。
-**Depends on:** BMI / peds-dose 各自真實上線時同 PR 處理。
+**Context:** 早期 v0.2.0.0 的 BMI/Lipid/Peds 是 demo placeholder。Lipid 已於 2026-05-14 改寫為健保 031170 給付查表並同 PR 自帶 `tests/unit/calc/lipid.test.js`（39 測試）。BMI 已於 2026-05-18 抽純函式 + golden-file 鎖死(26 測試)。剩 peds-dose 仍是 placeholder。
+**Depends on:** peds-dose 真實上線時同 PR 處理。
 
 ## TODO: admin.html 在 GitHub Pages 純靜態環境的 UX 邊界
 **Priority:** Medium
