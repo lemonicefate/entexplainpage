@@ -12,7 +12,7 @@
 - **離線可用**：Service Worker 預載核心資源，iPad 連線不穩也能解說。
 - **Reader 模式**：仿電子書體驗——點左右換頁、點中間叫出工具列、下方拖拉桿快速跳頁、3 秒後工具自動淡出。
 - **診間工具**：畫筆、聚光燈、雷射指標，支援滑鼠、觸控、Apple Pencil（Pointer Events 統一處理）。
-- **內建計算機**：BMI、血脂異常用藥健保給付（Statin / Fibrate）、小兒劑量、Mounjaro 針劑分抽 / 殘劑換算。
+- **內建計算機**：BMI、血脂異常用藥健保給付（Statin / Fibrate）、小兒劑量、Mounjaro 針劑分抽 / 殘劑換算、Wegovy FlexTouch off-label 換算。
 
 ---
 
@@ -218,7 +218,7 @@ npm run admin
 
 計算機是**寫在 `js/app.js` 裡的靜態邏輯**（不走 JSON），因為每個計算機的輸入欄位、規則邏輯、判讀文字都不同，沒必要為了 DRY 硬做資料驅動。
 
-現有四支：`bmi`、`lipid`、`peds-dose`、`mounjaro`，分別對應 `renderBmi()`、`renderLipid()`、`renderPeds()`、`renderMounjaro()`。
+現有五支：`bmi`、`lipid`、`peds-dose`、`mounjaro`、`wegovy`，分別對應 `renderBmi()`、`renderLipid()`、`renderPeds()`、`renderMounjaro()`、`renderWegovy()`。
 
 ### 步驟
 

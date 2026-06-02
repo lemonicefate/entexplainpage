@@ -1,4 +1,4 @@
-var CACHE_NAME = 'entexplain-v11';
+var CACHE_NAME = 'entexplain-v13';
 
 var PRECACHE_URLS = [
   './',
@@ -6,7 +6,9 @@ var PRECACHE_URLS = [
   './css/style.css',
   './js/app.js',
   './manifest.json',
-  './procedures/index.json'
+  './procedures/index.json',
+  './images/mounjaro/mounjaro-logo.svg',
+  './images/wegovy/wegovy-logo-nav.png'
 ];
 
 // Install: precache core resources

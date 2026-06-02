@@ -12,6 +12,31 @@ function createDOM() {
   });
 }
 
+function createRunningAppDOM(hash) {
+  const appSrc = fs.readFileSync(path.resolve(__dirname, '../../js/app.js'), 'utf-8');
+  const dom = new JSDOM(htmlContent.replace('</body>', `<script>${appSrc}</script></body>`), {
+    url: 'http://localhost/' + (hash || ''),
+    runScripts: 'dangerously',
+    pretendToBeVisual: true,
+    beforeParse(window) {
+      window.scrollTo = () => {};
+      window.fetch = () => Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ categories: [], procedures: [] })
+      });
+      Object.defineProperty(window.navigator, 'serviceWorker', {
+        value: { register: () => Promise.resolve({ addEventListener: () => {} }) },
+        configurable: true
+      });
+    }
+  });
+  return new Promise(resolve => {
+    dom.window.addEventListener('load', () => {
+      setTimeout(() => resolve(dom), 0);
+    });
+  });
+}
+
 describe('Home view', () => {
   let dom, document;
 
@@ -50,6 +75,20 @@ describe('Home view', () => {
     const chips = document.getElementById('filter-chips');
     expect(chips).not.toBeNull();
     expect(chips.getAttribute('role')).toBe('tablist');
+  });
+
+  it('renders calculator cards with brand cover images', async () => {
+    const runningDom = await createRunningAppDOM('');
+    const doc = runningDom.window.document;
+    const mounjaro = doc.querySelector('a[href="#/calc/mounjaro"] img.card-thumb-logo');
+    const wegovy = doc.querySelector('a[href="#/calc/wegovy"] img.card-thumb-logo');
+
+    expect(mounjaro).not.toBeNull();
+    expect(mounjaro.getAttribute('src')).toBe('images/mounjaro/mounjaro-logo.svg');
+    expect(mounjaro.getAttribute('alt')).toBe('猛健樂針劑換算 (Mounjaro)');
+    expect(wegovy).not.toBeNull();
+    expect(wegovy.getAttribute('src')).toBe('images/wegovy/wegovy-logo-nav.png');
+    expect(wegovy.getAttribute('alt')).toBe('週纖達針劑換算 (Wegovy)');
   });
 });
 
@@ -228,6 +267,18 @@ describe('Calculator view structure', () => {
     expect(document.getElementById('calc-back')).not.toBeNull();
     expect(document.getElementById('calc-tabs').getAttribute('role')).toBe('tablist');
     expect(document.getElementById('calc-body')).not.toBeNull();
+  });
+
+  it('renders Wegovy calculator from route', async () => {
+    const runningDom = await createRunningAppDOM('#/calc/wegovy');
+    const doc = runningDom.window.document;
+    expect(doc.querySelector('[data-calc="wegovy"]')).not.toBeNull();
+    expect(doc.querySelector('[data-calc="wegovy"]').textContent).toBe('週纖達');
+    expect(doc.getElementById('calc-view').classList.contains('active')).toBe(true);
+    expect(doc.getElementById('calc-body').textContent).toContain('週纖達針劑換算 (Wegovy)');
+    expect(doc.getElementById('calc-body').textContent).toContain('目標劑量 (mg)');
+    expect(doc.getElementById('calc-body').textContent).toContain('抽取體積 (ml)');
+    expect(doc.getElementById('calc-body').textContent).toContain('約略喀噠數');
   });
 });
 
@@ -444,6 +495,67 @@ describe('Mounjaro calculator math', () => {
     expect(win.__formatNum(null)).toBe('');
     expect(win.__formatNum(NaN)).toBe('');
     expect(win.__formatNum(Infinity)).toBe('');
+  });
+});
+
+describe('Wegovy calculator math', () => {
+  let win;
+
+  beforeEach(() => {
+    const appSrc = fs.readFileSync(path.resolve(__dirname, '../../js/app.js'), 'utf-8');
+    const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
+      url: 'http://localhost/',
+      runScripts: 'dangerously',
+      pretendToBeVisual: true
+    });
+    win = dom.window;
+    win.addEventListener('error', () => { /* swallow init throws */ });
+    const script = win.document.createElement('script');
+    script.textContent = appSrc;
+    try { win.document.body.appendChild(script); }
+    catch (e) { /* IIFE throw is fine — helpers already exposed */ }
+  });
+
+  it('exposes pure helper on window', () => {
+    expect(typeof win.__wegovyCalc).toBe('function');
+  });
+
+  it('2.4 mg pen: 0.75 ml equals one labeled dose', () => {
+    const r = win.__wegovyCalc(2.4, 'ml', 0.75);
+    expect(r.mg).toBeCloseTo(2.4, 6);
+    expect(r.clicks).toBeCloseTo(75, 6);
+    expect(r.ml).toBeCloseTo(0.75, 6);
+  });
+
+  it('0.25 mg pen: 37.5 clicks equals one labeled dose', () => {
+    const r = win.__wegovyCalc(0.25, 'clicks', 37.5);
+    expect(r.mg).toBeCloseTo(0.25, 6);
+    expect(r.ml).toBeCloseTo(0.375, 6);
+  });
+
+  it('0.5 mg pen: mg anchor uses 1.5 ml total volume', () => {
+    const r = win.__wegovyCalc(0.5, 'mg', 0.25);
+    expect(r.ml).toBeCloseTo(0.1875, 6);
+    expect(r.clicks).toBeCloseTo(18.75, 6);
+  });
+
+  it('1.7 mg pen: 20 clicks uses 3 ml total volume', () => {
+    const r = win.__wegovyCalc(1.7, 'clicks', 20);
+    expect(r.ml).toBeCloseTo(0.2, 6);
+    expect(r.mg).toBeCloseTo(0.45333, 4);
+  });
+
+  it('pen change preserves mg anchor', () => {
+    const r05 = win.__wegovyCalc(0.5, 'mg', 0.25);
+    const r24 = win.__wegovyCalc(2.4, 'mg', 0.25);
+    expect(r05.ml).toBeCloseTo(0.1875, 6);
+    expect(r24.ml).toBeCloseTo(0.078125, 6);
+  });
+
+  it('invalid inputs return zeros (no pen / negative / NaN)', () => {
+    expect(win.__wegovyCalc(null, 'mg', 1)).toEqual({ mg: 0, ml: 0, clicks: 0, units: 0 });
+    expect(win.__wegovyCalc(1, 'mg', -1)).toEqual({ mg: 0, ml: 0, clicks: 0, units: 0 });
+    expect(win.__wegovyCalc(1, 'mg', 'abc')).toEqual({ mg: 0, ml: 0, clicks: 0, units: 0 });
   });
 });
 

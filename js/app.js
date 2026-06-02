@@ -77,7 +77,8 @@
     {id:'bmi',       title:'BMI 與肥胖分級',  subtitle:'身高體重 → BMI + 國健署分級',  type:'calc', kind:'calc', tabLabel:'BMI'},
     {id:'lipid',     title:'血脂異常用藥健保給付', subtitle:'LDL/HDL/TG/TC + 病人類別 → Statin / Fibrate 健保給付判定', type:'calc', kind:'calc', tabLabel:'血脂給付'},
     {id:'peds-dose', title:'小兒劑量（mg/kg）', subtitle:'體重 + 目標劑量 → 總 mg + ml 數', type:'calc', kind:'calc', tabLabel:'小兒劑量'},
-    {id:'mounjaro',  title:'猛健樂針劑換算 (Mounjaro)', subtitle:'Tirzepatide 筆針劑量、刻度與殘劑互算', type:'calc', kind:'calc', tabLabel:'猛健樂'}
+    {id:'mounjaro',  title:'猛健樂針劑換算 (Mounjaro)', subtitle:'Tirzepatide 筆針劑量、刻度與殘劑互算', type:'calc', kind:'calc', tabLabel:'猛健樂', thumbnail:'images/mounjaro/mounjaro-logo.svg', thumbnailMode:'logo'},
+    {id:'wegovy',    title:'週纖達針劑換算 (Wegovy)', subtitle:'Semaglutide FlexTouch 諾特筆劑量、體積與喀噠互算', type:'calc', kind:'calc', tabLabel:'週纖達', thumbnail:'images/wegovy/wegovy-logo-nav.png', thumbnailMode:'logo'}
   ];
 
   var TYPE_LABELS = { explain: '解釋病情', surgery: '手術流程', calc: '計算機' };
@@ -262,9 +263,9 @@
     card.href = item.kind === 'calc' ? '#/calc/' + item.id : '#/' + item.id;
     card.setAttribute('aria-label', item.title);
 
-    if (item.kind === 'project' && item.thumbnail) {
+    if (item.thumbnail) {
       var img = document.createElement('img');
-      img.className = 'card-thumb';
+      img.className = 'card-thumb' + (item.thumbnailMode === 'logo' ? ' card-thumb-logo' : '');
       img.src = item.thumbnail;
       img.alt = item.title;
       img.loading = 'lazy';
@@ -838,6 +839,7 @@
     else if (id === 'lipid') renderLipid();
     else if (id === 'peds-dose') renderPeds();
     else if (id === 'mounjaro') renderMounjaro();
+    else if (id === 'wegovy') renderWegovy();
   }
 
   // ---------- Shared calc helpers ----------
@@ -1283,6 +1285,17 @@
   var MOUNJARO_RESIDUAL_LO_ML = 0.3;
   var MOUNJARO_RESIDUAL_HI_ML = 0.6;
 
+  // Wegovy FlexTouch: each pen contains 4 labeled doses. Low-dose pens
+  // contain 1.5 ml; 1 mg and higher pens contain 3 ml.
+  var WEGOVY_PENS = {
+    0.25: { doseMg: 0.25, totalMg: 1, totalMl: 1.5 },
+    0.5:  { doseMg: 0.5,  totalMg: 2, totalMl: 1.5 },
+    1:    { doseMg: 1,    totalMg: 4, totalMl: 3 },
+    1.7:  { doseMg: 1.7,  totalMg: 6.8, totalMl: 3 },
+    2.4:  { doseMg: 2.4,  totalMg: 9.6, totalMl: 3 }
+  };
+  var WEGOVY_PEN_ORDER = [0.25, 0.5, 1, 1.7, 2.4];
+
   // Pure math: given pen mg-strength + which field anchors + its value,
   // return all four linked values { mg, ml, clicks, units }.
   // Empty/invalid anchor -> all zeros.
@@ -1290,6 +1303,20 @@
     var v = Number(value);
     if (!pen || !isFinite(v) || v < 0) return { mg: 0, ml: 0, clicks: 0, units: 0 };
     var conc = pen / MOUNJARO_DOSE_VOL_ML; // mg/ml
+    var ml;
+    if (anchor === 'mg')          ml = v / conc;
+    else if (anchor === 'ml')     ml = v;
+    else if (anchor === 'clicks') ml = v / 100;
+    else if (anchor === 'units')  ml = v / 100;
+    else                          ml = 0;
+    return { mg: ml * conc, ml: ml, clicks: ml * 100, units: ml * 100 };
+  }
+
+  function wegovyCalc(pen, anchor, value) {
+    var spec = WEGOVY_PENS[pen];
+    var v = Number(value);
+    if (!spec || !isFinite(v) || v < 0) return { mg: 0, ml: 0, clicks: 0, units: 0 };
+    var conc = spec.totalMg / spec.totalMl;
     var ml;
     if (anchor === 'mg')          ml = v / conc;
     else if (anchor === 'ml')     ml = v;
@@ -1450,10 +1477,152 @@
     rerender();
   }
 
+  // ---------- Wegovy (semaglutide FlexTouch) off-label split-draw ----------
+  function renderWegovy() {
+    var s = { pen: null, mg: '', ml: '', clicks: '', lastEdited: null };
+
+    function recompute() {
+      if (!s.pen || !s.lastEdited) return;
+      var anchor = s.lastEdited;
+      var anchorVal = s[anchor];
+      if (anchorVal === '' || anchorVal == null) return;
+      var r = wegovyCalc(s.pen, anchor, anchorVal);
+      if (anchor !== 'mg')     s.mg     = formatNum(r.mg);
+      if (anchor !== 'ml')     s.ml     = formatNum(r.ml);
+      if (anchor !== 'clicks') s.clicks = formatNum(r.clicks);
+    }
+
+    function makePenPicker() {
+      var seg = el('div', { class: 'seg' });
+      WEGOVY_PEN_ORDER.forEach(function (p) {
+        var b = el('button', { type: 'button', class: s.pen === p ? 'is-on' : '' }, [p + ' mg']);
+        b.addEventListener('click', function () {
+          s.pen = p;
+          Array.prototype.forEach.call(seg.children, function (x) { x.classList.remove('is-on'); });
+          b.classList.add('is-on');
+          recompute();
+          rerender();
+        });
+        seg.appendChild(b);
+      });
+      return el('div', { class: 'field field-wide' }, [
+        el('div', null, [el('label', { class: 'field-label' }, ['Pen 規格'])]),
+        seg
+      ]);
+    }
+
+    function makeField(key, label, hint, unit) {
+      var input = el('input', {
+        type: 'number', class: 'field-input',
+        value: s[key],
+        step: 'any',
+        min: '0',
+        oninput: function (e) {
+          s[key] = e.target.value;
+          s.lastEdited = key;
+          recompute();
+          ['mg', 'ml', 'clicks'].forEach(function (k) {
+            if (k === key) return;
+            var other = document.querySelector('[data-wg-field="' + k + '"]');
+            if (other) other.value = s[k];
+          });
+          updateResult();
+        }
+      });
+      input.setAttribute('data-wg-field', key);
+      var labelWrap = el('div', null, [
+        el('label', { class: 'field-label' }, [label]),
+        hint ? el('span', { class: 'field-hint' }, [hint]) : null
+      ]);
+      return el('div', { class: 'field' }, [labelWrap, input, el('span', { class: 'field-unit' }, [unit])]);
+    }
+
+    function refLine() {
+      if (!s.pen) {
+        return el('p', { class: 'lead' }, ['請先選擇 pen 規格。']);
+      }
+      var spec = WEGOVY_PENS[s.pen];
+      var conc = spec.totalMg / spec.totalMl;
+      var doseMl = spec.totalMl / 4;
+      var perClick = formatNum(conc / 100);
+      return el('p', { class: 'lead' }, [
+        s.pen + ' mg FlexTouch:每支 ' + spec.totalMg + ' mg / ' + spec.totalMl + ' ml,共 4 劑。' +
+        '每標示劑 ' + formatNum(doseMl) + ' ml。' +
+        '每喀噠約 ' + perClick + ' mg。' +
+        '4 劑後若仍有殘液,官方建議丟棄。'
+      ]);
+    }
+
+    function safetyLine() {
+      return el('p', { class: 'field-hint', style: 'margin-top:12px;line-height:1.6' }, [
+        '分抽、喀噠換算與殘液使用屬 off-label。官方給藥應以劑量窗為準,不以喀噠數作為標準給藥。單支 pen 限同一病人,每次注射需換新針,開封後保存期依藥廠規範。'
+      ]);
+    }
+
+    function updateResult() {
+      if (!s.pen) {
+        setResult(el('div', { class: 'result-card' }, [
+          el('div', { class: 'result-head' }, [el('div', { class: 'result-label' }, ['等待輸入'])]),
+          el('div', { class: 'result-body' }, [el('p', { class: 'lead' }, ['選擇 pen 規格後,任一欄輸入數字即會即時換算。'])])
+        ]));
+        return;
+      }
+      var hasInput = ['mg','ml','clicks'].some(function (k) { return s[k] !== '' && s[k] != null; });
+      if (!hasInput) {
+        setResult(el('div', { class: 'result-card' }, [
+          el('div', { class: 'result-head' }, [el('div', { class: 'result-label' }, [s.pen + ' mg pen 已選'])]),
+          el('div', { class: 'result-body' }, [el('p', { class: 'lead' }, ['任一欄輸入數字即會即時換算其他三欄。'])])
+        ]));
+        return;
+      }
+      var spec = WEGOVY_PENS[s.pen];
+      var mg = formatNum(Number(s.mg));
+      var ml = formatNum(Number(s.ml));
+      var clicks = formatNum(Number(s.clicks));
+      var explain = explainBlock([
+        [{ strong: s.pen + ' mg FlexTouch' }, ' · 濃度 ', { strong: formatNum(spec.totalMg / spec.totalMl) + ' mg/ml' }],
+        ['抽取體積 ', { strong: ml + ' ml' }, ' = 劑量 ', { strong: mg + ' mg' }],
+        ['= 約 ', { strong: clicks + ' 喀噠' }]
+      ]);
+      setResult(resultCard({
+        label: '目標劑量', value: mg, unit: 'mg',
+        verdict: { label: '抽 ' + ml + ' ml / 約 ' + clicks + ' 喀噠', kind: 'info', shape: '●' },
+        body: [explain, summary('從 ' + s.pen + ' mg Wegovy FlexTouch 抽取 ' + ml + ' ml,約相當於 ' + mg + ' mg(' + clicks + ' 喀噠)。')]
+      }));
+    }
+
+    var inputsHost;
+
+    function rerender() {
+      var card = el('div', { class: 'calc-card' }, [
+        el('h3', null, ['週纖達針劑換算 (Wegovy)']),
+        el('p', { class: 'lead' }, ['Semaglutide FlexTouch 諾特筆 off-label 分抽換算。選 pen 規格後,任一欄輸入即時連動其他三欄。']),
+        section('Pen 規格', [makePenPicker()]),
+        section('劑量換算(3 欄連動)', [
+          makeField('mg',     '目標劑量 (mg)', null,                    'mg'),
+          makeField('ml',     '抽取體積 (ml)', null,                    'ml'),
+          makeField('clicks', '約略喀噠數',    '1 喀噠約 0.01 ml',      '喀噠')
+        ]),
+        refLine(),
+        safetyLine()
+      ]);
+      if (inputsHost && inputsHost.parentNode) {
+        inputsHost.parentNode.replaceChild(card, inputsHost);
+      } else {
+        mountCalcLayout(card);
+      }
+      inputsHost = card;
+      updateResult();
+    }
+
+    rerender();
+  }
+
   // Expose pure helpers for tests + browser debugging (must run before init()
   // so jsdom-based tests can access them even if init throws on missing fetch).
   if (typeof window !== 'undefined') {
     window.__mounjaroCalc = mounjaroCalc;
+    window.__wegovyCalc = wegovyCalc;
     window.__formatNum = formatNum;
     window.__lipidCoverage = lipidCoverage;
     window.__bmiClassify = bmiClassify;
@@ -1465,6 +1634,7 @@
       goNext: goNext,
       goPrev: goPrev,
       mounjaroCalc: mounjaroCalc,
+      wegovyCalc: wegovyCalc,
       formatNum: formatNum,
       lipidCoverage: lipidCoverage,
       bmiClassify: bmiClassify,

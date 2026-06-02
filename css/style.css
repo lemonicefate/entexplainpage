@@ -265,6 +265,11 @@ img { display: block; max-width: 100%; }
   object-fit: cover;
 }
 img.card-thumb { background: var(--tint-1); }
+img.card-thumb-logo {
+  object-fit: contain;
+  background: #fff;
+  padding: 24px;
+}
 .card-thumb.is-fallback {
   background:
     linear-gradient(45deg, transparent 48%, var(--line-strong) 48% 52%, transparent 52%),

@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "description": "診間手術衛教投影片系統",
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
