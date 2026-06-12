@@ -9,7 +9,6 @@
   var state = {
     categories: [],
     procedures: [],
-    activeFilter: 'all',         // all | pinned | explain | surgery | calc
     activeCategory: 'all',       // all | surgery | ent | weight | functional | supplements
     query: '',
     pins: loadPins(),
@@ -30,7 +29,6 @@
   var slideView = $('slide-view');
   var calcView = $('calc-view');
   var searchInput = $('search-input');
-  var filterChips = $('filter-chips');
   var categoryChips = $('category-chips');
   var resultCount = $('result-count');
   var gridContainer = $('grid-container');
@@ -122,7 +120,6 @@
     if (isPinned(id)) state.pins = state.pins.filter(function (p) { return p !== id; });
     else state.pins = state.pins.concat([id]);
     savePins();
-    renderFilterChips();
     renderGrid();
   }
 
@@ -151,7 +148,6 @@
       .then(function (data) {
         state.categories = data.categories || [];
         state.procedures = (data.procedures || []).map(normalizeProcedure);
-        renderFilterChips();
         renderCategoryChips();
         renderGrid();
         handleRoute();
@@ -189,25 +185,6 @@
     { key: 'calc',    label: '計算機' }
   ];
 
-  function renderFilterChips() {
-    filterChips.textContent = '';
-    FILTERS.forEach(function (f) {
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'chip';
-      btn.setAttribute('role', 'tab');
-      btn.setAttribute('aria-selected', state.activeFilter === f.key ? 'true' : 'false');
-      btn.dataset.filter = f.key;
-      btn.textContent = f.key === 'pinned' ? '★ 釘選 (' + state.pins.length + ')' : f.label;
-      btn.addEventListener('click', function () {
-        state.activeFilter = f.key;
-        renderFilterChips();
-        renderGrid();
-      });
-      filterChips.appendChild(btn);
-    });
-  }
-
   function renderCategoryChips() {
     if (!categoryChips) return;
     categoryChips.textContent = '';
@@ -235,8 +212,6 @@
       btn.textContent = cat.title;
       btn.addEventListener('click', function () {
         state.activeCategory = cat.id;
-        if (state.activeFilter === 'calc') state.activeFilter = 'all';
-        renderFilterChips();
         renderCategoryChips();
         renderGrid();
       });
@@ -252,13 +227,8 @@
 
   function getFilteredItems() {
     var items = getAllItems();
-    var f = state.activeFilter;
-    if (f === 'pinned')      items = items.filter(function (i) { return isPinned(i.id); });
-    else if (f === 'explain') items = items.filter(function (i) { return i.type === 'explain'; });
-    else if (f === 'surgery') items = items.filter(function (i) { return i.type === 'surgery'; });
-    else if (f === 'calc')    items = items.filter(function (i) { return i.kind === 'calc'; });
 
-    if (f !== 'calc' && state.activeCategory && state.activeCategory !== 'all') {
+    if (state.activeCategory && state.activeCategory !== 'all') {
       items = items.filter(function (i) { return i.category === state.activeCategory; });
     }
 
@@ -285,7 +255,7 @@
     gridError.hidden = true;
 
     var items = getFilteredItems();
-    resultCount.textContent = items.length + ' 個項目';
+    if (resultCount) resultCount.textContent = items.length + ' 個項目';
 
     if (!items.length) {
       gridContainer.textContent = '';
