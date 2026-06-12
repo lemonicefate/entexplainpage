@@ -10,6 +10,7 @@
     categories: [],
     procedures: [],
     activeFilter: 'all',         // all | pinned | explain | surgery | calc
+    activeCategory: 'all',       // all | surgery | ent | weight | functional | supplements
     query: '',
     pins: loadPins(),
     current: null,               // current procedure data
@@ -30,6 +31,7 @@
   var calcView = $('calc-view');
   var searchInput = $('search-input');
   var filterChips = $('filter-chips');
+  var categoryChips = $('category-chips');
   var resultCount = $('result-count');
   var gridContainer = $('grid-container');
   var gridEmpty = $('grid-empty');
@@ -150,6 +152,7 @@
         state.categories = data.categories || [];
         state.procedures = (data.procedures || []).map(normalizeProcedure);
         renderFilterChips();
+        renderCategoryChips();
         renderGrid();
         handleRoute();
       })
@@ -205,6 +208,42 @@
     });
   }
 
+  function renderCategoryChips() {
+    if (!categoryChips) return;
+    categoryChips.textContent = '';
+
+    var allBtn = document.createElement('button');
+    allBtn.type = 'button';
+    allBtn.className = 'chip';
+    allBtn.setAttribute('role', 'tab');
+    allBtn.setAttribute('aria-selected', state.activeCategory === 'all' ? 'true' : 'false');
+    allBtn.textContent = '全部';
+    allBtn.addEventListener('click', function () {
+      state.activeCategory = 'all';
+      renderCategoryChips();
+      renderGrid();
+    });
+    categoryChips.appendChild(allBtn);
+
+    (state.categories || []).forEach(function (cat) {
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'chip';
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', state.activeCategory === cat.id ? 'true' : 'false');
+      btn.dataset.category = cat.id;
+      btn.textContent = cat.title;
+      btn.addEventListener('click', function () {
+        state.activeCategory = cat.id;
+        if (state.activeFilter === 'calc') state.activeFilter = 'all';
+        renderFilterChips();
+        renderCategoryChips();
+        renderGrid();
+      });
+      categoryChips.appendChild(btn);
+    });
+  }
+
   function getAllItems() {
     var items = state.procedures.slice();
     CALCULATORS.forEach(function (c) { items.push(c); });
@@ -218,6 +257,10 @@
     else if (f === 'explain') items = items.filter(function (i) { return i.type === 'explain'; });
     else if (f === 'surgery') items = items.filter(function (i) { return i.type === 'surgery'; });
     else if (f === 'calc')    items = items.filter(function (i) { return i.kind === 'calc'; });
+
+    if (f !== 'calc' && state.activeCategory && state.activeCategory !== 'all') {
+      items = items.filter(function (i) { return i.category === state.activeCategory; });
+    }
 
     var q = state.query.trim().toLowerCase();
     if (q) {

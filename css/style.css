@@ -194,7 +194,19 @@ img { display: block; max-width: 100%; }
   display: flex; justify-content: space-between; align-items: center;
   margin-bottom: 20px; gap: 16px; flex-wrap: wrap;
 }
+.toolbar-categories {
+  align-items: flex-start;
+  margin-top: -6px;
+  margin-bottom: 18px;
+}
+.toolbar-label {
+  font-size: 12px;
+  color: var(--ink-3);
+  padding-top: 8px;
+  white-space: nowrap;
+}
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chips-category { flex: 1; }
 .chip {
   font-size: 13px;
   font-weight: 500;
