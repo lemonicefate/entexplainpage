@@ -82,6 +82,7 @@
   ];
 
   var TYPE_LABELS = { explain: '解釋病情', surgery: '手術流程', calc: '計算機' };
+  var CATEGORY_LABELS = {};
 
   // SVG namespace and helpers (avoid innerHTML so we don't trip XSS heuristics)
   var SVG_NS = 'http://www.w3.org/2000/svg';
@@ -147,6 +148,8 @@
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function (data) {
         state.categories = data.categories || [];
+        CATEGORY_LABELS = {};
+        state.categories.forEach(function (cat) { CATEGORY_LABELS[cat.id] = cat.title; });
         state.procedures = (data.procedures || []).map(normalizeProcedure);
         renderCategoryChips();
         renderGrid();
@@ -315,9 +318,10 @@
     foot.className = 'card-foot';
 
     var tag = document.createElement('span');
-    var validType = ['explain', 'surgery', 'calc'].indexOf(item.type) !== -1 ? item.type : 'surgery';
-    tag.className = 'tag tag-' + validType;
-    tag.textContent = TYPE_LABELS[validType] || '項目';
+    var tagKey = item.type === 'calc' ? 'calc' : (item.category || item.type || 'explain');
+    if (tagKey !== 'calc' && !CATEGORY_LABELS[tagKey] && tagKey !== 'surgery' && tagKey !== 'explain') tagKey = 'explain';
+    tag.className = 'tag tag-' + tagKey;
+    tag.textContent = tagKey === 'calc' ? TYPE_LABELS.calc : (CATEGORY_LABELS[tagKey] || TYPE_LABELS[item.type] || '項目');
     foot.appendChild(tag);
 
     var pinBtn = document.createElement('button');

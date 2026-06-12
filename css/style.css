@@ -318,6 +318,7 @@ img.card-thumb-logo {
 .tag-explain { background: var(--tag-explain-bg); color: var(--tag-explain-fg); }
 .tag-surgery { background: var(--tag-surgery-bg); color: var(--tag-surgery-fg); }
 .tag-calc    { background: var(--tag-calc-bg);    color: var(--tag-calc-fg); }
+.tag-supplements { background: #f7efe1; color: #9b6123; }
 
 .pin-btn {
   width: 28px; height: 28px;
