@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.3.3] - 2026-05-08
+
+### Fixed
+- **preload cancel 真正取消圖片載入** — `state.preloadAbort`（AbortController）是 dead code：`new Image()` 不接受 AbortSignal，`cancelPreload()` 呼叫後什麼都不做，快速切換手術時舊的圖片請求會繼續搶頻寬。改用 `state.preloadImages: []` 追蹤 Image 物件，`cancelPreload()` 逐一設 `img.src = ''` 通知瀏覽器中止載入，再清空陣列。
+
 ### Added
 - **Wegovy FlexTouch off-label 換算計算機** — 新增 `#/calc/wegovy`。以週纖達諾特筆 FlexTouch 為主,支援 0.25/0.5/1/1.7/2.4 mg pen 的 mg / ml / 約略喀噠三欄連動換算；低劑量 pen 採 1.5 ml,1 mg 以上採 3 ml,計算以每支總 mg / 總 ml 為準,避免仿單濃度四捨五入誤差。常駐 off-label 安全提示,說明分抽、喀噠換算與殘液使用不是官方給藥方式。新增 `wegovyCalc()` 並以 `window.__wegovyCalc` 暴露,加 golden-file 測試鎖定濃度表與 anchor 行為。首頁計算機卡片新增 Mounjaro / Wegovy logo 封面,同步 bump SW cache v11 → v13
 - **CI/CD GitHub Actions(`.github/workflows/ci.yml`)** — 之前 commit 前的 vitest / playwright 都靠人工跑,容易漏。新增 push + PR 自動跑兩段 job:`unit`(`npm test`)與 `e2e`(`npx playwright install --with-deps chromium` + `npm run test:e2e`),失敗時上傳 `playwright-report/` 為 artifact。固定 Node 22(Vite 7 要求 ≥ 20.19 或 ≥ 22.12),同分支多次 push 用 `concurrency.cancel-in-progress` 砍前一輪

@@ -85,13 +85,6 @@ tests/unit/
 **Context:** 目前 13 篇 explain（snore、nasal-obstruction、vocal-cord、influenza、quit-smoke、oral-ulcer、menieres、tinnitus、ssnhl、otitis-media-effusion、vitd、atopic-dermatitis、testosterone）；**尚無 surgery 類型實體資料**。
 **Depends on:** 無。
 
-## TODO: preloadAbort AbortController 驗證收尾
-**Priority:** Low
-**What:** 確認 `state.preloadAbort`（`js/app.js:19 / 761 / 765`）的 AbortController 真的有正確取消前一個手術的圖片預載,不是部分接上的死碼。
-**Why:** 醫師點錯手術立即返回再點另一個時,前一個的預載請求應該被取消,不跟新的搶頻寬。曾排程遠程 agent 於 2026-05-08 處理,程式碼現在看起來已接上 `new AbortController()` + `.abort()`,但需實測驗證再關掉。
-**Context:** 原本是 `preloadAbort` dead code。驗證方式：快速切換手術,確認 network 面板舊請求被 cancel。
-**Depends on:** 無。
-
 ## TODO: /calc 標籤列策展機制（等計算機多再做）
 **Priority:** Low
 **What:** 當內建計算機超過 ~10 支、`.calc-tabs` 換行後變成 2–3 列佔用過多頂部空間時，為標籤列加策展機制（釘選 / 常用集合），bar 只顯示少數，長尾交給首頁 grid。
@@ -105,3 +98,17 @@ tests/unit/
 **Why:** Reviewer 在 v0.2.1.0 PR 提出此擔憂。當下每支手術 4–5 steps，拖整條 scrubber 最多 5 次 input event，不是效能問題；現在加 throttle/debounce 只會引入拖動延遲反而傷 UX。
 **Context:** 正確手段是 `rAF` throttle（保持 60fps 上限），不是 debounce（會 lag）。觸發條件：`max(proc.steps.length) > 20`。
 **Depends on:** 真實頁數增長到 20+。
+
+## Completed
+
+### AbortController 用於圖片預載
+**Priority:** Medium
+**Completed:** v0.2.3.3 (2026-05-08)
+**What:** 醫師點錯手術立即返回再點另一個時，前一個的預載請求應該被取消，不跟新的搶頻寬。
+**Fix:** 移除 dead code `state.preloadAbort` (AbortController，但 `new Image()` 無法訂閱 signal)；改用 `state.preloadImages: []` 追蹤 Image 物件，`cancelPreload()` 逐一設 `img.src = ''` 通知瀏覽器停止載入，再清空陣列。
+
+### Keyboard navigation + ARIA 無障礙支援
+**Priority:** Medium
+**Completed:** v0.2.0.0 (2026-04-24)
+**What:** 鍵盤左右箭頭翻頁、`aria-live`、`role="region"`、返回按鈕 aria-label。
+**Note:** v0.2.1.0 又新增 reader mode 的 `aria-live` 在 scrubber label 與 `aria-hidden` 於 tap zones，進一步完善無障礙。
