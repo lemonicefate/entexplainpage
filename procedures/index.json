@@ -111,6 +111,15 @@
       "type": "explain",
       "category": "functional",
       "thumbnail": "images/testosterone/thumb.png"
+    },
+    {
+      "id": "chlorella",
+      "title": "小球藻",
+      "type": "explain",
+      "category": "functional",
+      "subtitle": "營養解析 · 5 步驟",
+      "slides": 5,
+      "thumbnail": "images/chlorella/thumb.webp"
     }
   ]
 }
