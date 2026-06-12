@@ -190,7 +190,7 @@ gh pr merge --squash --delete-branch
 |---|---|---|
 | `id` | ✅ | 必須與 JSON 檔名、`images/{id}/` 資料夾名一致 |
 | `title` | ✅ | 卡片標題 |
-| `category` | ✅ | 對應 `categories` 其中之一：`surgery` / `ent` / `weight` / `functional` |
+| `category` | ✅ | 對應 `categories` 其中之一：`surgery` / `ent` / `weight` / `functional` / `supplements` |
 | `type` | ✅ | `explain`（解釋病情）或 `surgery`（手術流程）——決定首頁篩選籤 |
 | `thumbnail` | ✅ | 首頁卡片縮圖路徑 |
 | `subtitle` | 選填 | 卡片副標；省略則不顯示 |

@@ -15,6 +15,10 @@
     {
       "id": "functional",
       "title": "功能醫學"
+    },
+    {
+      "id": "supplements",
+      "title": "保健品/補充品"
     }
   ],
   "procedures": [
@@ -116,7 +120,7 @@
       "id": "chlorella",
       "title": "小球藻",
       "type": "explain",
-      "category": "functional",
+      "category": "supplements",
       "subtitle": "營養解析 · 5 步驟",
       "slides": 5,
       "thumbnail": "images/chlorella/thumb.webp"
