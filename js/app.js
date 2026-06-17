@@ -9,7 +9,7 @@
   var state = {
     categories: [],
     procedures: [],
-    activeCategory: 'all',       // all | surgery | ent | weight | functional | supplements
+    activeCategory: 'all',       // all | surgery | ent | weight | functional | supplements | internal-medicine
     query: '',
     pins: loadPins(),
     current: null,               // current procedure data

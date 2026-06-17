@@ -1,4 +1,4 @@
-var CACHE_NAME = 'entexplain-v16';
+var CACHE_NAME = 'entexplain-v17';
 
 var PRECACHE_URLS = [
   './',
@@ -7,6 +7,9 @@ var PRECACHE_URLS = [
   './js/app.js',
   './manifest.json',
   './procedures/index.json',
+  './procedures/h-pylori-sequential.json',
+  './images/h-pylori-sequential/thumb.png',
+  './images/h-pylori-sequential/step1.png',
   './images/mounjaro/mounjaro-logo.svg',
   './images/wegovy/wegovy-logo-nav.png',
   './images/chlorella/thumb.webp',

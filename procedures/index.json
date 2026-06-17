@@ -19,9 +19,22 @@
     {
       "id": "supplements",
       "title": "保健品/補充品"
+    },
+    {
+      "id": "internal-medicine",
+      "title": "內科"
     }
   ],
   "procedures": [
+    {
+      "id": "h-pylori-sequential",
+      "title": "幽門螺旋桿菌治療",
+      "type": "explain",
+      "category": "internal-medicine",
+      "subtitle": "系列性療法 · 14 天療程",
+      "slides": 1,
+      "thumbnail": "images/h-pylori-sequential/thumb.png"
+    },
     {
       "id": "snore",
       "title": "打呼",

@@ -45,8 +45,16 @@
   /* --- Tag pills --- */
   --tag-explain-bg:  #e7f3f1;
   --tag-explain-fg:  #0e7c7b;
+  --tag-ent-bg:      #e7f3f1;
+  --tag-ent-fg:      #0e7c7b;
   --tag-surgery-bg:  #fbe7d9;
   --tag-surgery-fg:  #a65a2e;
+  --tag-weight-bg:   #e7f5ef;
+  --tag-weight-fg:   #1a7a4a;
+  --tag-functional-bg: #e8f0fb;
+  --tag-functional-fg: #315f9b;
+  --tag-internal-bg: #fdebed;
+  --tag-internal-fg: #b64b62;
   --tag-calc-bg:     #efe9fb;
   --tag-calc-fg:     #6b4ac7;
 
@@ -316,7 +324,11 @@ img.card-thumb-logo {
   white-space: nowrap;
 }
 .tag-explain { background: var(--tag-explain-bg); color: var(--tag-explain-fg); }
+.tag-ent     { background: var(--tag-ent-bg);     color: var(--tag-ent-fg); }
 .tag-surgery { background: var(--tag-surgery-bg); color: var(--tag-surgery-fg); }
+.tag-weight  { background: var(--tag-weight-bg);  color: var(--tag-weight-fg); }
+.tag-functional { background: var(--tag-functional-bg); color: var(--tag-functional-fg); }
+.tag-internal-medicine { background: var(--tag-internal-bg); color: var(--tag-internal-fg); }
 .tag-calc    { background: var(--tag-calc-bg);    color: var(--tag-calc-fg); }
 .tag-supplements { background: #f7efe1; color: #9b6123; }
 
