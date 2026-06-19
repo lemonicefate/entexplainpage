@@ -8,6 +8,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  pages: write
 
 concurrency:
   group: pages-preview-${{ github.event_name }}-${{ github.ref }}
@@ -75,6 +76,11 @@ jobs:
             git commit -m "docs: publish preview for PR #${PR_NUMBER}"
             git push origin "${PAGES_BRANCH}"
           fi
+
+          curl -fsS -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${REPOSITORY}/pages/builds" >/dev/null || true
 
           printf '%s\n' "$preview_url" > /tmp/preview-url.txt
 
