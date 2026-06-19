@@ -12,7 +12,7 @@ function createDOM() {
   });
 }
 
-function createRunningAppDOM(hash) {
+function createRunningAppDOM(hash, indexData) {
   const appSrc = fs.readFileSync(path.resolve(__dirname, '../../js/app.js'), 'utf-8');
   const dom = new JSDOM(htmlContent.replace('</body>', `<script>${appSrc}</script></body>`), {
     url: 'http://localhost/' + (hash || ''),
@@ -22,7 +22,7 @@ function createRunningAppDOM(hash) {
       window.scrollTo = () => {};
       window.fetch = () => Promise.resolve({
         ok: true,
-        json: () => Promise.resolve({ categories: [], procedures: [] })
+        json: () => Promise.resolve(indexData || { categories: [], procedures: [] })
       });
       Object.defineProperty(window.navigator, 'serviceWorker', {
         value: { register: () => Promise.resolve({ addEventListener: () => {} }) },
@@ -75,6 +75,70 @@ describe('Home view', () => {
     const chips = document.getElementById('filter-chips');
     expect(chips).not.toBeNull();
     expect(chips.getAttribute('role')).toBe('tablist');
+  });
+
+  it('renders category chips including 計算機', async () => {
+    const indexData = {
+      categories: [
+        { id: 'surgery', title: '手術' },
+        { id: 'ent', title: '耳鼻喉' },
+        { id: 'weight', title: '減重' },
+        { id: 'functional', title: '功能醫學' },
+        { id: 'supplements', title: '保健品/補充品' },
+        { id: 'internal-medicine', title: '內科' },
+        { id: 'calc', title: '計算機' }
+      ],
+      procedures: []
+    };
+    const runningDom = await createRunningAppDOM('', indexData);
+    const doc = runningDom.window.document;
+    const calcChip = doc.querySelector('#category-chips .chip[data-category="calc"]');
+    expect(calcChip).not.toBeNull();
+    expect(calcChip.textContent).toBe('計算機');
+  });
+
+  it('filters calc cards through the 計算機 category', async () => {
+    const indexData = {
+      categories: [
+        { id: 'surgery', title: '手術' },
+        { id: 'ent', title: '耳鼻喉' },
+        { id: 'weight', title: '減重' },
+        { id: 'functional', title: '功能醫學' },
+        { id: 'supplements', title: '保健品/補充品' },
+        { id: 'internal-medicine', title: '內科' },
+        { id: 'calc', title: '計算機' }
+      ],
+      procedures: [
+        {
+          id: 'calc-linked-guide',
+          title: '可雙分類圖卡',
+          type: 'explain',
+          category: 'ent',
+          categories: ['ent', 'calc'],
+          thumbnail: 'images/calc-linked-guide/thumb.png'
+        },
+        {
+          id: 'ent-only-guide',
+          title: '純耳鼻喉圖卡',
+          type: 'explain',
+          category: 'ent',
+          categories: ['ent'],
+          thumbnail: 'images/ent-only-guide/thumb.png'
+        }
+      ]
+    };
+    const runningDom = await createRunningAppDOM('', indexData);
+    const doc = runningDom.window.document;
+
+    expect(doc.querySelector('a[href="#/calc/bmi"]')).not.toBeNull();
+    expect(doc.querySelector('a[href="#/calc/wegovy"]')).not.toBeNull();
+
+    doc.querySelector('#category-chips .chip[data-category="calc"]').click();
+
+    expect(doc.querySelector('a[aria-label="可雙分類圖卡"]')).not.toBeNull();
+    expect(doc.querySelector('a[aria-label="純耳鼻喉圖卡"]')).toBeNull();
+    expect(doc.getElementById('result-count').textContent).toBe('6 個項目');
+    expect(doc.querySelector('#category-chips .chip[data-category="calc"][aria-selected="true"]')).not.toBeNull();
   });
 
   it('renders calculator cards with brand cover images', async () => {
@@ -344,21 +408,25 @@ describe('Procedure JSON schema', () => {
       expect(proc.id).toBeDefined();
       expect(proc.title).toBeDefined();
       expect(proc.thumbnail).toBeDefined();
-      expect(proc.category).toBeDefined();
+      expect(proc.category || proc.categories).toBeDefined();
       expect(proc.type).toBeDefined();        // new field
     });
   });
 
-  it('has the four clinic categories', () => {
+  it('has the clinic and calculator categories', () => {
     const index = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../procedures/index.json'), 'utf-8'));
     const ids = index.categories.map(c => c.id);
-    ['surgery', 'ent', 'weight', 'functional'].forEach(id => expect(ids).toContain(id));
+    ['surgery', 'ent', 'weight', 'functional', 'supplements', 'internal-medicine', 'calc'].forEach(id => expect(ids).toContain(id));
   });
 
-  it('each procedure references a valid category', () => {
+  it('each procedure references at least one valid category', () => {
     const index = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../procedures/index.json'), 'utf-8'));
     const ids = index.categories.map(c => c.id);
-    index.procedures.forEach(proc => expect(ids).toContain(proc.category));
+    index.procedures.forEach(proc => {
+      const cats = Array.isArray(proc.categories) && proc.categories.length ? proc.categories : [proc.category];
+      expect(cats.length).toBeGreaterThan(0);
+      cats.forEach(catId => expect(ids).toContain(catId));
+    });
   });
 
   it('each procedure JSON has valid steps', () => {

@@ -97,7 +97,12 @@ npm run test:e2e
 
 ## 部署
 
-部署方式：**GitHub Pages**（`main` 分支 push 後自動發佈）。
+部署方式：**GitHub Pages**。
+
+- 正式站：`main` 分支 push 後由 `Pages Production` workflow 發佈到 `gh-pages` 根目錄
+- PR 預覽：`pull_request` 由 `Pages Preview` workflow 發佈到 `gh-pages/previews/pr-<number>/`
+
+> 使用正式站與 PR preview 前，請先到 GitHub Repository Settings → Pages，將 Source 設成 `Deploy from a branch`，Branch 選 `gh-pages`，Folder 選 `/ (root)`。
 
 ```bash
 # 1. 改完檔案 → 本地測試
@@ -122,6 +127,12 @@ gh pr merge --squash --delete-branch
 ```
 
 部署完成後到 iPad Safari 加到主畫面測一輪（Reader 模式、工具、PWA 離線、Add to Home Screen 網址）。
+
+PR preview URL 形式：
+
+```text
+https://lemonicefate.github.io/entexplainpage/previews/pr-<PR號>/
+```
 
 ---
 
@@ -190,14 +201,15 @@ gh pr merge --squash --delete-branch
 |---|---|---|
 | `id` | ✅ | 必須與 JSON 檔名、`images/{id}/` 資料夾名一致 |
 | `title` | ✅ | 卡片標題 |
-| `category` | ✅ | 對應 `categories` 其中之一：`surgery` / `ent` / `weight` / `functional` / `supplements` |
+| `category` | ✅ | 對應 `categories` 其中之一：`surgery` / `ent` / `weight` / `functional` / `supplements` / `internal-medicine` / `calc` |
+| `categories` | 選填 | 多分類陣列；若提供，首頁會以陣列內容篩選，`category` 仍保留為第一個分類做相容與顯示 |
 | `type` | ✅ | `explain`（解釋病情）或 `surgery`（手術流程）——決定首頁篩選籤 |
 | `thumbnail` | ✅ | 首頁卡片縮圖路徑 |
 | `subtitle` | 選填 | 卡片副標；省略則不顯示 |
 | `region` | 選填 | 身體區域標記；省略時卡片改顯示 `type` |
 | `slides` | 選填 | 步驟數；省略時卡片顯示 `slides`，提供時須等於步驟 JSON 的 `steps.length` |
 
-新增分類就編 `categories` 陣列。
+新增分類就編 `categories` 陣列。若一張圖卡需要同時屬於多個分類，請把 `categories` 寫成陣列，並保留 `category` 為主分類。
 > 資料慣例：snore 是早期完整範例（含 subtitle / region / slides），新加入的條目目前只填必填欄位。
 
 **4. 或使用網頁版編輯器**

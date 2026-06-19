@@ -321,7 +321,8 @@ LocalStorage：
 {
   "categories": [
     { "id": "surgery", "title": "手術" },
-    { "id": "ent", "title": "耳鼻喉" }
+    { "id": "ent", "title": "耳鼻喉" },
+    { "id": "calc", "title": "計算機" }
   ],
   "procedures": [
     {
@@ -329,6 +330,7 @@ LocalStorage：
       "title": "闌尾切除術",
       "subtitle": "腹腔鏡微創 · 5 步驟",
       "category": "surgery",
+      "categories": ["surgery"],
       "type": "surgery",
       "region": "腹",
       "slides": 5,
@@ -343,11 +345,14 @@ LocalStorage：
 | `id` | ✓ | 唯一識別 |
 | `title` | ✓ | 卡片主標 |
 | `subtitle` | — | 卡片副文字（推薦填寫） |
-| `category` | ✓ | 對應 `categories[].id` |
+| `category` | ✓ | 對應 `categories[].id`，並作為主分類相容欄位 |
+| `categories` | — | 多分類陣列；若存在，首頁以陣列篩選，`category` 保留首個值 |
 | `type` | ✓ | `explain` / `surgery`（決定 tag 顏色與篩選） |
 | `region` | — | 解剖部位（耳/鼻/喉/腹…） |
 | `slides` | — | 步驟數，給卡片佔位顯示 |
 | `thumbnail` | ✓ | 16:9 縮圖路徑 |
+
+> 備註：首頁篩選器與圖卡 tag 會同時支援單一 `category` 與多分類 `categories[]`。`calc` 為首頁特殊分類，專門對應內建計算機卡片。
 
 ### 個別 `procedures/<id>.json`
 
