@@ -1,12 +1,9 @@
 name: Pages Preview
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, closed]
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -21,8 +18,8 @@ env:
 
 jobs:
   deploy:
-    name: Deploy Pages / Preview
-    if: github.event_name == 'push' || github.event.action != 'closed'
+    name: Deploy Preview
+    if: github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
@@ -30,7 +27,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Publish to gh-pages branch
+      - name: Publish preview to gh-pages branch
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -55,30 +52,17 @@ jobs:
             git commit -m "chore: init gh-pages" >/dev/null
           fi
 
-          if [ "$EVENT_NAME" = "push" ]; then
-            rsync -a --delete \
-              --exclude '.git' \
-              --exclude '.github' \
-              --exclude 'node_modules' \
-              --exclude 'playwright-report' \
-              --exclude 'test-results' \
-              --exclude 'previews' \
-              --exclude '.DS_Store' \
-              ./ "$workdir"/
-            preview_url="https://${GITHUB_REPOSITORY_OWNER}.github.io/${REPOSITORY#*/}/"
-          else
-            preview_path="previews/pr-${PR_NUMBER}"
-            mkdir -p "$workdir/$preview_path"
-            rsync -a --delete \
-              --exclude '.git' \
-              --exclude '.github' \
-              --exclude 'node_modules' \
-              --exclude 'playwright-report' \
-              --exclude 'test-results' \
-              --exclude '.DS_Store' \
-              ./ "$workdir/$preview_path"/
-            preview_url="https://${GITHUB_REPOSITORY_OWNER}.github.io/${REPOSITORY#*/}/${preview_path}/"
-          fi
+          preview_path="previews/pr-${PR_NUMBER}"
+          mkdir -p "$workdir/$preview_path"
+          rsync -a --delete \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'node_modules' \
+            --exclude 'playwright-report' \
+            --exclude 'test-results' \
+            --exclude '.DS_Store' \
+            ./ "$workdir/$preview_path"/
+          preview_url="https://${GITHUB_REPOSITORY_OWNER}.github.io/${REPOSITORY#*/}/${preview_path}/"
 
           cd "$workdir"
           git config user.name "github-actions[bot]"
@@ -86,17 +70,11 @@ jobs:
           touch .nojekyll
           git add -A
           if ! git diff --cached --quiet; then
-            if [ "$EVENT_NAME" = "push" ]; then
-              git commit -m "docs: publish site"
-            else
-              git commit -m "docs: publish preview for PR #${PR_NUMBER}"
-            fi
+            git commit -m "docs: publish preview for PR #${PR_NUMBER}"
             git push origin "${PAGES_BRANCH}"
           fi
 
-          if [ "$EVENT_NAME" = "pull_request" ]; then
-            printf '%s\n' "$preview_url" > /tmp/preview-url.txt
-          fi
+          printf '%s\n' "$preview_url" > /tmp/preview-url.txt
 
       - name: Comment preview URL
         if: github.event_name == 'pull_request' && github.event.action != 'closed'

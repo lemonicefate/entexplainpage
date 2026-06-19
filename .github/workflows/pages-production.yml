@@ -1,0 +1,69 @@
+name: Pages Production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: pages-production-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PAGES_BRANCH: gh-pages
+
+jobs:
+  deploy:
+    name: Deploy Production Site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Publish site to gh-pages root
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          remote_url="https://x-access-token:${GH_TOKEN}@github.com/${REPOSITORY}.git"
+          workdir="/tmp/gh-pages-prod"
+
+          rm -rf "$workdir"
+          if git ls-remote --heads "$remote_url" "${PAGES_BRANCH}" | grep -q "refs/heads/${PAGES_BRANCH}"; then
+            git clone --depth 1 --branch "${PAGES_BRANCH}" "$remote_url" "$workdir"
+          else
+            git init "$workdir"
+            cd "$workdir"
+            git checkout -b "${PAGES_BRANCH}"
+            git remote add origin "$remote_url"
+            touch .nojekyll
+            git add .nojekyll
+            git commit -m "chore: init gh-pages" >/dev/null
+          fi
+
+          rsync -a --delete \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'node_modules' \
+            --exclude 'playwright-report' \
+            --exclude 'test-results' \
+            --exclude 'previews' \
+            --exclude '.DS_Store' \
+            ./ "$workdir"/
+
+          cd "$workdir"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          touch .nojekyll
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "docs: publish production site"
+            git push origin "${PAGES_BRANCH}"
+          fi

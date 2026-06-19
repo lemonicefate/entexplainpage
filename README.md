@@ -99,10 +99,10 @@ npm run test:e2e
 
 部署方式：**GitHub Pages**。
 
-- 正式站：`main` 分支 push 後自動發佈
-- PR 預覽：`pull_request` 會發佈到 `gh-pages` 分支的 `previews/pr-<number>/`
+- 正式站：`main` 分支 push 後由 `Pages Production` workflow 發佈到 `gh-pages` 根目錄
+- PR 預覽：`pull_request` 由 `Pages Preview` workflow 發佈到 `gh-pages/previews/pr-<number>/`
 
-> 使用 PR preview 前，請先到 GitHub Repository Settings → Pages，將 Source 設成 `Deploy from a branch`，Branch 選 `gh-pages`，Folder 選 `/ (root)`。
+> 使用正式站與 PR preview 前，請先到 GitHub Repository Settings → Pages，將 Source 設成 `Deploy from a branch`，Branch 選 `gh-pages`，Folder 選 `/ (root)`。
 
 ```bash
 # 1. 改完檔案 → 本地測試
