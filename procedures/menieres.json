@@ -1,0 +1,26 @@
+{
+  "id": "menieres",
+  "title": "梅尼爾氏症",
+  "type": "explain",
+  "category": "ent",
+  "steps": [
+    {
+      "image": "images/menieres/step1.png",
+      "title": "最常見的周邊型眩暈",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/menieres/step2.png",
+      "title": "梅尼爾氏症生活指南",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/menieres/step3.png",
+      "title": "梅尼爾氏症保養",
+      "description": "",
+      "alt": ""
+    }
+  ]
+}

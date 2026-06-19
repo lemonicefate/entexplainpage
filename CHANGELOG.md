@@ -1,0 +1,128 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [Unreleased]
+
+## [0.2.3.3] - 2026-05-08
+
+### Fixed
+- **preload cancel 真正取消圖片載入** — `state.preloadAbort`（AbortController）是 dead code：`new Image()` 不接受 AbortSignal，`cancelPreload()` 呼叫後什麼都不做，快速切換手術時舊的圖片請求會繼續搶頻寬。改用 `state.preloadImages: []` 追蹤 Image 物件，`cancelPreload()` 逐一設 `img.src = ''` 通知瀏覽器中止載入，再清空陣列。
+
+### Added
+- **Wegovy FlexTouch off-label 換算計算機** — 新增 `#/calc/wegovy`。以週纖達諾特筆 FlexTouch 為主,支援 0.25/0.5/1/1.7/2.4 mg pen 的 mg / ml / 約略喀噠三欄連動換算；低劑量 pen 採 1.5 ml,1 mg 以上採 3 ml,計算以每支總 mg / 總 ml 為準,避免仿單濃度四捨五入誤差。常駐 off-label 安全提示,說明分抽、喀噠換算與殘液使用不是官方給藥方式。新增 `wegovyCalc()` 並以 `window.__wegovyCalc` 暴露,加 golden-file 測試鎖定濃度表與 anchor 行為。首頁計算機卡片新增 Mounjaro / Wegovy logo 封面,同步 bump SW cache v11 → v13
+- **CI/CD GitHub Actions(`.github/workflows/ci.yml`)** — 之前 commit 前的 vitest / playwright 都靠人工跑,容易漏。新增 push + PR 自動跑兩段 job:`unit`(`npm test`)與 `e2e`(`npx playwright install --with-deps chromium` + `npm run test:e2e`),失敗時上傳 `playwright-report/` 為 artifact。固定 Node 22(Vite 7 要求 ≥ 20.19 或 ≥ 22.12),同分支多次 push 用 `concurrency.cancel-in-progress` 砍前一輪
+- **BMI 計算機抽純函式 + 國健署 golden-file 測試(26 測試)** — `renderBmi()` 原本把 BMI 分級寫成 inline ternary,沒有可測表面。抽出 `bmiClassify(bmi)`(BMI → grade)與 `bmiAssess(h, w)`(身高體重 → BMI + grade)兩支純函式,grade 多帶 `code`(underweight/normal/overweight/obese-1/obese-2/obese-3)讓測試穩定。新增 `tests/unit/calc/bmi.test.js` 26 個 golden-file 測試鎖死國健署成人 BMI 分級邊界(18.5/24/27/30/35),含 BMI ≥ 27 健保肥胖症藥物治療門檻、BMI ≥ 35 健保減重手術門檻 safety-critical 驗證。`window.__bmiClassify` / `window.__bmiAssess` 暴露供測試與瀏覽器 debug
+
+### Fixed
+- **Mounjaro pen 規格 picker 在桌機被擠成直排** — `.seg` 6 顆 dose 按鈕(2.5/5/7.5/10/12.5/15 mg)被放進 `.field` 預設 grid (`200px 140px auto`) 的 140px 第二欄,`flex-wrap: wrap` 讓每顆按鈕換行變直列。新增 `.field.field-wide { grid-template-columns: auto 1fr }` 變體,`makePenPicker()` 套用後 label 縮到自然寬、seg 取得剩餘空間,6 顆一字橫排;手機 ≤768px 一行容兩顆換行可讀。同步 bump SW cache v7 → v8 強制更新樣式
+
+### Added
+- **Mounjaro 針劑分抽 / 殘劑換算計算機** — 第 4 支內建 calc，`#/calc/mounjaro`。處理 Tirzepatide KwikPen 在診間實務中常見的 off-label 情境:大規格 pen 抽小劑量（分抽）、4 劑用完後底部殘留液抽出再用（殘劑）。Pen 規格 picker(2.5/5/7.5/10/12.5/15 mg)+ 3 欄連動(mg / ml / 旋鈕喀噠),free decimal,以最後編輯欄位作為 pen 切換錨點。每支 pen 顯示總容量、每喀噠 mg、4 劑後殘量參考(≈ 0.3–0.6 ml)。常駐 off-label 安全提示。新 helper `mounjaroCalc()` / `formatNum()` 以 `window.__*` 暴露供測試。9 個 golden-file 測試在 `tests/unit/app.test.js` 的 `Mounjaro calculator math` describe(濃度表、anchor 保留、無效輸入歸零、格式化規則)
+- **admin 表單新增 `type` 欄位** — 之前 admin.html 只能填 category（ent/surgery/weight/functional），但首頁篩選 chip 與 `app.js` 的 `item.type` 過濾需要獨立的 `type` 欄位（explain / surgery）。新增 `<select>`、串到 `enterEditMode` / `submitAdd` / `submitEdit`，後端 `handlePostProcedures` 與 `handlePutProcedure` 驗證並寫入 procedure file 與 index.json。Backfill 既有 4 篇（snore / nasal-obstruction / vocal-cord / influenza）為 `type: "explain"`
+- **內容批次擴充（content）** — 新增 9 篇衛教：quit-smoke / oral-ulcer / menieres / tinnitus / ssnhl / otitis-media-effusion / vitd / atopic-dermatitis / testosterone（皆 `type: "explain"`，分屬 ent / functional 分類）
+
+### Changed
+- **血脂計算機改寫為健保給付查表** — `#/calc/lipid` 原本以一個無實證依據的 `rf*3.2+...` 公式估算「10 年 ASCVD 風險 %」當主結果（`TODOS.md` 已標記為「湊出來、刻意不寫測試」）。現依健保署降血脂藥物給付規定（文件 031170）整個改寫:移除風險百分比與 CKD、年齡/性別欄;改為輸入血脂值 + 病人類別(CVD/糖尿病、5 項危險因子)→ 逐條核對 **Statin** 與 **Fibrate** 兩種藥物的健保給付資格、起始閾值、目標值與非藥物治療要求,以兩張獨立 result-card 呈現。糖尿病改為與 CVD 同級的最高類別(不再誤算為危險因子);新增 Fibrate 給付判定(原本完全沒有);Fibrate 符合且 LDL-C≧100 時提示 Statin 併用的橫紋肌溶解症風險。給付規則邏輯抽成純函式 `lipidCoverage()` 並以 `window.__lipidCoverage` 暴露,新增 `tests/unit/calc/lipid.test.js` 39 個 golden-file 測試鎖死健保規則矩陣。決策記於 `docs/adr/0001-lipid-calc-nhi-lookup.md`,領域語彙記於 `CONTEXT.md`
+- **`.gitattributes` 強制 LF 行尾** — Repo 之前未設 `core.autocrlf` 也沒有 `.gitattributes`，WSL ↔ Windows 編輯器會 silently rewrite CRLF / LF，污染 diff。新增 `* text=auto eol=lf`，圖片 / 字型等二進位明確標 `binary`
+- **血脂計算機檢驗值欄位改預設空白** — `#/calc/lipid` 四個檢驗值欄位（LDL-C / HDL-C / TG / TC）原本預填示範數值，改為預設空白。`field()` helper 新增 `allowEmpty` 選項，清空欄位回傳空字串而非強制歸零；`lipidCoverage()` 的 `hdlLow` 加空白守衛，空白不計為 HDL-C<40。HDL-C<40 自動判定列改用 checkbox 外觀，與「危險因子」其他列一致（移除孤兒 CSS `.derived-mark`）
+- **計算機分頁列改 flex-wrap 降級 + 合併計算機註冊表** — `.calc-tabs` 加 `flex-wrap: wrap`（移除 `width: fit-content`），計算機變多時換行不再撐破版面。`js/app.js` 原本有 `CALCULATORS` 與 `calcDefs` 兩份計算機註冊表、新增計算機要改兩處，合併為單一 `CALCULATORS`（每筆加 `tabLabel` 短標籤），`calcDefs` 移除。修正 `#calc-tabs` 名實不符的 `aria-label`（計算機分類 → 計算機）。同步 bump SW cache v9 → v11
+- **移除計算機結果卡的無功能「投影給病人看」按鈕** — 該按鈕從未綁定任何 handler（純死碼 UI），結果卡只保留「列印」按鈕；同步移除孤兒 CSS `.result-actions .primary`
+
+## [0.2.3.2] - 2026-04-26
+
+### Fixed
+- **線上 admin.html 顯示「Failed to fetch index」破圖** — GitHub Pages 是純靜態主機,跑不了 `scripts/admin.js` (Node) 提供的 `/api/*` endpoints,導致 `https://lemonicefate.github.io/entexplainpage/admin.html` 只會看到「無法載入」+ 空表單。線上版從來就無法真正寫入,寫入保護不變(沒有後端可寫),但 UI 看起來像壞掉。現在加上 hostname 偵測,非 localhost / 127.0.0.1 / ::1 直接顯示「此工具僅供診間本機編輯使用」說明卡 + 本機啟動指令 + 回主站連結;localhost 完全不受影響
+
+## [0.2.3.1] - 2026-04-26
+
+### Changed
+- **解說圖片大幅放大** — 之前 `.player-frame` 強制 `aspect-ratio: 4/3` + `max-width: 900px` + 內部 32px padding，加上 stage 兩側 40px padding，導致 iPad 直立 768×1024 viewport 上圖片只佔 36%（約 624×452）。現在拿掉 frame 的 4:3 / 寬度上限 / 內 padding 與條紋背景，stage padding 歸零，讓 frame 滿版、`.slide-image` 用 `width:100% / height:100% + object-fit: contain` 填滿可用區域。圖片面積實測：chrome 顯示時提升至約 viewport 75%、Immersive 沉浸模式下 ~95%
+- **Immersive 模式真正釋放版位** — 之前 `is-immersive` 只把 topbar / controls / scrubber `opacity: 0`，但版位還佔著、圖片不會變大。現在加上 `max-height: 0` + `padding: 0` 動畫，淡出時也收合掉空間，stage flex:1 自動長到滿版
+
+## [0.2.3.0] - 2026-04-25
+
+### Added
+- **衛教管理可編輯與刪除** — `npm run admin` 之前只能新增，現在每篇衛教在列表多了「編輯 / 刪除」按鈕。編輯模式載入 title / category / steps、識別碼鎖定不可改，可改文字、替換單張步驟圖、增減步驟；後端 `PUT /api/procedures/:id` 儲存時自動回收沒被引用的舊圖檔。刪除為硬刪除：同步移除 `procedures/{id}.json`、`images/{id}/` 資料夾、`index.json` 條目
+- **步驟拖拉排序** — 步驟卡片左上加 ≡ drag handle，HTML5 native drag-and-drop 任意調整順序，submit 時依目前 DOM 順序送出
+- **編輯模式圖片預覽** — 步驟卡片顯示目前圖片縮圖 + 檔名，替換前可先確認；新上傳的圖以 `step{idx}-{timestamp}-{rand}.{ext}` 命名避免覆蓋衝突
+
+### Changed
+- **必填欄位調整** — 步驟標題、圖片設為必填；說明（description）改選填；無障礙描述（alt）欄位從 admin UI 移除（JSON schema 與既有資料保留），對診間內部 PWA 沒實際用處
+- **admin server 新增路由** — `PUT /api/procedures/:id`（multipart payload + 可選圖片附件）、`DELETE /api/procedures/:id`；CORS `Access-Control-Allow-Methods` 加入 `PUT, DELETE`
+- **admin 與主站共用同一個 port** — 之前 `npm run admin` 只跑 port 3001 admin server，但啟動訊息誤導印 `Main site: http://localhost:3000`，使用者打 3000 就會 connection refused（要再開一個 terminal 跑 `npm run serve`）。現在 admin.js 加上靜態檔 fallback：`http://localhost:3001/` 直接服務主站、`http://localhost:3001/admin.html` 進編輯器，單一指令搞定。`npm run serve` 仍保留給只想看主站時用
+
+## [0.2.2.0] - 2026-04-25
+
+### Added
+- **畫筆（Pen）工具終於真的會畫** — v0.2.0.0 起上線的畫筆按鈕一直是空殼（handler 只處理 laser / spot），現改用 `<canvas>` + Pointer Events API 實作，iPad 手指、滑鼠、Apple Pencil 都支援。筆畫紅色 4px、retina 清晰（devicePixelRatio 處理）、換頁自動清空、關閉畫筆後筆畫保留（可關工具繼續對圖說明）
+
+### Fixed
+- **聚光燈半徑過窄** — 從 140px 半徑擴大到 `clamp(180px, 24vw, 280px)`，中央加 40% 完全透明 plateau 讓「亮區」有實際大小（不再是針點式聚焦）；桌面約 ~112px 亮核、手機 ~72px
+- **雷射 / 聚光燈在 iPad 失效** — 原本只綁 `mousemove`，iOS Safari 對 `touchmove` 不會模擬 `mousemove`（手指移動完全不觸發）。改用 Pointer Events（`pointermove` + `pointerdown`）統一處理滑鼠、觸控、Pencil
+- **雷射 / 聚光燈手指遮擋** — 觸控輸入時雷射點自動向上偏移 50px（iOS 長按放大鏡的同樣 UX 慣例），讓使用者看得到自己指哪。滑鼠、Pencil 不偏移（游標本身就精準）
+- **Tool 模式下頁面滾動** — 在 `.tool-laser`/`.tool-spot`/`.tool-pen` 時設 `touch-action: none`，防止手指滑動不小心觸發 browser scroll 或 pinch-zoom
+
+## [0.2.1.0] - 2026-04-25
+
+### Added
+- **Reader mode（電子書式沉浸閱讀）**：播放器左/中/右三區 tap navigation（上一頁 / 切換工具列 / 下一頁），進入播放後 3 秒自動隱藏工具列與返回按鈕，中央再 tap 恢復顯示，工具啟用中 tap zones 自動停用
+- **手機版底部 scrubber（拖拉桿）**：`<input type=range>` 配桃橘 thumb，支援單手快速跳頁，顯示「5 / 12」頁碼；桌機版保留 thumbnail 條（768px 分水嶺 RWD）
+- **播放器 100dvh viewport**：使用 dynamic viewport unit，在行動瀏覽器工具列自動隱藏時回收畫面空間；`touch-action: manipulation` 消除 iOS 300ms tap 延遲；`overscroll-behavior: none` 防止 pull-to-refresh 誤觸
+- **iOS Safari 加入主畫面提示 banner**：第一次在 iPhone/iPad Safari 打開時顯示一次性底部提示，告知加入主畫面可全螢幕使用；使用者關閉後 localStorage 記住不再顯示
+
+### Fixed
+- **PWA 安裝修正**：v0.2.0.0 及更早版本的 `manifest.json` 用 `"start_url": "/"`，在 GitHub Pages project site（`/entexplainpage/`）下會把 standalone app 鎖到 user root（`lemonicefate.github.io/`），安裝後無法正確開啟。現改 `"./"` 並新增 `scope: "./"`
+- **Service Worker scope 修正**：將 `sw.js` 從 `js/sw.js` 搬到 project root，讓 SW scope 涵蓋整個 app；`PRECACHE_URLS` 從絕對路徑 (`/index.html`) 改相對路徑 (`./index.html`)，修正 SW install 時 `cache.addAll` 抓到 404 而從未成功 activate 的 bug（過去的「離線支援」在 production 事實上沒運作）
+- **更新 banner 誤判**：SW scope 修正後，`clients.claim()` 會在首次安裝時就設定 controller，導致 update banner 在全新安裝也誤顯示並擋住返回按鈕。改為在 `updatefound` 當下捕捉 controller 狀態，僅真正更新時才提示
+
+### Changed
+- SW cache 版本 `entexplain-v3` → `entexplain-v4`，強制重新抓取所有資產（避免混用舊絕對路徑 cache）
+
+### Upgrade notes
+- **升級後建議在 iPad Safari 清一次 site data** 確保完全乾淨：設定 → Safari → 進階 → 網站資料 → 搜尋 entexplainpage 移除。不清也可以，新 SW 會接管，舊 SW 殘留無副作用。
+- 升級後請重新「加入主畫面」一次，以使用正確的 start_url
+
+## [0.2.0.0] - 2026-04-24
+
+### Added
+- **首頁重新設計**：品牌列（衛 / 診間解說 / Explain）、⌘K 搜尋輸入、篩選 chip（全部 / ★ 釘選 / 解釋病情 / 手術流程 / 計算機）、卡片 TagPill + 釘選按鈕（localStorage 持久化）
+- **播放器重新設計**：深色 `#0f2a42` 全螢幕、左上返回 / 右上專案標題＋頁面副標、中央條紋 frame 內含圖片或大字標題說明、底部上下頁 + 工具列（畫筆 / 聚光燈 / 雷射指標 / 退出）、縮圖列
+- **播放器工具**：雷射指標（紅色發光點）、聚光燈（暗化 radial overlay）、畫筆（toggle 預留）
+- **新增鍵盤快捷**：`L` 雷射、`S` 聚光燈、`P` 畫筆、`1`–`9` 跳頁、`Space` 下一頁
+- **計算機頁**：BMI / 血脂風險 + Statin 健保給付 / 小兒劑量 三個 calculator，左輸入右結果（sticky），含規則逐條核對與摘要
+- **路由擴充**：`#/calc` `#/calc/<id>` 計算機頁
+- 資料 schema 擴充：`subtitle` / `type` / `region` / `slides`
+
+### Changed
+- **設計系統全面替換為 Warm Teal × Peach**：主色 `#0e7c7b`、深藍字 `#0f2a42`、桃橘 `#e5966a`、Noto Sans TC + Instrument Serif 字型組合
+- DESIGN.md 完整改版以反映新設計系統與元件
+- PWA `theme_color` 改為 `#0e7c7b`，App 名稱改為「診間解說 · Explain」
+- SW cache 版本 `entexplain-v3`
+- admin.html 顏色 token 同步更新
+
+## [0.1.1.0] - 2026-04-14
+
+### Added
+- DESIGN.md：一站式設計系統文件，涵蓋色彩 token、字型、間距、圓角、陰影、元件規格、無障礙標準、資料格式、新增衛教項目 checklist
+
+### Changed
+- CSS custom property 全面重構：統一命名為語義化 token（`--bg-primary`、`--text-on-dark-subtle` 等共 40 個 token），所有 hardcoded 色值、字型大小、字重、圓角、轉場時間均改為 `var(--token)`
+
+## [0.1.0.0] - 2026-03-31
+
+### Added
+- 診間衛教投影片系統：醫師可以在診間用視覺化流程向病人解釋手術和其他醫療項目
+- 四大衛教分類：手術、耳鼻喉、減重、功能醫學，首頁 tab 快速切換
+- 全螢幕投影片模式：左右滑動或箭頭翻頁，每步顯示解剖圖 + 説明文字
+- PWA 離線支援：Service Worker 預快取核心資源，斷網也能使用
+- 螢幕常亮：投影片模式自動啟用 Wake Lock，醫師講解時不會自動鎖屏
+- 誤觸防護：50px 滑動閾值 + 雙指偵測，邊指圖邊講解不會意外翻頁
+- 鍵盤導航：左右箭頭翻頁、Escape 返回、Tab 鍵 focus 管理
+- 無障礙支援：ARIA 標籤、aria-live 步驟通知、高對比配色（WCAG AA）
+- 響應式設計：桌機 3 欄 / 平板 2 欄 / 手機 1 欄，投影片自適應螢幕
+- 説明完畢結束畫面
+- SW 版本更新通知
+- 離線狀態 banner
+- 28 個單元測試 + E2E 測試規格
+- 範例手術資料：闌尾切除術（5 步驟）、疝氣修補術（4 步驟）

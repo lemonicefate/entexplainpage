@@ -1,0 +1,32 @@
+{
+  "id": "oral-ulcer",
+  "title": "口腔潰瘍",
+  "type": "explain",
+  "category": "ent",
+  "steps": [
+    {
+      "image": "images/oral-ulcer/step1.png",
+      "title": "口腔潰瘍原因",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/oral-ulcer/step2.png",
+      "title": "口腔潰瘍觀察",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/oral-ulcer/step3.png",
+      "title": "口腔潰瘍生活建議",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/oral-ulcer/step4.png",
+      "title": "口腔潰瘍營養建議",
+      "description": "",
+      "alt": ""
+    }
+  ]
+}
