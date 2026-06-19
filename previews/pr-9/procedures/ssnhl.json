@@ -1,0 +1,26 @@
+{
+  "id": "ssnhl",
+  "title": "突發性耳聾",
+  "type": "explain",
+  "category": "ent",
+  "steps": [
+    {
+      "image": "images/ssnhl/step1.png",
+      "title": "突發性耳聾的原因",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/ssnhl/step2.png",
+      "title": "突發性耳聾的治療",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/ssnhl/step3.png",
+      "title": "突發性耳聾的保養",
+      "description": "",
+      "alt": ""
+    }
+  ]
+}
