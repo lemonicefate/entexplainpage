@@ -47,6 +47,8 @@ jobs:
             cd "$workdir"
             git checkout -b "${PAGES_BRANCH}"
             git remote add origin "$remote_url"
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
             touch .nojekyll
             git add .nojekyll
             git commit -m "chore: init gh-pages" >/dev/null
