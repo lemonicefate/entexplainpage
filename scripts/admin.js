@@ -29,6 +29,15 @@ function writeJsonFile(filePath, data) {
   fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
 }
 
+function normalizeCategories(payload) {
+  const categories = Array.isArray(payload.categories)
+    ? payload.categories.map((c) => String(c).trim()).filter(Boolean)
+    : [];
+  const category = (payload.category || '').toString().trim();
+  if (!categories.length && category) categories.push(category);
+  return categories;
+}
+
 // ---------------------------------------------------------------------------
 // Multipart parser
 // ---------------------------------------------------------------------------
@@ -255,7 +264,8 @@ function handlePostProcedures(req, res) {
       return jsonResponse(res, 400, { error: 'Invalid JSON body' });
     }
 
-    const { id, title, type, category, steps } = payload;
+    const { id, title, type, category, categories, steps } = payload;
+    const normalizedCategories = normalizeCategories({ category, categories });
 
     // Validate id
     if (!id || !/^[a-z0-9-]+$/.test(id)) {
@@ -266,7 +276,7 @@ function handlePostProcedures(req, res) {
     if (type !== 'explain' && type !== 'surgery') {
       return jsonResponse(res, 400, { error: 'Invalid type: must be "explain" or "surgery"' });
     }
-    if (!category) return jsonResponse(res, 400, { error: 'Missing required field: category' });
+    if (!normalizedCategories.length) return jsonResponse(res, 400, { error: 'Missing required field: category' });
     if (!Array.isArray(steps)) return jsonResponse(res, 400, { error: 'Missing required field: steps (array)' });
 
     const procPath = path.join(ROOT, 'procedures', `${id}.json`);
@@ -290,7 +300,8 @@ function handlePostProcedures(req, res) {
         id,
         title,
         type,
-        category,
+        category: normalizedCategories[0],
+        categories: normalizedCategories,
         steps: steps.map((step, i) => ({
           image: `images/${id}/step${i + 1}.webp`,
           title: step.title || '',
@@ -315,7 +326,8 @@ function handlePostProcedures(req, res) {
         id,
         title,
         type,
-        category,
+        category: normalizedCategories[0],
+        categories: normalizedCategories,
         thumbnail: `images/${id}/thumb.webp`,
       });
       writeJsonFile(indexPath, index);
@@ -423,13 +435,14 @@ async function handlePutProcedure(req, res, id) {
     return jsonResponse(res, 400, { error: 'Invalid JSON payload' });
   }
 
-  const { title, type, category, steps } = payload;
+  const { title, type, category, categories, steps } = payload;
+  const normalizedCategories = normalizeCategories({ category, categories });
   if (!title) return jsonResponse(res, 400, { error: 'Missing required field: title' });
   if (!type) return jsonResponse(res, 400, { error: 'Missing required field: type' });
   if (type !== 'explain' && type !== 'surgery') {
     return jsonResponse(res, 400, { error: 'Invalid type: must be "explain" or "surgery"' });
   }
-  if (!category) return jsonResponse(res, 400, { error: 'Missing required field: category' });
+  if (!normalizedCategories.length) return jsonResponse(res, 400, { error: 'Missing required field: category' });
   if (!Array.isArray(steps) || steps.length === 0) {
     return jsonResponse(res, 400, { error: 'steps must be a non-empty array' });
   }
@@ -484,7 +497,8 @@ async function handlePutProcedure(req, res, id) {
       id,
       title,
       type,
-      category,
+      category: normalizedCategories[0],
+      categories: normalizedCategories,
       steps: newSteps,
     };
     writeJsonFile(procPath, newProcedure);
@@ -508,7 +522,8 @@ async function handlePutProcedure(req, res, id) {
     if (entry) {
       entry.title = title;
       entry.type = type;
-      entry.category = category;
+      entry.category = normalizedCategories[0];
+      entry.categories = normalizedCategories;
       if (typeof entry.slides === 'number') entry.slides = newSteps.length;
     }
     writeJsonFile(indexPath, index);

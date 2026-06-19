@@ -9,7 +9,7 @@
   var state = {
     categories: [],
     procedures: [],
-    activeCategory: 'all',       // all | surgery | ent | weight | functional | supplements | internal-medicine
+    activeCategory: 'all',       // all | surgery | ent | weight | functional | supplements | internal-medicine | calc
     query: '',
     pins: loadPins(),
     current: null,               // current procedure data
@@ -74,11 +74,11 @@
   // Static metadata: built-in calculators (separate from JSON data)
   // ============================================================
   var CALCULATORS = [
-    {id:'bmi',       title:'BMI 與肥胖分級',  subtitle:'身高體重 → BMI + 國健署分級',  type:'calc', kind:'calc', tabLabel:'BMI'},
-    {id:'lipid',     title:'血脂異常用藥健保給付', subtitle:'LDL/HDL/TG/TC + 病人類別 → Statin / Fibrate 健保給付判定', type:'calc', kind:'calc', tabLabel:'血脂給付'},
-    {id:'peds-dose', title:'小兒劑量（mg/kg）', subtitle:'體重 + 目標劑量 → 總 mg + ml 數', type:'calc', kind:'calc', tabLabel:'小兒劑量'},
-    {id:'mounjaro',  title:'猛健樂針劑換算 (Mounjaro)', subtitle:'Tirzepatide 筆針劑量、刻度與殘劑互算', type:'calc', kind:'calc', tabLabel:'猛健樂', thumbnail:'images/mounjaro/mounjaro-logo.svg', thumbnailMode:'logo'},
-    {id:'wegovy',    title:'週纖達針劑換算 (Wegovy)', subtitle:'Semaglutide FlexTouch 諾特筆劑量、體積與喀噠互算', type:'calc', kind:'calc', tabLabel:'週纖達', thumbnail:'images/wegovy/wegovy-logo-nav.png', thumbnailMode:'logo'}
+    {id:'bmi',       title:'BMI 與肥胖分級',  subtitle:'身高體重 → BMI + 國健署分級',  type:'calc', kind:'calc', category:'calc', categories:['calc'], tabLabel:'BMI'},
+    {id:'lipid',     title:'血脂異常用藥健保給付', subtitle:'LDL/HDL/TG/TC + 病人類別 → Statin / Fibrate 健保給付判定', type:'calc', kind:'calc', category:'calc', categories:['calc'], tabLabel:'血脂給付'},
+    {id:'peds-dose', title:'小兒劑量（mg/kg）', subtitle:'體重 + 目標劑量 → 總 mg + ml 數', type:'calc', kind:'calc', category:'calc', categories:['calc'], tabLabel:'小兒劑量'},
+    {id:'mounjaro',  title:'猛健樂針劑換算 (Mounjaro)', subtitle:'Tirzepatide 筆針劑量、刻度與殘劑互算', type:'calc', kind:'calc', category:'calc', categories:['calc'], tabLabel:'猛健樂', thumbnail:'images/mounjaro/mounjaro-logo.svg', thumbnailMode:'logo'},
+    {id:'wegovy',    title:'週纖達針劑換算 (Wegovy)', subtitle:'Semaglutide FlexTouch 諾特筆劑量、體積與喀噠互算', type:'calc', kind:'calc', category:'calc', categories:['calc'], tabLabel:'週纖達', thumbnail:'images/wegovy/wegovy-logo-nav.png', thumbnailMode:'logo'}
   ];
 
   var TYPE_LABELS = { explain: '解釋病情', surgery: '手術流程', calc: '計算機' };
@@ -128,6 +128,9 @@
   // Init
   // ============================================================
   function init() {
+    if (!homeView || !slideView || !calcView || !searchInput || !categoryChips || !resultCount || !gridContainer || !gridEmpty || !gridError || !calcBack || !calcTabs || !calcBody) {
+      return;
+    }
     setupSearch();
     setupKeyboard();
     setupRouting();
@@ -159,10 +162,13 @@
   }
 
   function normalizeProcedure(p) {
+    var categories = Array.isArray(p.categories) ? p.categories.filter(Boolean) : [];
+    if (!categories.length && p.category) categories = [p.category];
     return {
       id: p.id,
       title: p.title,
-      category: p.category || '',
+      category: categories[0] || p.category || '',
+      categories: categories,
       thumbnail: p.thumbnail || '',
       subtitle: p.subtitle || '',
       type: p.type || 'surgery',         // explain | surgery
@@ -228,11 +234,23 @@
     return items;
   }
 
+  function getItemCategories(item) {
+    if (!item) return [];
+    if (Array.isArray(item.categories)) return item.categories.filter(Boolean);
+    if (item.category) return [item.category];
+    return [];
+  }
+
+  function matchesCategory(item, selectedCategory) {
+    if (!selectedCategory || selectedCategory === 'all') return true;
+    return getItemCategories(item).indexOf(selectedCategory) !== -1;
+  }
+
   function getFilteredItems() {
     var items = getAllItems();
 
     if (state.activeCategory && state.activeCategory !== 'all') {
-      items = items.filter(function (i) { return i.category === state.activeCategory; });
+      items = items.filter(function (i) { return matchesCategory(i, state.activeCategory); });
     }
 
     var q = state.query.trim().toLowerCase();
@@ -318,7 +336,7 @@
     foot.className = 'card-foot';
 
     var tag = document.createElement('span');
-    var tagKey = item.type === 'calc' ? 'calc' : (item.category || item.type || 'explain');
+    var tagKey = item.type === 'calc' ? 'calc' : (getItemCategories(item)[0] || item.category || item.type || 'explain');
     if (tagKey !== 'calc' && !CATEGORY_LABELS[tagKey] && tagKey !== 'surgery' && tagKey !== 'explain') tagKey = 'explain';
     tag.className = 'tag tag-' + tagKey;
     tag.textContent = tagKey === 'calc' ? TYPE_LABELS.calc : (CATEGORY_LABELS[tagKey] || TYPE_LABELS[item.type] || '項目');

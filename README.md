@@ -190,14 +190,15 @@ gh pr merge --squash --delete-branch
 |---|---|---|
 | `id` | ✅ | 必須與 JSON 檔名、`images/{id}/` 資料夾名一致 |
 | `title` | ✅ | 卡片標題 |
-| `category` | ✅ | 對應 `categories` 其中之一：`surgery` / `ent` / `weight` / `functional` / `supplements` |
+| `category` | ✅ | 對應 `categories` 其中之一：`surgery` / `ent` / `weight` / `functional` / `supplements` / `internal-medicine` / `calc` |
+| `categories` | 選填 | 多分類陣列；若提供，首頁會以陣列內容篩選，`category` 仍保留為第一個分類做相容與顯示 |
 | `type` | ✅ | `explain`（解釋病情）或 `surgery`（手術流程）——決定首頁篩選籤 |
 | `thumbnail` | ✅ | 首頁卡片縮圖路徑 |
 | `subtitle` | 選填 | 卡片副標；省略則不顯示 |
 | `region` | 選填 | 身體區域標記；省略時卡片改顯示 `type` |
 | `slides` | 選填 | 步驟數；省略時卡片顯示 `slides`，提供時須等於步驟 JSON 的 `steps.length` |
 
-新增分類就編 `categories` 陣列。
+新增分類就編 `categories` 陣列。若一張圖卡需要同時屬於多個分類，請把 `categories` 寫成陣列，並保留 `category` 為主分類。
 > 資料慣例：snore 是早期完整範例（含 subtitle / region / slides），新加入的條目目前只填必填欄位。
 
 **4. 或使用網頁版編輯器**

@@ -23,6 +23,10 @@
     {
       "id": "internal-medicine",
       "title": "內科"
+    },
+    {
+      "id": "calc",
+      "title": "計算機"
     }
   ],
   "procedures": [
