@@ -97,7 +97,12 @@ npm run test:e2e
 
 ## 部署
 
-部署方式：**GitHub Pages**（`main` 分支 push 後自動發佈）。
+部署方式：**GitHub Pages**。
+
+- 正式站：`main` 分支 push 後自動發佈
+- PR 預覽：`pull_request` 會發佈到 `gh-pages` 分支的 `previews/pr-<number>/`
+
+> 使用 PR preview 前，請先到 GitHub Repository Settings → Pages，將 Source 設成 `Deploy from a branch`，Branch 選 `gh-pages`，Folder 選 `/ (root)`。
 
 ```bash
 # 1. 改完檔案 → 本地測試
@@ -122,6 +127,12 @@ gh pr merge --squash --delete-branch
 ```
 
 部署完成後到 iPad Safari 加到主畫面測一輪（Reader 模式、工具、PWA 離線、Add to Home Screen 網址）。
+
+PR preview URL 形式：
+
+```text
+https://lemonicefate.github.io/entexplainpage/previews/pr-<PR號>/
+```
 
 ---
 
