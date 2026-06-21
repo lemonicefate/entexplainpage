@@ -134,6 +134,15 @@
       "thumbnail": "images/testosterone/thumb.png"
     },
     {
+      "id": "dysautonomia",
+      "title": "自律神經失調",
+      "type": "explain",
+      "category": "functional",
+      "subtitle": "HRV 與功能醫學 · 10 步驟",
+      "slides": 10,
+      "thumbnail": "images/dysautonomia/thumb.svg"
+    },
+    {
       "id": "chlorella",
       "title": "小球藻",
       "type": "explain",

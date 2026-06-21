@@ -1,0 +1,70 @@
+{
+  "id": "dysautonomia",
+  "title": "自律神經失調",
+  "type": "explain",
+  "category": "functional",
+  "subtitle": "HRV 與功能醫學 · 10 步驟",
+  "slides": 10,
+  "steps": [
+    {
+      "image": "images/dysautonomia/step1.svg",
+      "title": "自律神經失調的常見症狀",
+      "description": "頭痛、頭暈、耳鳴、失眠、睡不好；心悸、胸悶、血壓不穩、胃食道逆流、脹氣、便秘、腹瀉；焦慮、緊張、恐慌、心煩、疲勞、無力、精神差。",
+      "alt": "自律神經失調的常見症狀，包含腦神經與睡眠、心血管與腸胃、情緒與全身三大面向。"
+    },
+    {
+      "image": "images/dysautonomia/step2.svg",
+      "title": "什麼是自律神經失調？",
+      "description": "自律神經負責調節心跳、呼吸、消化、體溫等，維持身體機能平衡。交感神經像油門，副交感神經像煞車；兩者失去平衡時，就可能出現自律神經失調。",
+      "alt": "說明自律神經、交感神經與副交感神經的差異，以及失衡時的狀態。"
+    },
+    {
+      "image": "images/dysautonomia/step3.svg",
+      "title": "為什麼會發生？",
+      "description": "常見原因包含壓力累積、生活作息不良與不良生活習慣。當壓力超過身體負荷，就可能引起自律神經失調。",
+      "alt": "自律神經失調的常見原因，包括壓力累積、作息不良與不良生活習慣。"
+    },
+    {
+      "image": "images/dysautonomia/step4.svg",
+      "title": "為什麼檢查都正常？",
+      "description": "血液檢查、心電圖、影像檢查都可能正常，但仍有頭暈、心悸、胸悶、呼吸不順、腸胃不適、疲倦、失眠、焦慮等不舒服。自律神經失調屬於功能失衡，不一定有器官結構損傷。",
+      "alt": "血液、心電圖與影像檢查正常，但仍有多種不舒服症狀，提示功能失衡。"
+    },
+    {
+      "image": "images/dysautonomia/step5.svg",
+      "title": "如何檢測？認識 HRV",
+      "description": "透過心率變異度檢測，分析心跳間隔變化，評估交感與副交感神經平衡。這是非侵入性檢測，不需抽血，約 5 到 10 分鐘即可完成。",
+      "alt": "介紹 HRV 檢測，包含心率變異度、非侵入、不需抽血與快速完成。"
+    },
+    {
+      "image": "images/dysautonomia/step6.svg",
+      "title": "HRV 指標怎麼看？",
+      "description": "SDNN 反映整體自律神經活性；LF 代表交感神經活性；HF 代表副交感神經活性；LF/HF 用來評估壓力平衡，接近 1 通常代表平衡較好。",
+      "alt": "說明 HRV 的四個常見指標：SDNN、LF、HF、LF/HF。"
+    },
+    {
+      "image": "images/dysautonomia/step7.svg",
+      "title": "HRV 結果代表什麼？",
+      "description": "HRV 高通常表示身心平衡、調節能力佳、適應力較強；HRV 低則常見於壓力累積、疲勞增加、焦慮或憂鬱風險上升，也可能伴隨心血管風險增加。",
+      "alt": "比較 HRV 高與低的意義，提示身心平衡與失衡兩種狀態。"
+    },
+    {
+      "image": "images/dysautonomia/step8.svg",
+      "title": "檢查前要注意什麼？",
+      "description": "檢查前避免劇烈運動、咖啡、濃茶與酒精，並提前休息 5 到 10 分鐘。檢查時保持安靜、不說話、平穩呼吸、身體放鬆。",
+      "alt": "HRV 檢查前與檢查時的注意事項。"
+    },
+    {
+      "image": "images/dysautonomia/step9.svg",
+      "title": "自律神經失調能恢復嗎？",
+      "description": "大多數自律神經失調是可逆的。越早發現越容易改善，不代表永久疾病，也不代表器官壞掉。給自己時間，給身體支持，慢慢找回平衡與健康。",
+      "alt": "說明自律神經失調多數可逆，越早處理越容易改善。"
+    },
+    {
+      "image": "images/dysautonomia/step10.svg",
+      "title": "如何改善自律神經失調？",
+      "description": "改善六大原則：規律作息、充足睡眠、規律運動、均衡飲食、減少咖啡因、放鬆訓練（腹式呼吸、冥想）。",
+      "alt": "改善自律神經失調的六大原則。"
+    }
+  ]
+}

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">
+
+    
+    <defs>
+      <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#f8fbff"/>
+        <stop offset="100%" stop-color="#eef6ff"/>
+      </linearGradient>
+      <linearGradient id="footerWave" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#d8ecff" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="#9ec7ef" stop-opacity="0.55"/>
+      </linearGradient>
+      <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#8aaad0" flood-opacity="0.18"/>
+      </filter>
+    </defs>
+    <rect width="1200" height="1200" fill="url(#bg)"/>
+    <rect x="28" y="28" width="1144" height="1144" rx="36" fill="#fff" stroke="#dbe8f5" stroke-width="2" filter="url(#shadow)"/>
+    <path d="M 740 28 H 1172 V 90 H 776 Q 740 90 740 54 Z" fill="#1885cf"/>
+    <path d="M 64 1110 C 190 1060, 324 1064, 444 1100 S 676 1142, 820 1110 S 1058 1060, 1136 1088 V 1172 H 64 Z" fill="url(#footerWave)" opacity="0.75"/>
+    <path d="M 64 1140 C 204 1104, 358 1106, 500 1136 S 804 1174, 944 1144 S 1088 1108, 1138 1124" fill="none" stroke="#d4e8fb" stroke-width="4" opacity="0.55"/>
+    
+    <g>
+      <rect x="768" y="36" width="378" height="52" rx="26" fill="#1885cf"/>
+      <text x="957" y="52.76" text-anchor="middle" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="22" font-weight="700" fill="#fff" dominant-baseline="hanging"><tspan x="957" dy="0">工學誠心診所｜自律神經衛教</tspan></text>
+    </g>
+    <text x="82" y="80" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="82" font-weight="900" fill="#184f85" dominant-baseline="hanging"><tspan x="82" dy="0">檢查前要注意什麼？</tspan></text>
+    <g transform="translate(948 110) rotate(-12)">
+      <path d="M 0 0 C 18 -34, 32 -56, 62 -54 C 48 -16, 26 26, -4 44 C -12 26, -8 10, 0 0 Z" fill="#ef8a1f"/>
+      <path d="M 42 28 C 72 14, 98 20, 112 46 C 82 72, 44 76, 18 54 C 24 44, 32 36, 42 28 Z" fill="#9fd04b"/>
+    </g>
+  
+    <rect x="70" y="222" width="1060" height="508" rx="30" fill="#eef6ff" stroke="#d7e7f7" stroke-width="2"/>
+    <rect x="70" y="762" width="1060" height="316" rx="30" fill="#f4f8e9" stroke="#dceab6" stroke-width="2"/>
+    
+    <g>
+      <circle cx="128" cy="314" r="36" fill="#1180cf"/>
+      <text x="128" y="297.2" text-anchor="middle" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="40" font-weight="800" fill="#fff" dominant-baseline="hanging"><tspan x="128" dy="0">1</tspan></text>
+    </g>
+    <text x="184" y="278" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="46" font-weight="900" fill="#1180cf" dominant-baseline="hanging"><tspan x="184" dy="0">檢查前</tspan></text>
+    
+    <g>
+      <circle cx="132" cy="440" r="12" fill="#1180cf"/>
+      <path d="M 126.6 440.24 L 130.8 444.08 L 138.24 435.92" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="168" y="427.12" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="28" font-weight="700" fill="#1f2e4d" dominant-baseline="hanging"><tspan x="168" dy="0">避免劇烈運動</tspan></text>
+    </g>
+    
+    <g>
+      <circle cx="132" cy="512" r="12" fill="#1180cf"/>
+      <path d="M 126.6 512.24 L 130.8 516.08 L 138.24 507.92" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="168" y="499.12" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="28" font-weight="700" fill="#1f2e4d" dominant-baseline="hanging"><tspan x="168" dy="0">避免咖啡</tspan></text>
+    </g>
+    
+    <g>
+      <circle cx="132" cy="584" r="12" fill="#1180cf"/>
+      <path d="M 126.6 584.24 L 130.8 588.08 L 138.24 579.92" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="168" y="571.12" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="28" font-weight="700" fill="#1f2e4d" dominant-baseline="hanging"><tspan x="168" dy="0">避免濃茶</tspan></text>
+    </g>
+    
+    <g>
+      <circle cx="132" cy="656" r="12" fill="#1180cf"/>
+      <path d="M 126.6 656.24 L 130.8 660.08 L 138.24 651.92" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="168" y="643.12" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="28" font-weight="700" fill="#1f2e4d" dominant-baseline="hanging"><tspan x="168" dy="0">避免酒精</tspan></text>
+    </g>
+    
+    <g>
+      <circle cx="132" cy="728" r="12" fill="#1180cf"/>
+      <path d="M 126.6 728.24 L 130.8 732.08 L 138.24 723.92" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="168" y="715.12" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="28" font-weight="700" fill="#1f2e4d" dominant-baseline="hanging"><tspan x="168" dy="0">提前休息 5～10 分鐘</tspan></text>
+    </g>
+    <g transform="translate(700 286)">
+      <circle cx="84" cy="40" r="34" fill="#fff" stroke="#d7e7f7" stroke-width="3"/>
+      <path d="M 84 20 v 20 l 14 8" fill="none" stroke="#ef8a1f" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="244" cy="40" r="34" fill="#fff" stroke="#d7e7f7" stroke-width="3"/>
+      <path d="M 224 30 h 40" stroke="#ef8a1f" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 224 50 h 40" stroke="#ef8a1f" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="84" cy="156" r="34" fill="#fff" stroke="#d7e7f7" stroke-width="3"/>
+      <path d="M 60 166 L 108 146" stroke="#ef8a1f" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 108 166 L 60 146" stroke="#ef8a1f" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="244" cy="156" r="34" fill="#fff" stroke="#d7e7f7" stroke-width="3"/>
+      <path d="M 228 140 L 260 172" stroke="#ef8a1f" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 260 140 L 228 172" stroke="#ef8a1f" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="164" cy="232" r="38" fill="#fff" stroke="#d7e7f7" stroke-width="3"/>
+      <path d="M 164 208 v 28" stroke="#184f85" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 164 236 l 14 10" stroke="#184f85" stroke-width="6" stroke-linecap="round"/>
+      <path d="M 148 246 h 32" stroke="#184f85" stroke-width="6" stroke-linecap="round"/>
+    </g>
+    
+    <g>
+      <circle cx="128" cy="854" r="36" fill="#78a91d"/>
+      <text x="128" y="837.2" text-anchor="middle" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="40" font-weight="800" fill="#fff" dominant-baseline="hanging"><tspan x="128" dy="0">2</tspan></text>
+    </g>
+    <text x="184" y="818" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="46" font-weight="900" fill="#78a91d" dominant-baseline="hanging"><tspan x="184" dy="0">檢查時</tspan></text>
+    
+    <g>
+      <circle cx="132" cy="956" r="12" fill="#78a91d"/>
+      <path d="M 126.6 956.24 L 130.8 960.08 L 138.24 951.92" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="168" y="943.12" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="28" font-weight="700" fill="#1f2e4d" dominant-baseline="hanging"><tspan x="168" dy="0">保持安靜</tspan></text>
+    </g>
+    
+    <g>
+      <circle cx="132" cy="1028" r="12" fill="#78a91d"/>
+      <path d="M 126.6 1028.24 L 130.8 1032.08 L 138.24 1023.92" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="168" y="1015.12" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="28" font-weight="700" fill="#1f2e4d" dominant-baseline="hanging"><tspan x="168" dy="0">不說話</tspan></text>
+    </g>
+    
+    <g>
+      <circle cx="470" cy="956" r="12" fill="#78a91d"/>
+      <path d="M 464.6 956.24 L 468.8 960.08 L 476.24 951.92" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="506" y="943.12" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="28" font-weight="700" fill="#1f2e4d" dominant-baseline="hanging"><tspan x="506" dy="0">平穩呼吸</tspan></text>
+    </g>
+    
+    <g>
+      <circle cx="470" cy="1028" r="12" fill="#78a91d"/>
+      <path d="M 464.6 1028.24 L 468.8 1032.08 L 476.24 1023.92" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="506" y="1015.12" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="28" font-weight="700" fill="#1f2e4d" dominant-baseline="hanging"><tspan x="506" dy="0">身體放鬆</tspan></text>
+    </g>
+    <g transform="translate(720 840)">
+      <circle cx="82" cy="48" r="42" fill="#fff" stroke="#d7e7f7" stroke-width="3"/>
+      <path d="M 64 48 C 68 36, 84 34, 90 46 C 94 54, 90 64, 82 68 C 74 64, 62 58, 64 48 Z" fill="#184f85" opacity="0.9"/>
+      <circle cx="250" cy="48" r="42" fill="#fff" stroke="#d7e7f7" stroke-width="3"/>
+      <path d="M 232 42 h 36" stroke="#184f85" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="82" cy="158" r="42" fill="#fff" stroke="#d7e7f7" stroke-width="3"/>
+      <path d="M 70 146 C 76 136, 88 136, 94 146 C 100 156, 96 168, 82 172 C 68 168, 64 156, 70 146 Z" fill="#184f85" opacity="0.9"/>
+      <circle cx="250" cy="158" r="42" fill="#fff" stroke="#d7e7f7" stroke-width="3"/>
+      <path d="M 238 140 C 246 132, 258 132, 266 140 C 274 148, 274 162, 266 170 C 258 178, 246 178, 238 170 C 230 162, 230 148, 238 140 Z" fill="#184f85" opacity="0.9"/>
+      <path d="M 52 182 C 86 182, 104 176, 118 164" fill="none" stroke="#8ec7f3" stroke-width="4" stroke-linecap="round"/>
+    </g>
+    
+    <g>
+      <circle cx="74" cy="1126" r="18" fill="#8ec7f3"/>
+      <path d="M 66 1124 L 72 1130 L 82 1118" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="106" y="1108" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="24" font-weight="700" fill="#3a79ad" dominant-baseline="hanging"><tspan x="106" dy="0">工學誠心診所  關心您的身心健康</tspan></text>
+    </g>
+  
+</svg>

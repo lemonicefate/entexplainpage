@@ -1,4 +1,4 @@
-var CACHE_NAME = 'entexplain-v17';
+var CACHE_NAME = 'entexplain-v18';
 
 var PRECACHE_URLS = [
   './',
@@ -8,8 +8,20 @@ var PRECACHE_URLS = [
   './manifest.json',
   './procedures/index.json',
   './procedures/h-pylori-sequential.json',
+  './procedures/dysautonomia.json',
   './images/h-pylori-sequential/thumb.png',
   './images/h-pylori-sequential/step1.png',
+  './images/dysautonomia/thumb.svg',
+  './images/dysautonomia/step1.svg',
+  './images/dysautonomia/step2.svg',
+  './images/dysautonomia/step3.svg',
+  './images/dysautonomia/step4.svg',
+  './images/dysautonomia/step5.svg',
+  './images/dysautonomia/step6.svg',
+  './images/dysautonomia/step7.svg',
+  './images/dysautonomia/step8.svg',
+  './images/dysautonomia/step9.svg',
+  './images/dysautonomia/step10.svg',
   './images/mounjaro/mounjaro-logo.svg',
   './images/wegovy/wegovy-logo-nav.png',
   './images/chlorella/thumb.webp',
