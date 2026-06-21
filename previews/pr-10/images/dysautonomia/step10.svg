@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1200" viewBox="0 0 1200 1200">
+
+    
+    <defs>
+      <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#f8fbff"/>
+        <stop offset="100%" stop-color="#eef6ff"/>
+      </linearGradient>
+      <linearGradient id="footerWave" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="#d8ecff" stop-opacity="0.35"/>
+        <stop offset="100%" stop-color="#9ec7ef" stop-opacity="0.55"/>
+      </linearGradient>
+      <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#8aaad0" flood-opacity="0.18"/>
+      </filter>
+    </defs>
+    <rect width="1200" height="1200" fill="url(#bg)"/>
+    <rect x="28" y="28" width="1144" height="1144" rx="36" fill="#fff" stroke="#dbe8f5" stroke-width="2" filter="url(#shadow)"/>
+    <path d="M 740 28 H 1172 V 90 H 776 Q 740 90 740 54 Z" fill="#1885cf"/>
+    <path d="M 64 1110 C 190 1060, 324 1064, 444 1100 S 676 1142, 820 1110 S 1058 1060, 1136 1088 V 1172 H 64 Z" fill="url(#footerWave)" opacity="0.75"/>
+    <path d="M 64 1140 C 204 1104, 358 1106, 500 1136 S 804 1174, 944 1144 S 1088 1108, 1138 1124" fill="none" stroke="#d4e8fb" stroke-width="4" opacity="0.55"/>
+    
+    <g>
+      <rect x="768" y="36" width="378" height="52" rx="26" fill="#1885cf"/>
+      <text x="957" y="52.76" text-anchor="middle" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="22" font-weight="700" fill="#fff" dominant-baseline="hanging"><tspan x="957" dy="0">工學誠心診所｜自律神經衛教</tspan></text>
+    </g>
+    <text x="82" y="80" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="82" font-weight="900" fill="#184f85" dominant-baseline="hanging"><tspan x="82" dy="0">如何改善</tspan></text><text x="82" y="174" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="82" font-weight="900" fill="#184f85" dominant-baseline="hanging"><tspan x="82" dy="0">自律神經失調？</tspan></text>
+    <g transform="translate(948 110) rotate(-12)">
+      <path d="M 0 0 C 18 -34, 32 -56, 62 -54 C 48 -16, 26 26, -4 44 C -12 26, -8 10, 0 0 Z" fill="#ef8a1f"/>
+      <path d="M 42 28 C 72 14, 98 20, 112 46 C 82 72, 44 76, 18 54 C 24 44, 32 36, 42 28 Z" fill="#9fd04b"/>
+    </g>
+  
+    
+    <g>
+      <rect x="388" y="262" width="424" height="60" rx="30" fill="#eef6ff"/>
+      <text x="600" y="277.72" text-anchor="middle" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="34" font-weight="700" fill="#1180cf" dominant-baseline="hanging"><tspan x="600" dy="0">改善六大原則</tspan></text>
+    </g>
+    <rect x="70" y="354" width="330" height="238" rx="28" fill="#f4f8ff" stroke="#d7e7f7" stroke-width="2"/>
+    <rect x="435" y="354" width="330" height="238" rx="28" fill="#f4f8ff" stroke="#d7e7f7" stroke-width="2"/>
+    <rect x="800" y="354" width="330" height="238" rx="28" fill="#f4f8ff" stroke="#d7e7f7" stroke-width="2"/>
+    <rect x="70" y="656" width="330" height="238" rx="28" fill="#f4f8ff" stroke="#d7e7f7" stroke-width="2"/>
+    <rect x="435" y="656" width="330" height="238" rx="28" fill="#f4f8ff" stroke="#d7e7f7" stroke-width="2"/>
+    <rect x="800" y="656" width="330" height="238" rx="28" fill="#f4f8ff" stroke="#d7e7f7" stroke-width="2"/>
+    <rect x="70" y="958" width="1060" height="142" rx="30" fill="#fff3df" stroke="#f4d39c" stroke-width="2"/>
+    
+    <g>
+      <circle cx="126" cy="410" r="30" fill="#1180cf"/>
+      <text x="126" y="395.72" text-anchor="middle" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="34" font-weight="800" fill="#fff" dominant-baseline="hanging"><tspan x="126" dy="0">1</tspan></text>
+    </g>
+    <text x="184" y="386" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="40" font-weight="900" fill="#184f85" dominant-baseline="hanging"><tspan x="184" dy="0">規律作息</tspan></text>
+    <circle cx="200" cy="512" r="64" fill="#eaf5ff" stroke="#8ec7f3" stroke-width="4"/>
+    <path d="M 200 474 v 38 l 24 14" fill="none" stroke="#184f85" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 246 500 C 260 478, 278 472, 296 478" fill="none" stroke="#9fd04b" stroke-width="6" stroke-linecap="round"/>
+    
+    <g>
+      <circle cx="491" cy="410" r="30" fill="#1180cf"/>
+      <text x="491" y="395.72" text-anchor="middle" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="34" font-weight="800" fill="#fff" dominant-baseline="hanging"><tspan x="491" dy="0">2</tspan></text>
+    </g>
+    <text x="549" y="386" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="40" font-weight="900" fill="#184f85" dominant-baseline="hanging"><tspan x="549" dy="0">充足睡眠</tspan></text>
+    <rect x="540" y="470" width="150" height="84" rx="24" fill="#184f85"/>
+    <path d="M 560 504 C 580 474, 622 474, 642 504 C 614 524, 592 530, 560 504 Z" fill="#dfefff"/>
+    <path d="M 652 466 C 664 452, 680 448, 692 454" fill="none" stroke="#f4c12e" stroke-width="6" stroke-linecap="round"/>
+    
+    <g>
+      <circle cx="856" cy="410" r="30" fill="#1180cf"/>
+      <text x="856" y="395.72" text-anchor="middle" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="34" font-weight="800" fill="#fff" dominant-baseline="hanging"><tspan x="856" dy="0">3</tspan></text>
+    </g>
+    <text x="914" y="386" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="40" font-weight="900" fill="#184f85" dominant-baseline="hanging"><tspan x="914" dy="0">規律運動</tspan></text>
+    <circle cx="978" cy="514" r="48" fill="#dff1ff"/>
+    <path d="M 960 530 L 972 496 L 988 532 L 1004 482" fill="none" stroke="#1180cf" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M 914 518 C 932 490, 948 478, 966 474" fill="none" stroke="#9fd04b" stroke-width="6" stroke-linecap="round"/>
+    
+    <g>
+      <circle cx="126" cy="712" r="30" fill="#1180cf"/>
+      <text x="126" y="697.72" text-anchor="middle" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="34" font-weight="800" fill="#fff" dominant-baseline="hanging"><tspan x="126" dy="0">4</tspan></text>
+    </g>
+    <text x="184" y="688" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="40" font-weight="900" fill="#184f85" dominant-baseline="hanging"><tspan x="184" dy="0">均衡飲食</tspan></text>
+    <circle cx="202" cy="814" r="68" fill="#fff" stroke="#d7e7f7" stroke-width="4"/>
+    <path d="M 150 810 h 104" stroke="#f4c12e" stroke-width="8" stroke-linecap="round"/>
+    <path d="M 174 782 C 188 772, 210 772, 220 784" fill="none" stroke="#78a91d" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="210" cy="814" r="24" fill="#ef8a1f"/>
+    
+    <g>
+      <circle cx="491" cy="712" r="30" fill="#1180cf"/>
+      <text x="491" y="697.72" text-anchor="middle" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="34" font-weight="800" fill="#fff" dominant-baseline="hanging"><tspan x="491" dy="0">5</tspan></text>
+    </g>
+    <text x="549" y="688" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="40" font-weight="900" fill="#184f85" dominant-baseline="hanging"><tspan x="549" dy="0">減少咖啡因</tspan></text>
+    <circle cx="600" cy="812" r="60" fill="#fff" stroke="#ef8a1f" stroke-width="6"/>
+    <path d="M 572 810 h 56" stroke="#ef8a1f" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 570 770 L 630 850" stroke="#ef8a1f" stroke-width="6" stroke-linecap="round"/>
+    <path d="M 592 774 C 602 756, 624 754, 636 770" fill="none" stroke="#8ec7f3" stroke-width="6" stroke-linecap="round"/>
+    
+    <g>
+      <circle cx="856" cy="712" r="30" fill="#1180cf"/>
+      <text x="856" y="697.72" text-anchor="middle" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="34" font-weight="800" fill="#fff" dominant-baseline="hanging"><tspan x="856" dy="0">6</tspan></text>
+    </g>
+    <text x="914" y="688" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="40" font-weight="900" fill="#184f85" dominant-baseline="hanging"><tspan x="914" dy="0">放鬆訓練</tspan></text>
+    <text x="914" y="744" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="22" font-weight="700" fill="#184f85" dominant-baseline="hanging"><tspan x="914" dy="0">（腹式呼吸、冥想）</tspan></text>
+    <circle cx="974" cy="810" r="62" fill="#eaf5d9"/>
+    <path d="M 948 812 C 960 778, 988 778, 1000 812 C 986 824, 962 830, 948 812 Z" fill="#78a91d"/>
+    <path d="M 946 818 C 956 836, 968 846, 986 852" fill="none" stroke="#78a91d" stroke-width="6" stroke-linecap="round"/>
+    <text x="112" y="990" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="28" font-weight="800" fill="#184f85" dominant-baseline="hanging"><tspan x="112" dy="0">規律作息、睡眠、運動、飲食、減少刺激、放鬆訓練，都是把神經系統拉回平衡的基本功。</tspan></text>
+    
+    <g>
+      <circle cx="74" cy="1126" r="18" fill="#8ec7f3"/>
+      <path d="M 66 1124 L 72 1130 L 82 1118" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="106" y="1108" text-anchor="start" font-family="Noto Sans TC, Microsoft JhengHei, PingFang TC, sans-serif" font-size="24" font-weight="700" fill="#3a79ad" dominant-baseline="hanging"><tspan x="106" dy="0">工學誠心診所  關心您的身心健康</tspan></text>
+    </g>
+  
+</svg>
