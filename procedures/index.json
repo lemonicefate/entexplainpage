@@ -35,16 +35,23 @@
       "title": "幽門螺旋桿菌治療",
       "type": "explain",
       "category": "internal-medicine",
+      "categories": [
+        "internal-medicine"
+      ],
       "subtitle": "系列性療法 · 14 天療程",
+      "region": "",
       "slides": 1,
       "thumbnail": "images/h-pylori-sequential/thumb.png"
     },
     {
       "id": "snore",
       "title": "打呼",
-      "subtitle": "成因解說 · 7 步驟",
-      "category": "ent",
       "type": "explain",
+      "category": "ent",
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "成因解說 · 7 步驟",
       "region": "頭頸",
       "slides": 7,
       "thumbnail": "images/snore/thumb.png"
@@ -54,6 +61,12 @@
       "title": "鼻塞",
       "type": "explain",
       "category": "ent",
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 4,
       "thumbnail": "images/nasal-obstruction/thumb.webp"
     },
     {
@@ -61,6 +74,12 @@
       "title": "聲帶",
       "type": "explain",
       "category": "ent",
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 5,
       "thumbnail": "images/vocal-cord/thumb.jpg"
     },
     {
@@ -68,6 +87,12 @@
       "title": "流感",
       "type": "explain",
       "category": "ent",
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 4,
       "thumbnail": "images/influenza/thumb.png"
     },
     {
@@ -75,6 +100,12 @@
       "title": "戒菸",
       "type": "explain",
       "category": "ent",
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 3,
       "thumbnail": "images/quit-smoke/thumb.png"
     },
     {
@@ -82,6 +113,12 @@
       "title": "口腔潰瘍",
       "type": "explain",
       "category": "ent",
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 4,
       "thumbnail": "images/oral-ulcer/thumb.png"
     },
     {
@@ -89,6 +126,12 @@
       "title": "梅尼爾氏症",
       "type": "explain",
       "category": "ent",
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 3,
       "thumbnail": "images/menieres/thumb.png"
     },
     {
@@ -96,6 +139,12 @@
       "title": "耳鳴",
       "type": "explain",
       "category": "ent",
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 4,
       "thumbnail": "images/tinnitus/thumb.png"
     },
     {
@@ -103,6 +152,12 @@
       "title": "突發性耳聾",
       "type": "explain",
       "category": "ent",
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 3,
       "thumbnail": "images/ssnhl/thumb.png"
     },
     {
@@ -110,6 +165,12 @@
       "title": "小兒中耳積水",
       "type": "explain",
       "category": "ent",
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 2,
       "thumbnail": "images/otitis-media-effusion/thumb.png"
     },
     {
@@ -117,6 +178,12 @@
       "title": "維他命D補充",
       "type": "explain",
       "category": "functional",
+      "categories": [
+        "functional"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 4,
       "thumbnail": "images/vitd/thumb.png"
     },
     {
@@ -124,6 +191,12 @@
       "title": "異位性皮膚炎",
       "type": "explain",
       "category": "functional",
+      "categories": [
+        "functional"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 3,
       "thumbnail": "images/atopic-dermatitis/thumb.png"
     },
     {
@@ -131,6 +204,12 @@
       "title": "睪固酮",
       "type": "explain",
       "category": "functional",
+      "categories": [
+        "functional"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 2,
       "thumbnail": "images/testosterone/thumb.png"
     },
     {
@@ -138,7 +217,11 @@
       "title": "小球藻",
       "type": "explain",
       "category": "supplements",
+      "categories": [
+        "supplements"
+      ],
       "subtitle": "營養解析 · 5 步驟",
+      "region": "",
       "slides": 5,
       "thumbnail": "images/chlorella/thumb.webp"
     }

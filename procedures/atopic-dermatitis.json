@@ -2,7 +2,13 @@
   "id": "atopic-dermatitis",
   "title": "異位性皮膚炎",
   "type": "explain",
+  "subtitle": "",
+  "region": "",
   "category": "functional",
+  "categories": [
+    "functional"
+  ],
+  "thumbnail": "images/atopic-dermatitis/thumb.png",
   "steps": [
     {
       "image": "images/atopic-dermatitis/step1.png",

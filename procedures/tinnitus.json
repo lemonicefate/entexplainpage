@@ -2,7 +2,13 @@
   "id": "tinnitus",
   "title": "耳鳴",
   "type": "explain",
+  "subtitle": "",
+  "region": "",
   "category": "ent",
+  "categories": [
+    "ent"
+  ],
+  "thumbnail": "images/tinnitus/thumb.png",
   "steps": [
     {
       "image": "images/tinnitus/step1.png",

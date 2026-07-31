@@ -20,6 +20,7 @@
 
 - **admin.html 線上版無寫入能力** — GitHub Pages 是純靜態主機,跑不了 `scripts/admin.js` 提供的 `/api/*`。編輯衛教只能在 localhost(`npm run admin`)。線上版靠 hostname 偵測顯示 local-only 說明卡。
 - **Service Worker 只在 production 生效** — 本機快取行為與線上不一致,debug 快取問題時要注意。
+- **衛教寫入只能穿越 persistence Module** — `procedures/{id}.json` 是 canonical source，`index.json` 是 projection；admin server 不得再拆成 JSON 與圖片兩段寫入。`npm run integrity` 是唯讀 gate，journal recovery 會在 admin server listen 前完成。
 
 ## 慣例
 

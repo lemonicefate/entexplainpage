@@ -26,14 +26,16 @@ entexplainpage/
 ├── css/style.css            # Design tokens + 全站樣式
 ├── js/app.js                # IIFE 單檔應用程式
 ├── procedures/
-│   ├── index.json           # 分類 + 衛教/手術列表
-│   ├── snore.json           # 單篇步驟資料（每篇一檔）
+│   ├── index.json           # 分類 + canonical detail 的策展投影
+│   ├── snore.json           # 單篇 canonical detail（每篇一檔）
 │   └── nasal-obstruction.json
 ├── images/{id}/             # 對應的縮圖與步驟圖
 │   ├── thumb.webp           # 也接受 png/jpg
 │   └── step1.webp ...
 ├── admin.html               # 網頁版編輯器（搭配 scripts/admin.js）
 ├── scripts/admin.js         # 本機編輯用 API server
+├── persistence/              # read / commit / inspect Module 與 journal recovery
+├── scripts/inspect-procedures.js # 唯讀 canonical integrity gate
 ├── tests/
 │   ├── unit/                # vitest + jsdom
 │   └── e2e/                 # Playwright
@@ -74,6 +76,7 @@ npm run admin
 ```bash
 npm test              # 跑一次
 npm run test:watch    # watch 模式
+npm run integrity     # 檢查 canonical detail/index/asset 一致性
 ```
 
 涵蓋：Service Worker 路徑、manifest scope、app 初始化、Reader 模式 DOM、CSS tokens、工具列互動等。
@@ -151,7 +154,7 @@ https://lemonicefate.github.io/entexplainpage/previews/pr-<PR號>/
 
 格式用 `webp` 壓縮效率最好，檔案控制在 200KB 以內。
 
-**2. 新增步驟資料**
+**2. 新增 canonical detail**
 
 在 `procedures/` 新增 `{id}.json`：
 
@@ -159,6 +162,12 @@ https://lemonicefate.github.io/entexplainpage/previews/pr-<PR號>/
 {
   "id": "tonsillectomy",
   "title": "扁桃腺切除術",
+  "type": "surgery",
+  "subtitle": "睡眠呼吸中止 · 4 步驟",
+  "region": "頭頸",
+  "category": "ent",
+  "categories": ["ent"],
+  "thumbnail": "images/tonsillectomy/thumb.webp",
   "steps": [
     {
       "image": "images/tonsillectomy/step1.webp",
@@ -178,7 +187,9 @@ https://lemonicefate.github.io/entexplainpage/previews/pr-<PR號>/
 
 每個步驟四個欄位：`image`、`title`、`description`、`alt`（為無障礙與圖片載入失敗時的替代說明，必填）。
 
-**3. 註冊到索引**
+`procedures/{id}.json` 是 canonical source；`subtitle`、`region`、分類與 thumbnail 不再只寫在 index。`slides` 不寫入 detail，由 integrity projection 依 `steps.length` 產生。每個 step 的 `alt` 對新資料必填；既有 legacy 空白 alt 會由 gate 列 warning。
+
+**3. 更新索引投影**
 
 編輯 `procedures/index.json`，在 `procedures` 陣列加一筆：
 
@@ -186,9 +197,10 @@ https://lemonicefate.github.io/entexplainpage/previews/pr-<PR號>/
 {
   "id": "tonsillectomy",
   "title": "扁桃腺切除術",
-  "subtitle": "睡眠呼吸中止 · 4 步驟",
-  "category": "ent",
   "type": "surgery",
+  "category": "ent",
+  "categories": ["ent"],
+  "subtitle": "睡眠呼吸中止 · 4 步驟",
   "region": "頭頸",
   "slides": 4,
   "thumbnail": "images/tonsillectomy/thumb.webp"
@@ -202,15 +214,15 @@ https://lemonicefate.github.io/entexplainpage/previews/pr-<PR號>/
 | `id` | ✅ | 必須與 JSON 檔名、`images/{id}/` 資料夾名一致 |
 | `title` | ✅ | 卡片標題 |
 | `category` | ✅ | 對應 `categories` 其中之一：`surgery` / `ent` / `weight` / `functional` / `supplements` / `internal-medicine` / `calc` |
-| `categories` | 選填 | 多分類陣列；若提供，首頁會以陣列內容篩選，`category` 仍保留為第一個分類做相容與顯示 |
+| `categories` | ✅ | 多分類陣列；`category` 必須等於第一個分類 |
 | `type` | ✅ | `explain`（解釋病情）或 `surgery`（手術流程）——決定首頁篩選籤 |
-| `thumbnail` | ✅ | 首頁卡片縮圖路徑 |
-| `subtitle` | 選填 | 卡片副標；省略則不顯示 |
-| `region` | 選填 | 身體區域標記；省略時卡片改顯示 `type` |
-| `slides` | 選填 | 步驟數；省略時卡片顯示 `slides`，提供時須等於步驟 JSON 的 `steps.length` |
+| `thumbnail` | ✅ | 首頁卡片縮圖路徑，必須位於 `images/{id}/` |
+| `subtitle` | ✅ | 卡片副標；可為空字串 |
+| `region` | ✅ | 身體區域；可為空字串 |
+| `slides` | ✅ | index projection，必須等於 canonical detail 的 `steps.length` |
 
 新增分類就編 `categories` 陣列。若一張圖卡需要同時屬於多個分類，請把 `categories` 寫成陣列，並保留 `category` 為主分類。
-> 資料慣例：snore 是早期完整範例（含 subtitle / region / slides），新加入的條目目前只填必填欄位。
+執行 `npm run integrity` 可在不修改 repository 的前提下檢查上述關係；任何結構、分類、缺圖、重複 ID 或跨內容資產錯誤會使 CI 失敗。
 
 **4. 或使用網頁版編輯器**
 
@@ -222,7 +234,9 @@ npm run admin
 # 主站  ：http://localhost:3001/   （同一個 port，方便邊改邊看）
 ```
 
-可以新增 / 編輯 / 刪除衛教、拖拉調整步驟順序、上傳或替換步驟圖、即時預覽、儲存回 `procedures/*.json`。完成後再 `git diff` 檢查、commit。
+管理端每次新增或編輯都以一個 multipart commit 同時提交 metadata、thumbnail 與全部 steps；Module 會做 validation、projection、資產 ownership、revision conflict 與 rollback。編輯頁會保存 opaque revision/asset handles，拖拉重排不依賴檔名或 multipart 順序。刪除同樣需要最近 revision。只有收到成功 receipt 後表單才會清空；失敗會保留輸入。
+
+手動 JSON 編輯仍受支援；下一次 admin replace/delete 會以目前檔案重新計算 revision，避免舊分頁靜默覆寫。journal recovery 與保證範圍見 [`docs/adr/0002-canonical-procedure-persistence.md`](docs/adr/0002-canonical-procedure-persistence.md)。
 
 ---
 

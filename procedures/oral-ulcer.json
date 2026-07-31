@@ -2,7 +2,13 @@
   "id": "oral-ulcer",
   "title": "口腔潰瘍",
   "type": "explain",
+  "subtitle": "",
+  "region": "",
   "category": "ent",
+  "categories": [
+    "ent"
+  ],
+  "thumbnail": "images/oral-ulcer/thumb.png",
   "steps": [
     {
       "image": "images/oral-ulcer/step1.png",

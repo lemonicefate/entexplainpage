@@ -2,7 +2,13 @@
   "id": "otitis-media-effusion",
   "title": "小兒中耳積水",
   "type": "explain",
+  "subtitle": "",
+  "region": "",
   "category": "ent",
+  "categories": [
+    "ent"
+  ],
+  "thumbnail": "images/otitis-media-effusion/thumb.png",
   "steps": [
     {
       "image": "images/otitis-media-effusion/step1.png",

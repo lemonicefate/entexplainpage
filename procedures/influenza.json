@@ -2,7 +2,13 @@
   "id": "influenza",
   "title": "流感",
   "type": "explain",
+  "subtitle": "",
+  "region": "",
   "category": "ent",
+  "categories": [
+    "ent"
+  ],
+  "thumbnail": "images/influenza/thumb.png",
   "steps": [
     {
       "image": "images/influenza/step1.png",

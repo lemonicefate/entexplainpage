@@ -2,7 +2,13 @@
   "id": "nasal-obstruction",
   "title": "鼻塞",
   "type": "explain",
+  "subtitle": "",
+  "region": "",
   "category": "ent",
+  "categories": [
+    "ent"
+  ],
+  "thumbnail": "images/nasal-obstruction/thumb.webp",
   "steps": [
     {
       "image": "images/nasal-obstruction/step1.webp",

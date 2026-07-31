@@ -2,7 +2,13 @@
   "id": "quit-smoke",
   "title": "戒菸",
   "type": "explain",
+  "subtitle": "",
+  "region": "",
   "category": "ent",
+  "categories": [
+    "ent"
+  ],
+  "thumbnail": "images/quit-smoke/thumb.png",
   "steps": [
     {
       "image": "images/quit-smoke/step1.png",
