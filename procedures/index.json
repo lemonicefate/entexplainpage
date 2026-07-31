@@ -37,7 +37,7 @@
       "category": "internal-medicine",
       "subtitle": "系列性療法 · 14 天療程",
       "slides": 1,
-      "thumbnail": "images/h-pylori-sequential/thumb.png"
+      "thumbnail": "images/h-pylori-sequential/thumb.webp"
     },
     {
       "id": "snore",
@@ -47,7 +47,7 @@
       "type": "explain",
       "region": "頭頸",
       "slides": 7,
-      "thumbnail": "images/snore/thumb.png"
+      "thumbnail": "images/snore/thumb.webp"
     },
     {
       "id": "nasal-obstruction",
@@ -61,77 +61,77 @@
       "title": "聲帶",
       "type": "explain",
       "category": "ent",
-      "thumbnail": "images/vocal-cord/thumb.jpg"
+      "thumbnail": "images/vocal-cord/thumb.webp"
     },
     {
       "id": "influenza",
       "title": "流感",
       "type": "explain",
       "category": "ent",
-      "thumbnail": "images/influenza/thumb.png"
+      "thumbnail": "images/influenza/thumb.webp"
     },
     {
       "id": "quit-smoke",
       "title": "戒菸",
       "type": "explain",
       "category": "ent",
-      "thumbnail": "images/quit-smoke/thumb.png"
+      "thumbnail": "images/quit-smoke/thumb.webp"
     },
     {
       "id": "oral-ulcer",
       "title": "口腔潰瘍",
       "type": "explain",
       "category": "ent",
-      "thumbnail": "images/oral-ulcer/thumb.png"
+      "thumbnail": "images/oral-ulcer/thumb.webp"
     },
     {
       "id": "menieres",
       "title": "梅尼爾氏症",
       "type": "explain",
       "category": "ent",
-      "thumbnail": "images/menieres/thumb.png"
+      "thumbnail": "images/menieres/thumb.webp"
     },
     {
       "id": "tinnitus",
       "title": "耳鳴",
       "type": "explain",
       "category": "ent",
-      "thumbnail": "images/tinnitus/thumb.png"
+      "thumbnail": "images/tinnitus/thumb.webp"
     },
     {
       "id": "ssnhl",
       "title": "突發性耳聾",
       "type": "explain",
       "category": "ent",
-      "thumbnail": "images/ssnhl/thumb.png"
+      "thumbnail": "images/ssnhl/thumb.webp"
     },
     {
       "id": "otitis-media-effusion",
       "title": "小兒中耳積水",
       "type": "explain",
       "category": "ent",
-      "thumbnail": "images/otitis-media-effusion/thumb.png"
+      "thumbnail": "images/otitis-media-effusion/thumb.webp"
     },
     {
       "id": "vitd",
       "title": "維他命D補充",
       "type": "explain",
       "category": "functional",
-      "thumbnail": "images/vitd/thumb.png"
+      "thumbnail": "images/vitd/thumb.webp"
     },
     {
       "id": "atopic-dermatitis",
       "title": "異位性皮膚炎",
       "type": "explain",
       "category": "functional",
-      "thumbnail": "images/atopic-dermatitis/thumb.png"
+      "thumbnail": "images/atopic-dermatitis/thumb.webp"
     },
     {
       "id": "testosterone",
       "title": "睪固酮",
       "type": "explain",
       "category": "functional",
-      "thumbnail": "images/testosterone/thumb.png"
+      "thumbnail": "images/testosterone/thumb.webp"
     },
     {
       "id": "chlorella",
@@ -140,7 +140,7 @@
       "category": "supplements",
       "subtitle": "營養解析 · 5 步驟",
       "slides": 5,
-      "thumbnail": "images/chlorella/thumb.webp"
+      "thumbnail": "images/chlorella/thumb-optimized.webp"
     }
   ]
 }

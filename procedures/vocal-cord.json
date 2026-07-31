@@ -5,13 +5,13 @@
   "category": "ent",
   "steps": [
     {
-      "image": "images/vocal-cord/step1.jpg",
+      "image": "images/vocal-cord/step1.webp",
       "title": "正常聲帶",
       "description": "",
       "alt": ""
     },
     {
-      "image": "images/vocal-cord/step2.jpg",
+      "image": "images/vocal-cord/step2.webp",
       "title": "聲帶結節",
       "description": "",
       "alt": ""
@@ -29,7 +29,7 @@
       "alt": ""
     },
     {
-      "image": "images/vocal-cord/step5.png",
+      "image": "images/vocal-cord/step5.webp",
       "title": "聲帶保養",
       "description": "",
       "alt": ""

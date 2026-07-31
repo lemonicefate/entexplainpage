@@ -151,7 +151,7 @@ describe('Home view', () => {
     expect(mounjaro.getAttribute('src')).toBe('images/mounjaro/mounjaro-logo.svg');
     expect(mounjaro.getAttribute('alt')).toBe('猛健樂針劑換算 (Mounjaro)');
     expect(wegovy).not.toBeNull();
-    expect(wegovy.getAttribute('src')).toBe('images/wegovy/wegovy-logo-nav.png');
+    expect(wegovy.getAttribute('src')).toBe('images/wegovy/wegovy-logo-nav.webp');
     expect(wegovy.getAttribute('alt')).toBe('週纖達針劑換算 (Wegovy)');
   });
 });
