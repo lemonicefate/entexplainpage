@@ -31,6 +31,9 @@ jobs:
       - name: Run vitest
         run: npm test
 
+      - name: Inspect canonical procedure repository
+        run: npm run integrity
+
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-latest

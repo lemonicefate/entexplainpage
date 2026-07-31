@@ -2,7 +2,13 @@
   "id": "vocal-cord",
   "title": "聲帶",
   "type": "explain",
+  "subtitle": "",
+  "region": "",
   "category": "ent",
+  "categories": [
+    "ent"
+  ],
+  "thumbnail": "images/vocal-cord/thumb.jpg",
   "steps": [
     {
       "image": "images/vocal-cord/step1.jpg",

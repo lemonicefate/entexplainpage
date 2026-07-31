@@ -2,7 +2,13 @@
   "id": "vitd",
   "title": "維他命D補充",
   "type": "explain",
+  "subtitle": "",
+  "region": "",
   "category": "functional",
+  "categories": [
+    "functional"
+  ],
+  "thumbnail": "images/vitd/thumb.png",
   "steps": [
     {
       "image": "images/vitd/step1.png",

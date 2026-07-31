@@ -2,7 +2,13 @@
   "id": "menieres",
   "title": "梅尼爾氏症",
   "type": "explain",
+  "subtitle": "",
+  "region": "",
   "category": "ent",
+  "categories": [
+    "ent"
+  ],
+  "thumbnail": "images/menieres/thumb.png",
   "steps": [
     {
       "image": "images/menieres/step1.png",

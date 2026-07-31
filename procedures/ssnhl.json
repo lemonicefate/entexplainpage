@@ -2,7 +2,13 @@
   "id": "ssnhl",
   "title": "突發性耳聾",
   "type": "explain",
+  "subtitle": "",
+  "region": "",
   "category": "ent",
+  "categories": [
+    "ent"
+  ],
+  "thumbnail": "images/ssnhl/thumb.png",
   "steps": [
     {
       "image": "images/ssnhl/step1.png",

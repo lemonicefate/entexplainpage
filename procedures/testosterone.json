@@ -2,7 +2,13 @@
   "id": "testosterone",
   "title": "睪固酮",
   "type": "explain",
+  "subtitle": "",
+  "region": "",
   "category": "functional",
+  "categories": [
+    "functional"
+  ],
+  "thumbnail": "images/testosterone/thumb.png",
   "steps": [
     {
       "image": "images/testosterone/step1.png",
