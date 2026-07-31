@@ -152,7 +152,16 @@ https://lemonicefate.github.io/entexplainpage/previews/pr-<PR號>/
 - `thumb.webp` —— 首頁縮圖（建議 800x600）
 - `step1.webp`、`step2.webp`... —— 每個步驟一張
 
-格式用 `webp` 壓縮效率最好，檔案控制在 200KB 以內。
+格式用 `webp` 壓縮效率最好；thumbnail 控制在 200KB 以內，step 圖以保留醫療文字清晰度為前提，控制在 500KB 以內。
+
+圖片最佳化完成後，發布流程只執行 inventory 驗證，不會在 CI 轉檔：
+
+```bash
+npm run images:inventory
+node scripts/image-inventory.js --write docs/runtime-inventory.json
+```
+
+一次性的轉檔決策與原圖／輸出大小紀錄見 `docs/image-migration.json`；視覺檢查完成後才會保留替換結果。
 
 **2. 新增 canonical detail**
 

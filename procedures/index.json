@@ -41,7 +41,7 @@
       "subtitle": "系列性療法 · 14 天療程",
       "region": "",
       "slides": 1,
-      "thumbnail": "images/h-pylori-sequential/thumb.png"
+      "thumbnail": "images/h-pylori-sequential/thumb.webp"
     },
     {
       "id": "snore",
@@ -54,7 +54,7 @@
       "subtitle": "成因解說 · 7 步驟",
       "region": "頭頸",
       "slides": 7,
-      "thumbnail": "images/snore/thumb.png"
+      "thumbnail": "images/snore/thumb.webp"
     },
     {
       "id": "nasal-obstruction",
@@ -80,7 +80,7 @@
       "subtitle": "",
       "region": "",
       "slides": 5,
-      "thumbnail": "images/vocal-cord/thumb.jpg"
+      "thumbnail": "images/vocal-cord/thumb.webp"
     },
     {
       "id": "influenza",
@@ -93,7 +93,7 @@
       "subtitle": "",
       "region": "",
       "slides": 4,
-      "thumbnail": "images/influenza/thumb.png"
+      "thumbnail": "images/influenza/thumb.webp"
     },
     {
       "id": "quit-smoke",
@@ -106,7 +106,7 @@
       "subtitle": "",
       "region": "",
       "slides": 3,
-      "thumbnail": "images/quit-smoke/thumb.png"
+      "thumbnail": "images/quit-smoke/thumb.webp"
     },
     {
       "id": "oral-ulcer",
@@ -119,7 +119,7 @@
       "subtitle": "",
       "region": "",
       "slides": 4,
-      "thumbnail": "images/oral-ulcer/thumb.png"
+      "thumbnail": "images/oral-ulcer/thumb.webp"
     },
     {
       "id": "menieres",
@@ -132,7 +132,7 @@
       "subtitle": "",
       "region": "",
       "slides": 3,
-      "thumbnail": "images/menieres/thumb.png"
+      "thumbnail": "images/menieres/thumb.webp"
     },
     {
       "id": "tinnitus",
@@ -145,7 +145,7 @@
       "subtitle": "",
       "region": "",
       "slides": 4,
-      "thumbnail": "images/tinnitus/thumb.png"
+      "thumbnail": "images/tinnitus/thumb.webp"
     },
     {
       "id": "ssnhl",
@@ -158,7 +158,7 @@
       "subtitle": "",
       "region": "",
       "slides": 3,
-      "thumbnail": "images/ssnhl/thumb.png"
+      "thumbnail": "images/ssnhl/thumb.webp"
     },
     {
       "id": "otitis-media-effusion",
@@ -171,7 +171,7 @@
       "subtitle": "",
       "region": "",
       "slides": 2,
-      "thumbnail": "images/otitis-media-effusion/thumb.png"
+      "thumbnail": "images/otitis-media-effusion/thumb.webp"
     },
     {
       "id": "vitd",
@@ -184,7 +184,7 @@
       "subtitle": "",
       "region": "",
       "slides": 4,
-      "thumbnail": "images/vitd/thumb.png"
+      "thumbnail": "images/vitd/thumb.webp"
     },
     {
       "id": "atopic-dermatitis",
@@ -197,7 +197,7 @@
       "subtitle": "",
       "region": "",
       "slides": 3,
-      "thumbnail": "images/atopic-dermatitis/thumb.png"
+      "thumbnail": "images/atopic-dermatitis/thumb.webp"
     },
     {
       "id": "testosterone",
@@ -210,7 +210,7 @@
       "subtitle": "",
       "region": "",
       "slides": 2,
-      "thumbnail": "images/testosterone/thumb.png"
+      "thumbnail": "images/testosterone/thumb.webp"
     },
     {
       "id": "chlorella",
@@ -223,7 +223,7 @@
       "subtitle": "營養解析 · 5 步驟",
       "region": "",
       "slides": 5,
-      "thumbnail": "images/chlorella/thumb.webp"
+      "thumbnail": "images/chlorella/thumb-optimized.webp"
     }
   ]
 }
