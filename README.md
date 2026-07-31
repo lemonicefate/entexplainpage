@@ -24,7 +24,7 @@ entexplainpage/
 ├── manifest.json            # PWA manifest
 ├── sw.js                    # Service Worker（必須放 repo 根部，scope 才對）
 ├── css/style.css            # Design tokens + 全站樣式
-├── js/app.js                # IIFE 單檔應用程式
+├── js/app.js                # ClinicCatalog + app shell + calculator implementations
 ├── procedures/
 │   ├── index.json           # 分類 + 衛教/手術列表
 │   ├── snore.json           # 單篇步驟資料（每篇一檔）
@@ -232,34 +232,27 @@ npm run admin
 
 現有五支：`bmi`、`lipid`、`peds-dose`、`mounjaro`、`wegovy`，分別對應 `renderBmi()`、`renderLipid()`、`renderPeds()`、`renderMounjaro()`、`renderWegovy()`。
 
+首頁由 `ClinicCatalog` 將 `procedures/index.json` metadata 與 calculator registrations 投影成同一種 semantic card；Catalog 不載入 procedure detail、不操作 DOM，也不執行計算。新增計算機只需要新增一筆 registration，首頁卡片、計算機 tab、合法 route 與 renderer dispatch 都由同一筆資料提供。
+
 ### 步驟
 
 **1. 登記 metadata（含分頁標籤）**
 
-`js/app.js` 找到 `CALCULATORS` 陣列（約第 76 行），加一筆；`tabLabel` 是分頁列的短標題：
+`js/app.js` 找到 `CALCULATOR_REGISTRATIONS` 陣列（約第 76 行），加一筆；`tabLabel` 是分頁列的短標題，`render` 必須直接指向該計算機的靜態 renderer：
 
 ```js
-var CALCULATORS = [
-  {id:'bmi',       tabLabel:'BMI',     title:'BMI 與肥胖分級',  subtitle:'...', type:'calc', kind:'calc'},
-  {id:'lipid',     tabLabel:'血脂給付', title:'血脂異常用藥健保給付', subtitle:'...', type:'calc', kind:'calc'},
-  {id:'peds-dose', tabLabel:'小兒劑量', title:'小兒劑量（mg/kg）', subtitle:'...', type:'calc', kind:'calc'},
+var CALCULATOR_REGISTRATIONS = [
+  {id:'bmi',       tabLabel:'BMI',     title:'BMI 與肥胖分級',  subtitle:'...', render: renderBmi},
+  {id:'lipid',     tabLabel:'血脂給付', title:'血脂異常用藥健保給付', subtitle:'...', render: renderLipid},
+  {id:'peds-dose', tabLabel:'小兒劑量', title:'小兒劑量（mg/kg）', subtitle:'...', render: renderPeds},
   // 新增：
-  {id:'egfr',      tabLabel:'eGFR',    title:'eGFR 腎功能估算', subtitle:'CKD-EPI 2021', type:'calc', kind:'calc'}
+  {id:'egfr',      tabLabel:'eGFR',    title:'eGFR 腎功能估算', subtitle:'CKD-EPI 2021', render: renderEgfr}
 ];
 ```
 
-**2. 接 router**
+不要另外修改 tabs 或 router dispatch；registration 不需要重複宣告 `type`、`kind`、`category`。`#/calc/<id>` 必須是完整且合法的 route；`#/calc`、未知 id、尾端多餘 slash 與額外 path 都回首頁，不會執行 renderer。
 
-`enterCalc(id)` 函式（約第 831 行）加一個分支：
-
-```js
-if (id === 'bmi') renderBmi();
-else if (id === 'lipid') renderLipid();
-else if (id === 'peds-dose') renderPeds();
-else if (id === 'egfr') renderEgfr();   // ← 新增
-```
-
-**3. 寫 render 函式**
+**2. 寫 render 函式**
 
 仿照 `renderBmi()`（約 995 行）。可用的共用 helpers：
 
@@ -297,7 +290,7 @@ function renderEgfr() {
 }
 ```
 
-**4. 補測試**
+**3. 補測試**
 
 `tests/unit/app.test.js` 加一條：
 

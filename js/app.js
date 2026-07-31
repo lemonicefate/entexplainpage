@@ -8,7 +8,8 @@
   // --- State ---
   var state = {
     categories: [],
-    procedures: [],
+    catalog: null,
+    procedureStatus: 'loading',     // loading | available | unavailable
     activeCategory: 'all',       // all | surgery | ent | weight | functional | supplements | internal-medicine | calc
     query: '',
     pins: loadPins(),
@@ -73,16 +74,215 @@
   // ============================================================
   // Static metadata: built-in calculators (separate from JSON data)
   // ============================================================
-  var CALCULATORS = [
-    {id:'bmi',       title:'BMI 與肥胖分級',  subtitle:'身高體重 → BMI + 國健署分級',  type:'calc', kind:'calc', category:'calc', categories:['calc'], tabLabel:'BMI'},
-    {id:'lipid',     title:'血脂異常用藥健保給付', subtitle:'LDL/HDL/TG/TC + 病人類別 → Statin / Fibrate 健保給付判定', type:'calc', kind:'calc', category:'calc', categories:['calc'], tabLabel:'血脂給付'},
-    {id:'peds-dose', title:'小兒劑量（mg/kg）', subtitle:'體重 + 目標劑量 → 總 mg + ml 數', type:'calc', kind:'calc', category:'calc', categories:['calc'], tabLabel:'小兒劑量'},
-    {id:'mounjaro',  title:'猛健樂針劑換算 (Mounjaro)', subtitle:'Tirzepatide 筆針劑量、刻度與殘劑互算', type:'calc', kind:'calc', category:'calc', categories:['calc'], tabLabel:'猛健樂', thumbnail:'images/mounjaro/mounjaro-logo.svg', thumbnailMode:'logo'},
-    {id:'wegovy',    title:'週纖達針劑換算 (Wegovy)', subtitle:'Semaglutide FlexTouch 諾特筆劑量、體積與喀噠互算', type:'calc', kind:'calc', category:'calc', categories:['calc'], tabLabel:'週纖達', thumbnail:'images/wegovy/wegovy-logo-nav.png', thumbnailMode:'logo'}
+  var CALCULATOR_REGISTRATIONS = [
+    {id:'bmi',       title:'BMI 與肥胖分級',  subtitle:'身高體重 → BMI + 國健署分級',  tabLabel:'BMI', render: renderBmi},
+    {id:'lipid',     title:'血脂異常用藥健保給付', subtitle:'LDL/HDL/TG/TC + 病人類別 → Statin / Fibrate 健保給付判定', tabLabel:'血脂給付', render: renderLipid},
+    {id:'peds-dose', title:'小兒劑量（mg/kg）', subtitle:'體重 + 目標劑量 → 總 mg + ml 數', tabLabel:'小兒劑量', render: renderPeds},
+    {id:'mounjaro',  title:'猛健樂針劑換算 (Mounjaro)', subtitle:'Tirzepatide 筆針劑量、刻度與殘劑互算', tabLabel:'猛健樂', thumbnail:'images/mounjaro/mounjaro-logo.svg', thumbnailMode:'logo', render: renderMounjaro},
+    {id:'wegovy',    title:'週纖達針劑換算 (Wegovy)', subtitle:'Semaglutide FlexTouch 諾特筆劑量、體積與喀噠互算', tabLabel:'週纖達', thumbnail:'images/wegovy/wegovy-logo-nav.png', thumbnailMode:'logo', render: renderWegovy}
   ];
 
-  var TYPE_LABELS = { explain: '解釋病情', surgery: '手術流程', calc: '計算機' };
-  var CATEGORY_LABELS = {};
+  // ============================================================
+  // Clinic catalog
+  //
+  // This is deliberately a data-only boundary. Adapters turn the two
+  // application inputs (procedure metadata and calculator registrations)
+  // into one semantic item shape. Nothing here knows about DOM, procedure
+  // detail JSON, reader state, or calculator implementation.
+  // ============================================================
+  var ClinicCatalog = (function () {
+    function validationError(message) {
+      var error = new Error('ClinicCatalog validation error: ' + message);
+      error.name = 'ClinicCatalogValidationError';
+      return error;
+    }
+
+    function requiredString(value, field, index) {
+      if (typeof value !== 'string' || !value.trim()) {
+        throw validationError(field + ' is required at index ' + index);
+      }
+      return value.trim();
+    }
+
+    function normalizeCategories(value) {
+      var values = Array.isArray(value) ? value : [value];
+      return values.filter(function (id) {
+        return typeof id === 'string' && id.trim();
+      }).map(function (id) { return id.trim(); });
+    }
+
+    function create(options) {
+      options = options || {};
+      if (!Array.isArray(options.categories)) {
+        throw validationError('categories must be an array');
+      }
+      if (!Array.isArray(options.procedures)) {
+        throw validationError('procedures must be an array');
+      }
+      if (!Array.isArray(options.calculators)) {
+        throw validationError('calculators must be an array');
+      }
+
+      var categoryMap = Object.create(null);
+      var categories = [];
+      options.categories.forEach(function (category, index) {
+        if (!category || typeof category !== 'object') {
+          throw validationError('category must be an object at index ' + index);
+        }
+        var id = requiredString(category.id, 'category.id', index);
+        var title = requiredString(category.title, 'category.title', index);
+        if (categoryMap[id]) throw validationError('duplicate category id ' + id);
+        categoryMap[id] = { id: id, title: title };
+        categories.push(categoryMap[id]);
+      });
+      if (!categoryMap.calc) {
+        categoryMap.calc = { id: 'calc', title: '計算機' };
+        categories.push(categoryMap.calc);
+      }
+
+      var ids = Object.create(null);
+      function registerId(id, source, index) {
+        if (ids[id]) throw validationError('duplicate id ' + id + ' (' + ids[id] + ' and ' + source + ' at index ' + index + ')');
+        ids[id] = source + ' at index ' + index;
+      }
+      function validateItemCategories(itemCategories, source, index) {
+        if (!itemCategories.length) throw validationError(source + ' must have at least one category at index ' + index);
+        var seen = Object.create(null);
+        itemCategories.forEach(function (id) {
+          if (!categoryMap[id]) throw validationError(source + ' has unknown category ' + id + ' at index ' + index);
+          if (seen[id]) throw validationError(source + ' repeats category ' + id + ' at index ' + index);
+          seen[id] = true;
+        });
+      }
+
+      function procedureAdapter(procedure, index) {
+        if (!procedure || typeof procedure !== 'object') {
+          throw validationError('procedure must be an object at index ' + index);
+        }
+        var id = requiredString(procedure.id, 'procedure.id', index);
+        if (id.indexOf('/') !== -1) throw validationError('procedure.id cannot contain /: ' + id);
+        var title = requiredString(procedure.title, 'procedure.title', index);
+        var type = requiredString(procedure.type, 'procedure.type', index);
+        if (type !== 'explain' && type !== 'surgery') {
+          throw validationError('procedure.type must be explain or surgery at index ' + index);
+        }
+        var categoriesFromArray = Array.isArray(procedure.categories) ? normalizeCategories(procedure.categories) : [];
+        var itemCategories = categoriesFromArray.length ? categoriesFromArray : normalizeCategories(procedure.category);
+        validateItemCategories(itemCategories, 'procedure', index);
+        requiredString(procedure.thumbnail, 'procedure.thumbnail', index);
+        registerId(id, 'procedure', index);
+        var slides = procedure.slides == null ? null : Number(procedure.slides);
+        if (slides != null && (!Number.isInteger(slides) || slides < 1)) {
+          throw validationError('procedure.slides must be a positive integer at index ' + index);
+        }
+        var firstCategory = itemCategories[0];
+        return {
+          id: id,
+          title: title,
+          subtitle: typeof procedure.subtitle === 'string' ? procedure.subtitle : '',
+          region: typeof procedure.region === 'string' ? procedure.region : '',
+          slides: slides,
+          categories: itemCategories.slice(),
+          href: '#/' + id,
+          cover: {
+            src: procedure.thumbnail.trim(),
+            mode: 'image',
+            fallback: ((procedure.region || type) + ' · ' + (slides || '?') + ' slides').trim()
+          },
+          tag: { id: firstCategory, label: categoryMap[firstCategory].title }
+        };
+      }
+
+      function calculatorAdapter(calculator, index) {
+        if (!calculator || typeof calculator !== 'object') {
+          throw validationError('calculator must be an object at index ' + index);
+        }
+        var id = requiredString(calculator.id, 'calculator.id', index);
+        if (id.indexOf('/') !== -1) throw validationError('calculator.id cannot contain /: ' + id);
+        var title = requiredString(calculator.title, 'calculator.title', index);
+        var tabLabel = requiredString(calculator.tabLabel, 'calculator.tabLabel', index);
+        if (typeof calculator.render !== 'function') {
+          throw validationError('calculator.render is required at index ' + index);
+        }
+        registerId(id, 'calculator', index);
+        return {
+          id: id,
+          title: title,
+          subtitle: typeof calculator.subtitle === 'string' ? calculator.subtitle : '',
+          tabLabel: tabLabel,
+          categories: ['calc'],
+          href: '#/calc/' + id,
+          cover: {
+            src: typeof calculator.thumbnail === 'string' ? calculator.thumbnail : '',
+            mode: calculator.thumbnailMode === 'logo' ? 'logo' : 'image',
+            fallback: 'calculator'
+          },
+          tag: { id: 'calc', label: categoryMap.calc.title },
+          render: calculator.render
+        };
+      }
+
+      var procedureItems = options.procedures.map(procedureAdapter);
+      var calculatorItems = options.calculators.map(calculatorAdapter);
+      var allItems = procedureItems.concat(calculatorItems);
+
+      function items() { return allItems.slice(); }
+      function item(id) { return allItems.find(function (candidate) { return candidate.id === id; }); }
+      function calculators() { return calculatorItems.slice(); }
+      function filter(queryOptions) {
+        queryOptions = queryOptions || {};
+        var selectedCategory = queryOptions.category || 'all';
+        var query = typeof queryOptions.query === 'string' ? queryOptions.query.trim().toLocaleLowerCase('zh-Hant') : '';
+        var pinnedIds = Array.isArray(queryOptions.pinnedIds) ? queryOptions.pinnedIds : [];
+        var filtered = allItems.filter(function (candidate) {
+          if (selectedCategory !== 'all' && candidate.categories.indexOf(selectedCategory) === -1) return false;
+          if (!query) return true;
+          return [candidate.title, candidate.subtitle, candidate.region].some(function (text) {
+            return text.toLocaleLowerCase('zh-Hant').indexOf(query) !== -1;
+          });
+        });
+        filtered.sort(function (a, b) {
+          var ap = pinnedIds.indexOf(a.id) === -1 ? 1 : 0;
+          var bp = pinnedIds.indexOf(b.id) === -1 ? 1 : 0;
+          if (ap !== bp) return ap - bp;
+          var titleOrder = a.title.localeCompare(b.title, 'zh-Hant');
+          return titleOrder || a.id.localeCompare(b.id);
+        });
+        return filtered;
+      }
+      function resolve(hash) {
+        if (hash === '' || hash === '#') return { kind: 'home' };
+        var calcMatch = /^#\/calc\/([^/]+)$/.exec(hash);
+        if (calcMatch) {
+          var calc = calculatorItems.find(function (candidate) { return candidate.id === calcMatch[1]; });
+          return calc ? { kind: 'calculator', id: calc.id, item: calc, render: calc.render } : { kind: 'not-found' };
+        }
+        if (/^#\/calc(?:\/|$)/.test(hash)) return { kind: 'not-found' };
+        var procedureMatch = /^#\/([^/]+)$/.exec(hash);
+        if (procedureMatch) {
+          var procedure = procedureItems.find(function (candidate) { return candidate.id === procedureMatch[1]; });
+          return procedure ? { kind: 'procedure', id: procedure.id, item: procedure } : { kind: 'not-found' };
+        }
+        return { kind: 'not-found' };
+      }
+
+      return {
+        categories: function () { return categories.slice(); },
+        items: items,
+        item: item,
+        calculators: calculators,
+        filter: filter,
+        resolve: resolve
+      };
+    }
+
+    return { create: create };
+  })();
+
+  if (typeof window !== 'undefined') {
+    window.ClinicCatalog = ClinicCatalog;
+    window.__ClinicCatalog = ClinicCatalog;
+  }
 
   // SVG namespace and helpers (avoid innerHTML so we don't trip XSS heuristics)
   var SVG_NS = 'http://www.w3.org/2000/svg';
@@ -131,6 +331,16 @@
     if (!homeView || !slideView || !calcView || !searchInput || !categoryChips || !resultCount || !gridContainer || !gridEmpty || !gridError || !calcBack || !calcTabs || !calcBody) {
       return;
     }
+    // Validate program configuration outside the procedure fetch boundary.
+    // A broken calculator registration is a developer error, not a partial
+    // content-load condition.
+    state.catalog = ClinicCatalog.create({
+      categories: [],
+      procedures: [],
+      calculators: CALCULATOR_REGISTRATIONS
+    });
+    state.procedureStatus = 'loading';
+    syncCatalogMetadata();
     setupSearch();
     setupKeyboard();
     setupRouting();
@@ -147,35 +357,39 @@
   }
 
   function loadIndex() {
-    fetch('procedures/index.json')
+    var calculatorCatalog = state.catalog;
+    Promise.resolve()
+      .then(function () { return fetch('procedures/index.json'); })
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function (data) {
-        state.categories = data.categories || [];
-        CATEGORY_LABELS = {};
-        state.categories.forEach(function (cat) { CATEGORY_LABELS[cat.id] = cat.title; });
-        state.procedures = (data.procedures || []).map(normalizeProcedure);
+        // This create is inside the procedure boundary intentionally: any
+        // malformed procedure metadata disables the whole procedure set.
+        state.catalog = ClinicCatalog.create({
+          categories: data.categories,
+          procedures: data.procedures,
+          calculators: CALCULATOR_REGISTRATIONS
+        });
+        state.procedureStatus = 'available';
+        syncCatalogMetadata();
         renderCategoryChips();
         renderGrid();
         handleRoute();
       })
-      .catch(function () { showGridError(); });
+      .catch(function () {
+        // Keep the already-validated static calculator catalog. Do not show a
+        // partial set of medical content when one procedure is malformed.
+        state.catalog = calculatorCatalog;
+        state.procedureStatus = 'unavailable';
+        state.activeCategory = 'all';
+        syncCatalogMetadata();
+        renderCategoryChips();
+        renderGrid();
+        handleRoute();
+      });
   }
 
-  function normalizeProcedure(p) {
-    var categories = Array.isArray(p.categories) ? p.categories.filter(Boolean) : [];
-    if (!categories.length && p.category) categories = [p.category];
-    return {
-      id: p.id,
-      title: p.title,
-      category: categories[0] || p.category || '',
-      categories: categories,
-      thumbnail: p.thumbnail || '',
-      subtitle: p.subtitle || '',
-      type: p.type || 'surgery',         // explain | surgery
-      region: p.region || '',
-      slides: p.slides || null,
-      kind: 'project'
-    };
+  function syncCatalogMetadata() {
+    state.categories = state.catalog ? state.catalog.categories() : [];
   }
 
   function loadProcedure(id) {
@@ -228,52 +442,19 @@
     });
   }
 
-  function getAllItems() {
-    var items = state.procedures.slice();
-    CALCULATORS.forEach(function (c) { items.push(c); });
-    return items;
-  }
-
-  function getItemCategories(item) {
-    if (!item) return [];
-    if (Array.isArray(item.categories)) return item.categories.filter(Boolean);
-    if (item.category) return [item.category];
-    return [];
-  }
-
-  function matchesCategory(item, selectedCategory) {
-    if (!selectedCategory || selectedCategory === 'all') return true;
-    return getItemCategories(item).indexOf(selectedCategory) !== -1;
-  }
-
   function getFilteredItems() {
-    var items = getAllItems();
-
-    if (state.activeCategory && state.activeCategory !== 'all') {
-      items = items.filter(function (i) { return matchesCategory(i, state.activeCategory); });
-    }
-
-    var q = state.query.trim().toLowerCase();
-    if (q) {
-      items = items.filter(function (i) {
-        return (i.title || '').toLowerCase().indexOf(q) !== -1
-            || (i.subtitle || '').toLowerCase().indexOf(q) !== -1
-            || (i.region || '').toLowerCase().indexOf(q) !== -1;
-      });
-    }
-
-    items.sort(function (a, b) {
-      var ap = isPinned(a.id) ? 0 : 1;
-      var bp = isPinned(b.id) ? 0 : 1;
-      if (ap !== bp) return ap - bp;
-      return (a.title || '').localeCompare(b.title || '', 'zh-Hant');
+    if (!state.catalog) return [];
+    return state.catalog.filter({
+      category: state.activeCategory,
+      query: state.query,
+      pinnedIds: state.pins
     });
-    return items;
   }
 
   function renderGrid() {
     gridEmpty.hidden = true;
-    gridError.hidden = true;
+    gridError.hidden = state.procedureStatus !== 'unavailable';
+    if (state.procedureStatus === 'unavailable') showGridError();
 
     var items = getFilteredItems();
     if (resultCount) resultCount.textContent = items.length + ' 個項目';
@@ -294,28 +475,26 @@
     var pinned = isPinned(item.id);
     var card = document.createElement('a');
     card.className = 'card' + (pinned ? ' is-pinned' : '');
-    card.href = item.kind === 'calc' ? '#/calc/' + item.id : '#/' + item.id;
+    card.href = item.href;
     card.setAttribute('aria-label', item.title);
 
-    if (item.thumbnail) {
+    if (item.cover.src) {
       var img = document.createElement('img');
-      img.className = 'card-thumb' + (item.thumbnailMode === 'logo' ? ' card-thumb-logo' : '');
-      img.src = item.thumbnail;
+      img.className = 'card-thumb' + (item.cover.mode === 'logo' ? ' card-thumb-logo' : '');
+      img.src = item.cover.src;
       img.alt = item.title;
       img.loading = 'lazy';
       img.onerror = function () {
         var ph = document.createElement('div');
         ph.className = 'card-thumb is-fallback';
-        ph.textContent = (item.region || item.type) + ' · ' + (item.slides || '?') + ' slides';
+        ph.textContent = item.cover.fallback;
         img.replaceWith(ph);
       };
       card.appendChild(img);
     } else {
       var ph = document.createElement('div');
       ph.className = 'card-thumb';
-      ph.textContent = item.kind === 'calc'
-        ? 'calculator'
-        : ((item.region || item.type || '') + ' · ' + (item.slides ? item.slides + ' slides' : 'slides')).trim();
+      ph.textContent = item.cover.fallback;
       card.appendChild(ph);
     }
 
@@ -336,10 +515,8 @@
     foot.className = 'card-foot';
 
     var tag = document.createElement('span');
-    var tagKey = item.type === 'calc' ? 'calc' : (getItemCategories(item)[0] || item.category || item.type || 'explain');
-    if (tagKey !== 'calc' && !CATEGORY_LABELS[tagKey] && tagKey !== 'surgery' && tagKey !== 'explain') tagKey = 'explain';
-    tag.className = 'tag tag-' + tagKey;
-    tag.textContent = tagKey === 'calc' ? TYPE_LABELS.calc : (CATEGORY_LABELS[tagKey] || TYPE_LABELS[item.type] || '項目');
+    tag.className = 'tag tag-' + item.tag.id;
+    tag.textContent = item.tag.label;
     foot.appendChild(tag);
 
     var pinBtn = document.createElement('button');
@@ -356,10 +533,12 @@
   }
 
   function showGridError() {
-    gridContainer.textContent = '';
-    gridEmpty.hidden = true;
-    gridError.hidden = false;
-    resultCount.textContent = '';
+    gridError.textContent = '';
+    gridError.appendChild(el('p', { class: 'empty-title' }, ['衛教內容暫時無法載入']));
+    gridError.appendChild(el('p', { class: 'empty-sub' }, ['圖卡目錄驗證或載入失敗，已暫停顯示醫療內容；計算機仍可使用。']));
+    var retry = el('button', { class: 'btn-primary', type: 'button' }, ['重新整理']);
+    retry.addEventListener('click', function () { window.location.reload(); });
+    gridError.appendChild(retry);
   }
 
   // ============================================================
@@ -379,7 +558,7 @@
   }
 
   // ============================================================
-  // Routing  (#  | #/<id> | #/calc | #/calc/<id>)
+  // Routing  (#  | #/<id> | #/calc/<id>)
   // ============================================================
   function setupRouting() {
     window.addEventListener('hashchange', handleRoute);
@@ -387,13 +566,22 @@
 
   function handleRoute() {
     var hash = window.location.hash || '';
-    if (hash.indexOf('#/calc') === 0) {
-      var calcId = hash.slice('#/calc'.length).replace(/^\//, '') || 'bmi';
-      enterCalc(calcId);
+    if (!state.catalog) return;
+    // While the index is pending, retain a direct calculator route. A
+    // procedure route waits for the all-or-nothing procedure result instead
+    // of being mistaken for an unknown id.
+    if (state.procedureStatus === 'loading' && /^#\/(?!calc(?:\/|$))/.test(hash)) return;
+    var destination = state.catalog.resolve(hash);
+    if (destination.kind === 'calculator') {
+      enterCalc(destination);
       return;
     }
-    if (hash.indexOf('#/') === 0 && hash.length > 2) {
-      enterPlayer(hash.slice(2));
+    if (destination.kind === 'procedure') {
+      enterPlayer(destination.id);
+      return;
+    }
+    if (destination.kind === 'not-found' && hash) {
+      window.location.hash = '';
       return;
     }
     exitToHome();
@@ -421,8 +609,8 @@
   // Player
   // ============================================================
   function enterPlayer(id) {
-    var proc = state.procedures.find(function (p) { return p.id === id; });
-    if (!proc) { window.location.hash = ''; return; }
+    var proc = state.catalog && state.catalog.item(id);
+    if (!proc || !proc.href || proc.href.indexOf('#/calc/') === 0) { window.location.hash = ''; return; }
 
     loadProcedure(id)
       .then(function (data) {
@@ -855,28 +1043,29 @@
   // Calculator page
   // ============================================================
   function setupCalcShell() {
-    CALCULATORS.forEach(function (c) {
+    calcTabs.textContent = '';
+    state.catalog.calculators().forEach(function (c) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'calc-tab';
       btn.dataset.calc = c.id;
       btn.textContent = c.tabLabel;
-      btn.addEventListener('click', function () { window.location.hash = '#/calc/' + c.id; });
+      btn.addEventListener('click', function () { window.location.hash = c.href; });
       calcTabs.appendChild(btn);
     });
   }
 
-  function enterCalc(id) {
-    if (CALCULATORS.findIndex(function (c) { return c.id === id; }) < 0) id = 'bmi';
+  function enterCalc(destination) {
+    var calculator = destination && destination.item;
+    if (!calculator || typeof destination.render !== 'function') {
+      window.location.hash = '';
+      return;
+    }
     switchView(calcView);
     Array.prototype.forEach.call(calcTabs.children, function (b) {
-      b.classList.toggle('is-active', b.dataset.calc === id);
+      b.classList.toggle('is-active', b.dataset.calc === calculator.id);
     });
-    if (id === 'bmi') renderBmi();
-    else if (id === 'lipid') renderLipid();
-    else if (id === 'peds-dose') renderPeds();
-    else if (id === 'mounjaro') renderMounjaro();
-    else if (id === 'wegovy') renderWegovy();
+    destination.render();
   }
 
   // ---------- Shared calc helpers ----------
@@ -1668,6 +1857,7 @@
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
       state: state,
+      ClinicCatalog: ClinicCatalog,
       goNext: goNext,
       goPrev: goPrev,
       mounjaroCalc: mounjaroCalc,
