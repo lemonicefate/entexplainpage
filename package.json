@@ -10,6 +10,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "inspect": "node scripts/inspect-procedures.js",
+    "integrity": "node scripts/inspect-procedures.js",
+    "migrate:canonical": "node scripts/migrate-canonical.js",
+    "images:inventory": "node scripts/image-inventory.js --check",
     "serve": "npx serve .",
     "admin": "node scripts/admin.js"
   },

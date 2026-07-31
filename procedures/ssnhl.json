@@ -2,22 +2,28 @@
   "id": "ssnhl",
   "title": "突發性耳聾",
   "type": "explain",
+  "subtitle": "",
+  "region": "",
   "category": "ent",
+  "categories": [
+    "ent"
+  ],
+  "thumbnail": "images/ssnhl/thumb.webp",
   "steps": [
     {
-      "image": "images/ssnhl/step1.png",
+      "image": "images/ssnhl/step1.webp",
       "title": "突發性耳聾的原因",
       "description": "",
       "alt": ""
     },
     {
-      "image": "images/ssnhl/step2.png",
+      "image": "images/ssnhl/step2.webp",
       "title": "突發性耳聾的治療",
       "description": "",
       "alt": ""
     },
     {
-      "image": "images/ssnhl/step3.png",
+      "image": "images/ssnhl/step3.webp",
       "title": "突發性耳聾的保養",
       "description": "",
       "alt": ""

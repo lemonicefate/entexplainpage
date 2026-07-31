@@ -515,6 +515,29 @@ img.card-thumb-logo {
   overflow: hidden;
 }
 
+.reader-state {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  background: var(--player-bg);
+  text-align: center;
+  pointer-events: none;
+}
+.reader-state-title { font-size: 18px; font-weight: 600; }
+.reader-state-sub { color: rgba(255,255,255,0.65); font-size: 14px; }
+#slide-view.reader-loading .player-stage { touch-action: none; }
+#slide-view.reader-loading .player-controls,
+#slide-view.reader-loading .thumb-strip,
+#slide-view.reader-loading .player-scrubber { pointer-events: none; }
+#slide-view.reader-loading #tap-zones,
+#slide-view.reader-loading .pen-canvas { pointer-events: none; }
+
 .slide-image {
   width: 100%;
   height: 100%;
@@ -1013,6 +1036,24 @@ img.card-thumb-logo {
   background: var(--warn-bg);
   color: var(--warn-fg);
   font-weight: 500;
+}
+.pen-source-panel {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--tint-2);
+  line-height: 1.7;
+}
+.pen-source-panel > strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--teal-2);
+}
+.pen-source-panel a {
+  color: var(--teal-2);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .summary {

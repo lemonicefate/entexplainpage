@@ -2,28 +2,34 @@
   "id": "vitd",
   "title": "維他命D補充",
   "type": "explain",
+  "subtitle": "",
+  "region": "",
   "category": "functional",
+  "categories": [
+    "functional"
+  ],
+  "thumbnail": "images/vitd/thumb.webp",
   "steps": [
     {
-      "image": "images/vitd/step1.png",
+      "image": "images/vitd/step1.webp",
       "title": "維他命D補充公式",
       "description": "",
       "alt": "維他命D補充公式"
     },
     {
-      "image": "images/vitd/step2.png",
+      "image": "images/vitd/step2.webp",
       "title": "維他命D補充範例",
       "description": "",
       "alt": "維他命D補充範例"
     },
     {
-      "image": "images/vitd/step3.png",
+      "image": "images/vitd/step3.webp",
       "title": "維他命D實證",
       "description": "",
       "alt": "維他命D實證"
     },
     {
-      "image": "images/vitd/step4.png",
+      "image": "images/vitd/step4.webp",
       "title": "範例與實證（濃縮版）",
       "description": "",
       "alt": "維他命D補充範例實證濃縮版"

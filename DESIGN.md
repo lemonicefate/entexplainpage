@@ -13,7 +13,7 @@
 |------|------|
 | 解釋病情（explain） | 多頁圖卡，解剖圖、分級、治療選擇 |
 | 手術流程（surgery） | 步驟式圖卡，從術前到術後 |
-| 醫學計算機（calc） | BMI、血脂異常用藥健保給付（Statin / Fibrate）、小兒劑量、Mounjaro 針劑換算 |
+| 醫學計算機（calc） | BMI、血脂異常用藥健保給付（Statin / Fibrate）、小兒劑量、Mounjaro / Wegovy 針劑換算 |
 
 **設計取向：** Warm Teal × Peach。專業、眼睛舒適、適合長時間閱讀。
 
@@ -163,7 +163,9 @@ CSS custom property 定義於 `:root`，禁止 hardcode hex（測試會擋）。
 - 卡片懸停：`translateY(-2px)` + `--shadow-hover`
 - 釘選卡片底色：`--surface-pin`（米黃）
 - ⌘K 聚焦搜尋；Esc 清除查詢
-- Filter 排序：釘選優先 → 中文標題 localeCompare
+- `ClinicCatalog` 將 procedure metadata 與靜態 calculator registration 投影成同一種 semantic item；卡片 renderer 只消費 `href`、`cover`、`tag`。
+- Filter/search 排序由 Catalog 驗證：釘選優先 → 中文標題 localeCompare；`categories[]` 空白時才 fallback 到舊式 `category`。
+- Calculator registration 自動投影到 `calc` 分類，因此 `calc` 可同時顯示 calculators 與交叉分類到 `calc` 的 procedure。
 
 ### 4.2 投影片播放器（PlayerPage）
 
@@ -247,6 +249,7 @@ CSS custom property 定義於 `:root`，禁止 hardcode hex（測試會擋）。
 - 規則 RuleList：`●` 符合（綠）/ `○` 不符合（灰）
 - 摘要：虛線邊框 + `--tint-2` 底色
 - 行動按鈕：「列印」（ghost）
+- 筆針來源與安全基線：`.pen-source-panel` 使用 `--tint-2`、`--line` 與 `--teal-2`，固定顯示適用市場／筆型、可追溯來源、版本、最後查核日與醫療人員限定提示；來源連結保留鍵盤 focus 與底線，不把估算值呈現為官方標示。
 - ≤768px：單欄；結果卡取消 sticky
 
 ### 4.4 共用元件清單
@@ -294,7 +297,12 @@ CSS custom property 定義於 `:root`，禁止 hardcode hex（測試會擋）。
 |------|------|
 | `` 或 `#` | 首頁 |
 | `#/<id>` | 播放器，載入 `procedures/<id>.json` |
-| `#/calc` 或 `#/calc/<id>` | 計算機（id: `bmi` / `lipid` / `peds-dose` / `mounjaro`） |
+| `#/calc/<id>` | 計算機；id 必須來自單一 calculator registration |
+| `#/calc`、未知 id、尾端 slash 或額外 path | not-found，返回首頁且不執行 renderer |
+
+路由 destination 由 `ClinicCatalog` 精確解析；app shell 只負責切換 Home / Reader / Calculator view，並呼叫 registration 提供的靜態 renderer。Procedure route 仍由 Reader 載入 `procedures/<id>.json` detail。
+
+若 procedure index 網路、HTTP、JSON 或 metadata validation 失敗，procedure projection 以整批 unavailable 處理：首頁顯示可辨識的錯誤訊息，只保留靜態 calculator cards；`calc` 分類、合法 calculator route 與 tabs 仍可用。單一壞 procedure 不會被靜默略過。Calculator registration 的 validation 在 fetch boundary 外執行，組態錯誤不會被包裝成 procedure 部分載入。
 
 LocalStorage：
 - `clinic_pins`：已釘選 id 陣列

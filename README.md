@@ -12,7 +12,7 @@
 - **離線可用**：Service Worker 預載核心資源，iPad 連線不穩也能解說。
 - **Reader 模式**：仿電子書體驗——點左右換頁、點中間叫出工具列、下方拖拉桿快速跳頁、3 秒後工具自動淡出。
 - **診間工具**：畫筆、聚光燈、雷射指標，支援滑鼠、觸控、Apple Pencil（Pointer Events 統一處理）。
-- **內建計算機**：BMI、血脂異常用藥健保給付（Statin / Fibrate）、小兒劑量、Mounjaro 針劑分抽 / 殘劑換算、Wegovy FlexTouch off-label 換算。
+- **內建計算機**：BMI、血脂異常用藥健保給付（Statin / Fibrate）、小兒劑量、Mounjaro KwikPen 與 Wegovy FlexTouch 的醫療人員 off-label 換算參考。
 
 ---
 
@@ -24,16 +24,18 @@ entexplainpage/
 ├── manifest.json            # PWA manifest
 ├── sw.js                    # Service Worker（必須放 repo 根部，scope 才對）
 ├── css/style.css            # Design tokens + 全站樣式
-├── js/app.js                # IIFE 單檔應用程式
+├── js/app.js                # ClinicCatalog + app shell + calculator implementations
 ├── procedures/
-│   ├── index.json           # 分類 + 衛教/手術列表
-│   ├── snore.json           # 單篇步驟資料（每篇一檔）
+│   ├── index.json           # 分類 + canonical detail 的策展投影
+│   ├── snore.json           # 單篇 canonical detail（每篇一檔）
 │   └── nasal-obstruction.json
 ├── images/{id}/             # 對應的縮圖與步驟圖
 │   ├── thumb.webp           # 也接受 png/jpg
 │   └── step1.webp ...
 ├── admin.html               # 網頁版編輯器（搭配 scripts/admin.js）
 ├── scripts/admin.js         # 本機編輯用 API server
+├── persistence/              # read / commit / inspect Module 與 journal recovery
+├── scripts/inspect-procedures.js # 唯讀 canonical integrity gate
 ├── tests/
 │   ├── unit/                # vitest + jsdom
 │   └── e2e/                 # Playwright
@@ -74,6 +76,7 @@ npm run admin
 ```bash
 npm test              # 跑一次
 npm run test:watch    # watch 模式
+npm run integrity     # 檢查 canonical detail/index/asset 一致性
 ```
 
 涵蓋：Service Worker 路徑、manifest scope、app 初始化、Reader 模式 DOM、CSS tokens、工具列互動等。
@@ -149,9 +152,18 @@ https://lemonicefate.github.io/entexplainpage/previews/pr-<PR號>/
 - `thumb.webp` —— 首頁縮圖（建議 800x600）
 - `step1.webp`、`step2.webp`... —— 每個步驟一張
 
-格式用 `webp` 壓縮效率最好，檔案控制在 200KB 以內。
+格式用 `webp` 壓縮效率最好；thumbnail 控制在 200KB 以內，step 圖以保留醫療文字清晰度為前提，控制在 500KB 以內。
 
-**2. 新增步驟資料**
+圖片最佳化完成後，發布流程只執行 inventory 驗證，不會在 CI 轉檔：
+
+```bash
+npm run images:inventory
+node scripts/image-inventory.js --write docs/runtime-inventory.json
+```
+
+一次性的轉檔決策與原圖／輸出大小紀錄見 `docs/image-migration.json`；視覺檢查完成後才會保留替換結果。
+
+**2. 新增 canonical detail**
 
 在 `procedures/` 新增 `{id}.json`：
 
@@ -159,6 +171,12 @@ https://lemonicefate.github.io/entexplainpage/previews/pr-<PR號>/
 {
   "id": "tonsillectomy",
   "title": "扁桃腺切除術",
+  "type": "surgery",
+  "subtitle": "睡眠呼吸中止 · 4 步驟",
+  "region": "頭頸",
+  "category": "ent",
+  "categories": ["ent"],
+  "thumbnail": "images/tonsillectomy/thumb.webp",
   "steps": [
     {
       "image": "images/tonsillectomy/step1.webp",
@@ -178,7 +196,9 @@ https://lemonicefate.github.io/entexplainpage/previews/pr-<PR號>/
 
 每個步驟四個欄位：`image`、`title`、`description`、`alt`（為無障礙與圖片載入失敗時的替代說明，必填）。
 
-**3. 註冊到索引**
+`procedures/{id}.json` 是 canonical source；`subtitle`、`region`、分類與 thumbnail 不再只寫在 index。`slides` 不寫入 detail，由 integrity projection 依 `steps.length` 產生。每個 step 的 `alt` 對新資料必填；既有 legacy 空白 alt 會由 gate 列 warning。
+
+**3. 更新索引投影**
 
 編輯 `procedures/index.json`，在 `procedures` 陣列加一筆：
 
@@ -186,9 +206,10 @@ https://lemonicefate.github.io/entexplainpage/previews/pr-<PR號>/
 {
   "id": "tonsillectomy",
   "title": "扁桃腺切除術",
-  "subtitle": "睡眠呼吸中止 · 4 步驟",
-  "category": "ent",
   "type": "surgery",
+  "category": "ent",
+  "categories": ["ent"],
+  "subtitle": "睡眠呼吸中止 · 4 步驟",
   "region": "頭頸",
   "slides": 4,
   "thumbnail": "images/tonsillectomy/thumb.webp"
@@ -202,15 +223,15 @@ https://lemonicefate.github.io/entexplainpage/previews/pr-<PR號>/
 | `id` | ✅ | 必須與 JSON 檔名、`images/{id}/` 資料夾名一致 |
 | `title` | ✅ | 卡片標題 |
 | `category` | ✅ | 對應 `categories` 其中之一：`surgery` / `ent` / `weight` / `functional` / `supplements` / `internal-medicine` / `calc` |
-| `categories` | 選填 | 多分類陣列；若提供，首頁會以陣列內容篩選，`category` 仍保留為第一個分類做相容與顯示 |
+| `categories` | ✅ | 多分類陣列；`category` 必須等於第一個分類 |
 | `type` | ✅ | `explain`（解釋病情）或 `surgery`（手術流程）——決定首頁篩選籤 |
-| `thumbnail` | ✅ | 首頁卡片縮圖路徑 |
-| `subtitle` | 選填 | 卡片副標；省略則不顯示 |
-| `region` | 選填 | 身體區域標記；省略時卡片改顯示 `type` |
-| `slides` | 選填 | 步驟數；省略時卡片顯示 `slides`，提供時須等於步驟 JSON 的 `steps.length` |
+| `thumbnail` | ✅ | 首頁卡片縮圖路徑，必須位於 `images/{id}/` |
+| `subtitle` | ✅ | 卡片副標；可為空字串 |
+| `region` | ✅ | 身體區域；可為空字串 |
+| `slides` | ✅ | index projection，必須等於 canonical detail 的 `steps.length` |
 
 新增分類就編 `categories` 陣列。若一張圖卡需要同時屬於多個分類，請把 `categories` 寫成陣列，並保留 `category` 為主分類。
-> 資料慣例：snore 是早期完整範例（含 subtitle / region / slides），新加入的條目目前只填必填欄位。
+執行 `npm run integrity` 可在不修改 repository 的前提下檢查上述關係；任何結構、分類、缺圖、重複 ID 或跨內容資產錯誤會使 CI 失敗。
 
 **4. 或使用網頁版編輯器**
 
@@ -222,7 +243,9 @@ npm run admin
 # 主站  ：http://localhost:3001/   （同一個 port，方便邊改邊看）
 ```
 
-可以新增 / 編輯 / 刪除衛教、拖拉調整步驟順序、上傳或替換步驟圖、即時預覽、儲存回 `procedures/*.json`。完成後再 `git diff` 檢查、commit。
+管理端每次新增或編輯都以一個 multipart commit 同時提交 metadata、thumbnail 與全部 steps；Module 會做 validation、projection、資產 ownership、revision conflict 與 rollback。編輯頁會保存 opaque revision/asset handles，拖拉重排不依賴檔名或 multipart 順序。刪除同樣需要最近 revision。只有收到成功 receipt 後表單才會清空；失敗會保留輸入。
+
+手動 JSON 編輯仍受支援；下一次 admin replace/delete 會以目前檔案重新計算 revision，避免舊分頁靜默覆寫。journal recovery 與保證範圍見 [`docs/adr/0002-canonical-procedure-persistence.md`](docs/adr/0002-canonical-procedure-persistence.md)。
 
 ---
 
@@ -232,34 +255,29 @@ npm run admin
 
 現有五支：`bmi`、`lipid`、`peds-dose`、`mounjaro`、`wegovy`，分別對應 `renderBmi()`、`renderLipid()`、`renderPeds()`、`renderMounjaro()`、`renderWegovy()`。
 
+首頁由 `ClinicCatalog` 將 `procedures/index.json` metadata 與 calculator registrations 投影成同一種 semantic card；Catalog 不載入 procedure detail、不操作 DOM，也不執行計算。新增計算機只需要新增一筆 registration，首頁卡片、計算機 tab、合法 route 與 renderer dispatch 都由同一筆資料提供。
+
+Mounjaro 與 Wegovy 計算機會常駐顯示適用市場／筆型、第一方來源、最後查核日、醫療人員限定與安全基線。標示規格與喀噠／殘液估算分層；分抽、喀噠換算與殘液使用不代表官方給藥方式，也不是病人自我操作指引。Mounjaro 規格採加拿大 Eli Lilly KwikPen 仿單；Wegovy 規格採英國 eMC FlexTouch 仿單，使用時仍須以手上筆標示與當地仿單為準。
+
 ### 步驟
 
 **1. 登記 metadata（含分頁標籤）**
 
-`js/app.js` 找到 `CALCULATORS` 陣列（約第 76 行），加一筆；`tabLabel` 是分頁列的短標題：
+`js/app.js` 找到 `CALCULATOR_REGISTRATIONS` 陣列（約第 76 行），加一筆；`tabLabel` 是分頁列的短標題，`render` 必須直接指向該計算機的靜態 renderer：
 
 ```js
-var CALCULATORS = [
-  {id:'bmi',       tabLabel:'BMI',     title:'BMI 與肥胖分級',  subtitle:'...', type:'calc', kind:'calc'},
-  {id:'lipid',     tabLabel:'血脂給付', title:'血脂異常用藥健保給付', subtitle:'...', type:'calc', kind:'calc'},
-  {id:'peds-dose', tabLabel:'小兒劑量', title:'小兒劑量（mg/kg）', subtitle:'...', type:'calc', kind:'calc'},
+var CALCULATOR_REGISTRATIONS = [
+  {id:'bmi',       tabLabel:'BMI',     title:'BMI 與肥胖分級',  subtitle:'...', render: renderBmi},
+  {id:'lipid',     tabLabel:'血脂給付', title:'血脂異常用藥健保給付', subtitle:'...', render: renderLipid},
+  {id:'peds-dose', tabLabel:'小兒劑量', title:'小兒劑量（mg/kg）', subtitle:'...', render: renderPeds},
   // 新增：
-  {id:'egfr',      tabLabel:'eGFR',    title:'eGFR 腎功能估算', subtitle:'CKD-EPI 2021', type:'calc', kind:'calc'}
+  {id:'egfr',      tabLabel:'eGFR',    title:'eGFR 腎功能估算', subtitle:'CKD-EPI 2021', render: renderEgfr}
 ];
 ```
 
-**2. 接 router**
+不要另外修改 tabs 或 router dispatch；registration 不需要重複宣告 `type`、`kind`、`category`。`#/calc/<id>` 必須是完整且合法的 route；`#/calc`、未知 id、尾端多餘 slash 與額外 path 都回首頁，不會執行 renderer。
 
-`enterCalc(id)` 函式（約第 831 行）加一個分支：
-
-```js
-if (id === 'bmi') renderBmi();
-else if (id === 'lipid') renderLipid();
-else if (id === 'peds-dose') renderPeds();
-else if (id === 'egfr') renderEgfr();   // ← 新增
-```
-
-**3. 寫 render 函式**
+**2. 寫 render 函式**
 
 仿照 `renderBmi()`（約 995 行）。可用的共用 helpers：
 
@@ -297,7 +315,7 @@ function renderEgfr() {
 }
 ```
 
-**4. 補測試**
+**3. 補測試**
 
 `tests/unit/app.test.js` 加一條：
 

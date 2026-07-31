@@ -8,7 +8,8 @@
   // --- State ---
   var state = {
     categories: [],
-    procedures: [],
+    catalog: null,
+    procedureStatus: 'loading',     // loading | available | unavailable
     activeCategory: 'all',       // all | surgery | ent | weight | functional | supplements | internal-medicine | calc
     query: '',
     pins: loadPins(),
@@ -18,10 +19,12 @@
     wakeLock: null,
     preloadImages: [],
     chromeHidden: false,
-    chromeTimer: null
+    chromeTimer: null,
+    readerLoading: false
   };
 
   var CHROME_AUTO_HIDE_MS = 3000;
+  var readerSession = null;
 
   // --- DOM refs ---
   var $ = function (id) { return document.getElementById(id); };
@@ -38,6 +41,8 @@
   var slideStage = $('slide-stage');
   var slideImage = $('slide-image');
   var imagePlaceholder = $('image-placeholder');
+  var readerLoading = $('reader-loading');
+  var readerLoadingTitle = $('reader-loading-title');
   var placeholderTitle = $('placeholder-title');
   var placeholderAlt = $('placeholder-alt');
   var stepIndicator = $('step-indicator');
@@ -73,16 +78,215 @@
   // ============================================================
   // Static metadata: built-in calculators (separate from JSON data)
   // ============================================================
-  var CALCULATORS = [
-    {id:'bmi',       title:'BMI 與肥胖分級',  subtitle:'身高體重 → BMI + 國健署分級',  type:'calc', kind:'calc', category:'calc', categories:['calc'], tabLabel:'BMI'},
-    {id:'lipid',     title:'血脂異常用藥健保給付', subtitle:'LDL/HDL/TG/TC + 病人類別 → Statin / Fibrate 健保給付判定', type:'calc', kind:'calc', category:'calc', categories:['calc'], tabLabel:'血脂給付'},
-    {id:'peds-dose', title:'小兒劑量（mg/kg）', subtitle:'體重 + 目標劑量 → 總 mg + ml 數', type:'calc', kind:'calc', category:'calc', categories:['calc'], tabLabel:'小兒劑量'},
-    {id:'mounjaro',  title:'猛健樂針劑換算 (Mounjaro)', subtitle:'Tirzepatide 筆針劑量、刻度與殘劑互算', type:'calc', kind:'calc', category:'calc', categories:['calc'], tabLabel:'猛健樂', thumbnail:'images/mounjaro/mounjaro-logo.svg', thumbnailMode:'logo'},
-    {id:'wegovy',    title:'週纖達針劑換算 (Wegovy)', subtitle:'Semaglutide FlexTouch 諾特筆劑量、體積與喀噠互算', type:'calc', kind:'calc', category:'calc', categories:['calc'], tabLabel:'週纖達', thumbnail:'images/wegovy/wegovy-logo-nav.png', thumbnailMode:'logo'}
+  var CALCULATOR_REGISTRATIONS = [
+    {id:'bmi',       title:'BMI 與肥胖分級',  subtitle:'身高體重 → BMI + 國健署分級',  tabLabel:'BMI', render: renderBmi},
+    {id:'lipid',     title:'血脂異常用藥健保給付', subtitle:'LDL/HDL/TG/TC + 病人類別 → Statin / Fibrate 健保給付判定', tabLabel:'血脂給付', render: renderLipid},
+    {id:'peds-dose', title:'小兒劑量（mg/kg）', subtitle:'體重 + 目標劑量 → 總 mg + ml 數', tabLabel:'小兒劑量', render: renderPeds},
+    {id:'mounjaro',  title:'猛健樂針劑換算 (Mounjaro)', subtitle:'Tirzepatide 筆針劑量、刻度與殘劑互算', tabLabel:'猛健樂', thumbnail:'images/mounjaro/mounjaro-logo.svg', thumbnailMode:'logo', render: renderMounjaro},
+    {id:'wegovy',    title:'週纖達針劑換算 (Wegovy)', subtitle:'Semaglutide FlexTouch 諾特筆劑量、體積與喀噠互算', tabLabel:'週纖達', thumbnail:'images/wegovy/wegovy-logo-nav.webp', thumbnailMode:'logo', render: renderWegovy}
   ];
 
-  var TYPE_LABELS = { explain: '解釋病情', surgery: '手術流程', calc: '計算機' };
-  var CATEGORY_LABELS = {};
+  // ============================================================
+  // Clinic catalog
+  //
+  // This is deliberately a data-only boundary. Adapters turn the two
+  // application inputs (procedure metadata and calculator registrations)
+  // into one semantic item shape. Nothing here knows about DOM, procedure
+  // detail JSON, reader state, or calculator implementation.
+  // ============================================================
+  var ClinicCatalog = (function () {
+    function validationError(message) {
+      var error = new Error('ClinicCatalog validation error: ' + message);
+      error.name = 'ClinicCatalogValidationError';
+      return error;
+    }
+
+    function requiredString(value, field, index) {
+      if (typeof value !== 'string' || !value.trim()) {
+        throw validationError(field + ' is required at index ' + index);
+      }
+      return value.trim();
+    }
+
+    function normalizeCategories(value) {
+      var values = Array.isArray(value) ? value : [value];
+      return values.filter(function (id) {
+        return typeof id === 'string' && id.trim();
+      }).map(function (id) { return id.trim(); });
+    }
+
+    function create(options) {
+      options = options || {};
+      if (!Array.isArray(options.categories)) {
+        throw validationError('categories must be an array');
+      }
+      if (!Array.isArray(options.procedures)) {
+        throw validationError('procedures must be an array');
+      }
+      if (!Array.isArray(options.calculators)) {
+        throw validationError('calculators must be an array');
+      }
+
+      var categoryMap = Object.create(null);
+      var categories = [];
+      options.categories.forEach(function (category, index) {
+        if (!category || typeof category !== 'object') {
+          throw validationError('category must be an object at index ' + index);
+        }
+        var id = requiredString(category.id, 'category.id', index);
+        var title = requiredString(category.title, 'category.title', index);
+        if (categoryMap[id]) throw validationError('duplicate category id ' + id);
+        categoryMap[id] = { id: id, title: title };
+        categories.push(categoryMap[id]);
+      });
+      if (!categoryMap.calc) {
+        categoryMap.calc = { id: 'calc', title: '計算機' };
+        categories.push(categoryMap.calc);
+      }
+
+      var ids = Object.create(null);
+      function registerId(id, source, index) {
+        if (ids[id]) throw validationError('duplicate id ' + id + ' (' + ids[id] + ' and ' + source + ' at index ' + index + ')');
+        ids[id] = source + ' at index ' + index;
+      }
+      function validateItemCategories(itemCategories, source, index) {
+        if (!itemCategories.length) throw validationError(source + ' must have at least one category at index ' + index);
+        var seen = Object.create(null);
+        itemCategories.forEach(function (id) {
+          if (!categoryMap[id]) throw validationError(source + ' has unknown category ' + id + ' at index ' + index);
+          if (seen[id]) throw validationError(source + ' repeats category ' + id + ' at index ' + index);
+          seen[id] = true;
+        });
+      }
+
+      function procedureAdapter(procedure, index) {
+        if (!procedure || typeof procedure !== 'object') {
+          throw validationError('procedure must be an object at index ' + index);
+        }
+        var id = requiredString(procedure.id, 'procedure.id', index);
+        if (id.indexOf('/') !== -1) throw validationError('procedure.id cannot contain /: ' + id);
+        var title = requiredString(procedure.title, 'procedure.title', index);
+        var type = requiredString(procedure.type, 'procedure.type', index);
+        if (type !== 'explain' && type !== 'surgery') {
+          throw validationError('procedure.type must be explain or surgery at index ' + index);
+        }
+        var categoriesFromArray = Array.isArray(procedure.categories) ? normalizeCategories(procedure.categories) : [];
+        var itemCategories = categoriesFromArray.length ? categoriesFromArray : normalizeCategories(procedure.category);
+        validateItemCategories(itemCategories, 'procedure', index);
+        requiredString(procedure.thumbnail, 'procedure.thumbnail', index);
+        registerId(id, 'procedure', index);
+        var slides = procedure.slides == null ? null : Number(procedure.slides);
+        if (slides != null && (!Number.isInteger(slides) || slides < 1)) {
+          throw validationError('procedure.slides must be a positive integer at index ' + index);
+        }
+        var firstCategory = itemCategories[0];
+        return {
+          id: id,
+          title: title,
+          subtitle: typeof procedure.subtitle === 'string' ? procedure.subtitle : '',
+          region: typeof procedure.region === 'string' ? procedure.region : '',
+          slides: slides,
+          categories: itemCategories.slice(),
+          href: '#/' + id,
+          cover: {
+            src: procedure.thumbnail.trim(),
+            mode: 'image',
+            fallback: ((procedure.region || type) + ' · ' + (slides || '?') + ' slides').trim()
+          },
+          tag: { id: firstCategory, label: categoryMap[firstCategory].title }
+        };
+      }
+
+      function calculatorAdapter(calculator, index) {
+        if (!calculator || typeof calculator !== 'object') {
+          throw validationError('calculator must be an object at index ' + index);
+        }
+        var id = requiredString(calculator.id, 'calculator.id', index);
+        if (id.indexOf('/') !== -1) throw validationError('calculator.id cannot contain /: ' + id);
+        var title = requiredString(calculator.title, 'calculator.title', index);
+        var tabLabel = requiredString(calculator.tabLabel, 'calculator.tabLabel', index);
+        if (typeof calculator.render !== 'function') {
+          throw validationError('calculator.render is required at index ' + index);
+        }
+        registerId(id, 'calculator', index);
+        return {
+          id: id,
+          title: title,
+          subtitle: typeof calculator.subtitle === 'string' ? calculator.subtitle : '',
+          tabLabel: tabLabel,
+          categories: ['calc'],
+          href: '#/calc/' + id,
+          cover: {
+            src: typeof calculator.thumbnail === 'string' ? calculator.thumbnail : '',
+            mode: calculator.thumbnailMode === 'logo' ? 'logo' : 'image',
+            fallback: 'calculator'
+          },
+          tag: { id: 'calc', label: categoryMap.calc.title },
+          render: calculator.render
+        };
+      }
+
+      var procedureItems = options.procedures.map(procedureAdapter);
+      var calculatorItems = options.calculators.map(calculatorAdapter);
+      var allItems = procedureItems.concat(calculatorItems);
+
+      function items() { return allItems.slice(); }
+      function item(id) { return allItems.find(function (candidate) { return candidate.id === id; }); }
+      function calculators() { return calculatorItems.slice(); }
+      function filter(queryOptions) {
+        queryOptions = queryOptions || {};
+        var selectedCategory = queryOptions.category || 'all';
+        var query = typeof queryOptions.query === 'string' ? queryOptions.query.trim().toLocaleLowerCase('zh-Hant') : '';
+        var pinnedIds = Array.isArray(queryOptions.pinnedIds) ? queryOptions.pinnedIds : [];
+        var filtered = allItems.filter(function (candidate) {
+          if (selectedCategory !== 'all' && candidate.categories.indexOf(selectedCategory) === -1) return false;
+          if (!query) return true;
+          return [candidate.title, candidate.subtitle, candidate.region].some(function (text) {
+            return text.toLocaleLowerCase('zh-Hant').indexOf(query) !== -1;
+          });
+        });
+        filtered.sort(function (a, b) {
+          var ap = pinnedIds.indexOf(a.id) === -1 ? 1 : 0;
+          var bp = pinnedIds.indexOf(b.id) === -1 ? 1 : 0;
+          if (ap !== bp) return ap - bp;
+          var titleOrder = a.title.localeCompare(b.title, 'zh-Hant');
+          return titleOrder || a.id.localeCompare(b.id);
+        });
+        return filtered;
+      }
+      function resolve(hash) {
+        if (hash === '' || hash === '#') return { kind: 'home' };
+        var calcMatch = /^#\/calc\/([^/]+)$/.exec(hash);
+        if (calcMatch) {
+          var calc = calculatorItems.find(function (candidate) { return candidate.id === calcMatch[1]; });
+          return calc ? { kind: 'calculator', id: calc.id, item: calc, render: calc.render } : { kind: 'not-found' };
+        }
+        if (/^#\/calc(?:\/|$)/.test(hash)) return { kind: 'not-found' };
+        var procedureMatch = /^#\/([^/]+)$/.exec(hash);
+        if (procedureMatch) {
+          var procedure = procedureItems.find(function (candidate) { return candidate.id === procedureMatch[1]; });
+          return procedure ? { kind: 'procedure', id: procedure.id, item: procedure } : { kind: 'not-found' };
+        }
+        return { kind: 'not-found' };
+      }
+
+      return {
+        categories: function () { return categories.slice(); },
+        items: items,
+        item: item,
+        calculators: calculators,
+        filter: filter,
+        resolve: resolve
+      };
+    }
+
+    return { create: create };
+  })();
+
+  if (typeof window !== 'undefined') {
+    window.ClinicCatalog = ClinicCatalog;
+    window.__ClinicCatalog = ClinicCatalog;
+  }
 
   // SVG namespace and helpers (avoid innerHTML so we don't trip XSS heuristics)
   var SVG_NS = 'http://www.w3.org/2000/svg';
@@ -131,8 +335,19 @@
     if (!homeView || !slideView || !calcView || !searchInput || !categoryChips || !resultCount || !gridContainer || !gridEmpty || !gridError || !calcBack || !calcTabs || !calcBody) {
       return;
     }
+    // Validate program configuration outside the procedure fetch boundary.
+    // A broken calculator registration is a developer error, not a partial
+    // content-load condition.
+    state.catalog = ClinicCatalog.create({
+      categories: [],
+      procedures: [],
+      calculators: CALCULATOR_REGISTRATIONS
+    });
+    state.procedureStatus = 'loading';
+    syncCatalogMetadata();
     setupSearch();
     setupKeyboard();
+    setupReaderSession();
     setupRouting();
     setupSwipe();
     setupOffline();
@@ -147,40 +362,51 @@
   }
 
   function loadIndex() {
-    fetch('procedures/index.json')
+    var calculatorCatalog = state.catalog;
+    Promise.resolve()
+      .then(function () { return fetch('procedures/index.json'); })
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
       .then(function (data) {
-        state.categories = data.categories || [];
-        CATEGORY_LABELS = {};
-        state.categories.forEach(function (cat) { CATEGORY_LABELS[cat.id] = cat.title; });
-        state.procedures = (data.procedures || []).map(normalizeProcedure);
+        // This create is inside the procedure boundary intentionally: any
+        // malformed procedure metadata disables the whole procedure set.
+        state.catalog = ClinicCatalog.create({
+          categories: data.categories,
+          procedures: data.procedures,
+          calculators: CALCULATOR_REGISTRATIONS
+        });
+        state.procedureStatus = 'available';
+        syncCatalogMetadata();
         renderCategoryChips();
         renderGrid();
         handleRoute();
       })
-      .catch(function () { showGridError(); });
+      .catch(function () {
+        // Keep the already-validated static calculator catalog. Do not show a
+        // partial set of medical content when one procedure is malformed.
+        state.catalog = calculatorCatalog;
+        state.procedureStatus = 'unavailable';
+        state.activeCategory = 'all';
+        syncCatalogMetadata();
+        renderCategoryChips();
+        renderGrid();
+        handleRoute();
+      });
   }
 
-  function normalizeProcedure(p) {
-    var categories = Array.isArray(p.categories) ? p.categories.filter(Boolean) : [];
-    if (!categories.length && p.category) categories = [p.category];
-    return {
-      id: p.id,
-      title: p.title,
-      category: categories[0] || p.category || '',
-      categories: categories,
-      thumbnail: p.thumbnail || '',
-      subtitle: p.subtitle || '',
-      type: p.type || 'surgery',         // explain | surgery
-      region: p.region || '',
-      slides: p.slides || null,
-      kind: 'project'
-    };
+  function syncCatalogMetadata() {
+    state.categories = state.catalog ? state.catalog.categories() : [];
   }
 
   function loadProcedure(id) {
     return fetch('procedures/' + id + '.json')
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  }
+
+  function setupReaderSession() {
+    readerSession = ReaderSession.create({
+      load: loadProcedure,
+      onStateChange: handleReaderSessionState
+    });
   }
 
   // ============================================================
@@ -228,52 +454,19 @@
     });
   }
 
-  function getAllItems() {
-    var items = state.procedures.slice();
-    CALCULATORS.forEach(function (c) { items.push(c); });
-    return items;
-  }
-
-  function getItemCategories(item) {
-    if (!item) return [];
-    if (Array.isArray(item.categories)) return item.categories.filter(Boolean);
-    if (item.category) return [item.category];
-    return [];
-  }
-
-  function matchesCategory(item, selectedCategory) {
-    if (!selectedCategory || selectedCategory === 'all') return true;
-    return getItemCategories(item).indexOf(selectedCategory) !== -1;
-  }
-
   function getFilteredItems() {
-    var items = getAllItems();
-
-    if (state.activeCategory && state.activeCategory !== 'all') {
-      items = items.filter(function (i) { return matchesCategory(i, state.activeCategory); });
-    }
-
-    var q = state.query.trim().toLowerCase();
-    if (q) {
-      items = items.filter(function (i) {
-        return (i.title || '').toLowerCase().indexOf(q) !== -1
-            || (i.subtitle || '').toLowerCase().indexOf(q) !== -1
-            || (i.region || '').toLowerCase().indexOf(q) !== -1;
-      });
-    }
-
-    items.sort(function (a, b) {
-      var ap = isPinned(a.id) ? 0 : 1;
-      var bp = isPinned(b.id) ? 0 : 1;
-      if (ap !== bp) return ap - bp;
-      return (a.title || '').localeCompare(b.title || '', 'zh-Hant');
+    if (!state.catalog) return [];
+    return state.catalog.filter({
+      category: state.activeCategory,
+      query: state.query,
+      pinnedIds: state.pins
     });
-    return items;
   }
 
   function renderGrid() {
     gridEmpty.hidden = true;
-    gridError.hidden = true;
+    gridError.hidden = state.procedureStatus !== 'unavailable';
+    if (state.procedureStatus === 'unavailable') showGridError();
 
     var items = getFilteredItems();
     if (resultCount) resultCount.textContent = items.length + ' 個項目';
@@ -294,28 +487,26 @@
     var pinned = isPinned(item.id);
     var card = document.createElement('a');
     card.className = 'card' + (pinned ? ' is-pinned' : '');
-    card.href = item.kind === 'calc' ? '#/calc/' + item.id : '#/' + item.id;
+    card.href = item.href;
     card.setAttribute('aria-label', item.title);
 
-    if (item.thumbnail) {
+    if (item.cover.src) {
       var img = document.createElement('img');
-      img.className = 'card-thumb' + (item.thumbnailMode === 'logo' ? ' card-thumb-logo' : '');
-      img.src = item.thumbnail;
+      img.className = 'card-thumb' + (item.cover.mode === 'logo' ? ' card-thumb-logo' : '');
+      img.src = item.cover.src;
       img.alt = item.title;
       img.loading = 'lazy';
       img.onerror = function () {
         var ph = document.createElement('div');
         ph.className = 'card-thumb is-fallback';
-        ph.textContent = (item.region || item.type) + ' · ' + (item.slides || '?') + ' slides';
+        ph.textContent = item.cover.fallback;
         img.replaceWith(ph);
       };
       card.appendChild(img);
     } else {
       var ph = document.createElement('div');
       ph.className = 'card-thumb';
-      ph.textContent = item.kind === 'calc'
-        ? 'calculator'
-        : ((item.region || item.type || '') + ' · ' + (item.slides ? item.slides + ' slides' : 'slides')).trim();
+      ph.textContent = item.cover.fallback;
       card.appendChild(ph);
     }
 
@@ -336,10 +527,8 @@
     foot.className = 'card-foot';
 
     var tag = document.createElement('span');
-    var tagKey = item.type === 'calc' ? 'calc' : (getItemCategories(item)[0] || item.category || item.type || 'explain');
-    if (tagKey !== 'calc' && !CATEGORY_LABELS[tagKey] && tagKey !== 'surgery' && tagKey !== 'explain') tagKey = 'explain';
-    tag.className = 'tag tag-' + tagKey;
-    tag.textContent = tagKey === 'calc' ? TYPE_LABELS.calc : (CATEGORY_LABELS[tagKey] || TYPE_LABELS[item.type] || '項目');
+    tag.className = 'tag tag-' + item.tag.id;
+    tag.textContent = item.tag.label;
     foot.appendChild(tag);
 
     var pinBtn = document.createElement('button');
@@ -356,10 +545,12 @@
   }
 
   function showGridError() {
-    gridContainer.textContent = '';
-    gridEmpty.hidden = true;
-    gridError.hidden = false;
-    resultCount.textContent = '';
+    gridError.textContent = '';
+    gridError.appendChild(el('p', { class: 'empty-title' }, ['衛教內容暫時無法載入']));
+    gridError.appendChild(el('p', { class: 'empty-sub' }, ['圖卡目錄驗證或載入失敗，已暫停顯示醫療內容；計算機仍可使用。']));
+    var retry = el('button', { class: 'btn-primary', type: 'button' }, ['重新整理']);
+    retry.addEventListener('click', function () { window.location.reload(); });
+    gridError.appendChild(retry);
   }
 
   // ============================================================
@@ -379,7 +570,7 @@
   }
 
   // ============================================================
-  // Routing  (#  | #/<id> | #/calc | #/calc/<id>)
+  // Routing  (#  | #/<id> | #/calc/<id>)
   // ============================================================
   function setupRouting() {
     window.addEventListener('hashchange', handleRoute);
@@ -387,15 +578,27 @@
 
   function handleRoute() {
     var hash = window.location.hash || '';
-    if (hash.indexOf('#/calc') === 0) {
-      var calcId = hash.slice('#/calc'.length).replace(/^\//, '') || 'bmi';
-      enterCalc(calcId);
+    if (!state.catalog) return;
+    // While the index is pending, retain a direct calculator route. A
+    // procedure route waits for the all-or-nothing procedure result instead
+    // of being mistaken for an unknown id.
+    if (state.procedureStatus === 'loading' && /^#\/(?!calc(?:\/|$))/.test(hash)) return;
+    var destination = state.catalog.resolve(hash);
+    if (destination.kind === 'calculator') {
+      readerSession.transition({ type: 'leave' });
+      enterCalc(destination);
       return;
     }
-    if (hash.indexOf('#/') === 0 && hash.length > 2) {
-      enterPlayer(hash.slice(2));
+    if (destination.kind === 'procedure') {
+      enterPlayer(destination.id);
       return;
     }
+    if (destination.kind === 'not-found' && hash) {
+      readerSession.transition({ type: 'leave' });
+      window.location.hash = '';
+      return;
+    }
+    readerSession.transition({ type: 'leave' });
     exitToHome();
   }
 
@@ -406,14 +609,6 @@
   }
 
   function exitToHome() {
-    state.current = null;
-    state.stepIndex = 0;
-    setTool(null);
-    cancelPreload();
-    releaseWakeLock();
-    clearChromeTimer();
-    clearPen();
-    showChrome(); // reset so next entry starts with chrome visible
     switchView(homeView);
   }
 
@@ -421,25 +616,106 @@
   // Player
   // ============================================================
   function enterPlayer(id) {
-    var proc = state.procedures.find(function (p) { return p.id === id; });
-    if (!proc) { window.location.hash = ''; return; }
+    var proc = state.catalog && state.catalog.item(id);
+    if (!proc || !proc.href || proc.href.indexOf('#/calc/') === 0) {
+      readerSession.transition({ type: 'leave' });
+      window.location.hash = '';
+      return;
+    }
 
-    loadProcedure(id)
-      .then(function (data) {
-        state.current = Object.assign({}, proc, data);
-        state.stepIndex = 0;
-        switchView(slideView);
-        endScreen.hidden = true;
-        playerTitle.textContent = state.current.title;
-        resizePenCanvas(); // canvas only has real dimensions once slideView is active
-        renderThumbs();
-        renderStep();
-        preloadImages(data.steps);
-        requestWakeLock();
-        showChrome();
-        scheduleChromeHide();
-      })
-      .catch(function () { window.location.hash = ''; });
+    readerSession.transition({ type: 'procedure', id: id });
+  }
+
+  function handleReaderSessionState(event) {
+    if (event.type === 'loading') {
+      showReaderLoading(event.target.id);
+      return;
+    }
+    if (event.type === 'active') {
+      // A hash can change before the browser dispatches hashchange. Do not
+      // let a completion that no longer matches the URL paint the Reader.
+      if (window.location.hash !== '#/' + event.target.id) {
+        readerSession.transition({ type: 'leave' });
+        return;
+      }
+      commitReader(event.target.id, event.data);
+      return;
+    }
+    if (event.type === 'error') {
+      // The dedicated Reader error state belongs to issue #15. Preserve the
+      // existing fallback for the current target; stale errors never emit.
+      if (window.location.hash === '#/' + event.target.id) window.location.hash = '';
+      return;
+    }
+    if (event.type === 'leave') resetReaderLifecycle();
+  }
+
+  function resetReaderLifecycle() {
+    state.current = null;
+    state.stepIndex = 0;
+    state.readerLoading = false;
+    clearChromeTimer();
+    setTool(null);
+    clearChromeTimer();
+    cancelPreload();
+    releaseWakeLock();
+    clearPen();
+    penDrawing = false;
+    thumbStrip.textContent = '';
+    endScreen.hidden = true;
+    if (readerLoading) readerLoading.hidden = true;
+    if (readerLoadingTitle) readerLoadingTitle.textContent = '';
+    slideView.classList.remove('reader-loading');
+    slideView.setAttribute('aria-busy', 'false');
+    showChrome(); // reset so next entry starts with chrome visible
+    setReaderInteractionEnabled(false);
+  }
+
+  function setReaderInteractionEnabled(enabled) {
+    [prevBtn, nextBtn].forEach(function (button) { if (button) button.disabled = !enabled; });
+    document.querySelectorAll('.tool[data-tool]').forEach(function (button) {
+      button.disabled = !enabled;
+    });
+    if (scrubber) scrubber.disabled = !enabled;
+  }
+
+  function showReaderLoading(id) {
+    var proc = state.catalog && state.catalog.item(id);
+    resetReaderLifecycle();
+    state.readerLoading = true;
+    switchView(slideView);
+    slideView.classList.add('reader-loading');
+    slideView.setAttribute('aria-busy', 'true');
+    readerLoading.hidden = false;
+    readerLoadingTitle.textContent = proc ? proc.title : id;
+    playerTitle.textContent = proc ? proc.title : '';
+    playerPageTitle.textContent = '載入中';
+    stepIndicator.textContent = '— / —';
+    if (slideImage) slideImage.hidden = true;
+    if (imagePlaceholder) imagePlaceholder.hidden = true;
+    setReaderInteractionEnabled(false);
+  }
+
+  function commitReader(id, data) {
+    var proc = state.catalog && state.catalog.item(id);
+    if (!proc || !proc.href || proc.href.indexOf('#/calc/') === 0) return;
+    state.current = Object.assign({}, proc, data);
+    state.stepIndex = 0;
+    state.readerLoading = false;
+    switchView(slideView);
+    slideView.classList.remove('reader-loading');
+    slideView.setAttribute('aria-busy', 'false');
+    readerLoading.hidden = true;
+    endScreen.hidden = true;
+    playerTitle.textContent = state.current.title;
+    setReaderInteractionEnabled(true);
+    resizePenCanvas(); // canvas only has real dimensions once slideView is active
+    renderThumbs();
+    renderStep();
+    preloadImages(data.steps);
+    requestWakeLock();
+    showChrome();
+    scheduleChromeHide();
   }
 
   function renderThumbs() {
@@ -571,6 +847,7 @@
   }
 
   function setTool(t) {
+    if (t && (!state.current || state.readerLoading)) return;
     state.activeTool = t;
     document.querySelectorAll('.tool[data-tool]').forEach(function (b) {
       b.classList.toggle('is-active', b.getAttribute('data-tool') === t);
@@ -646,15 +923,15 @@
   function setupTapZones() {
     if (!tapPrev || !tapNext || !tapToggle) return;
     tapPrev.addEventListener('click', function () {
-      if (state.activeTool) return; // let tools own the stage
+      if (state.activeTool || !state.current) return; // let tools own the stage
       goPrev();
     });
     tapNext.addEventListener('click', function () {
-      if (state.activeTool) return;
+      if (state.activeTool || !state.current) return;
       goNext();
     });
     tapToggle.addEventListener('click', function () {
-      if (state.activeTool) return;
+      if (state.activeTool || !state.current) return;
       toggleChrome();
     });
   }
@@ -684,6 +961,7 @@
     scheduleChromeHide();
   }
   function toggleChrome() {
+    if (!state.current) return;
     if (state.chromeHidden) { showChrome(); scheduleChromeHide(); }
     else                    { hideChrome(); clearChromeTimer(); }
   }
@@ -855,28 +1133,29 @@
   // Calculator page
   // ============================================================
   function setupCalcShell() {
-    CALCULATORS.forEach(function (c) {
+    calcTabs.textContent = '';
+    state.catalog.calculators().forEach(function (c) {
       var btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'calc-tab';
       btn.dataset.calc = c.id;
       btn.textContent = c.tabLabel;
-      btn.addEventListener('click', function () { window.location.hash = '#/calc/' + c.id; });
+      btn.addEventListener('click', function () { window.location.hash = c.href; });
       calcTabs.appendChild(btn);
     });
   }
 
-  function enterCalc(id) {
-    if (CALCULATORS.findIndex(function (c) { return c.id === id; }) < 0) id = 'bmi';
+  function enterCalc(destination) {
+    var calculator = destination && destination.item;
+    if (!calculator || typeof destination.render !== 'function') {
+      window.location.hash = '';
+      return;
+    }
     switchView(calcView);
     Array.prototype.forEach.call(calcTabs.children, function (b) {
-      b.classList.toggle('is-active', b.dataset.calc === id);
+      b.classList.toggle('is-active', b.dataset.calc === calculator.id);
     });
-    if (id === 'bmi') renderBmi();
-    else if (id === 'lipid') renderLipid();
-    else if (id === 'peds-dose') renderPeds();
-    else if (id === 'mounjaro') renderMounjaro();
-    else if (id === 'wegovy') renderWegovy();
+    destination.render();
   }
 
   // ---------- Shared calc helpers ----------
@@ -1313,54 +1592,140 @@
     update();
   }
 
-  // ---------- Mounjaro (tirzepatide KwikPen) split-draw / residual ----------
-  // KwikPen: 2.4 ml total, 4 doses × 0.6 ml, 60 clicks per labeled dose,
-  // 1 click = 0.01 ml. 6 strengths share fixed volume; concentration scales.
-  var MOUNJARO_PENS = [2.5, 5, 7.5, 10, 12.5, 15];
-  var MOUNJARO_PEN_VOL_ML = 2.4;
-  var MOUNJARO_DOSE_VOL_ML = 0.6;
-  var MOUNJARO_RESIDUAL_LO_ML = 0.3;
-  var MOUNJARO_RESIDUAL_HI_ML = 0.6;
+  // ---------- Pen specification and safety baseline ----------
+  // Labelled facts and off-label estimates intentionally live in separate
+  // objects. A missing source invalidates the whole specification: the UI
+  // must not show a normal conversion result from an untraceable baseline.
+  var PEN_LAST_CHECKED = '2026-07-31';
+  var PEN_CLICK_VOLUME_ML = 0.01; // estimate only; neither label defines clicks
 
-  // Wegovy FlexTouch: each pen contains 4 labeled doses. Low-dose pens
-  // contain 1.5 ml; 1 mg and higher pens contain 3 ml.
-  var WEGOVY_PENS = {
-    0.25: { doseMg: 0.25, totalMg: 1, totalMl: 1.5 },
-    0.5:  { doseMg: 0.5,  totalMg: 2, totalMl: 1.5 },
-    1:    { doseMg: 1,    totalMg: 4, totalMl: 3 },
-    1.7:  { doseMg: 1.7,  totalMg: 6.8, totalMl: 3 },
-    2.4:  { doseMg: 2.4,  totalMg: 9.6, totalMl: 3 }
+  var MOUNJARO_SOURCE = {
+    market: '加拿大（加拿大仿單）',
+    penType: 'MOUNJARO KwikPen 多劑預充填筆',
+    label: 'Eli Lilly Canada Inc. Product Monograph',
+    url: 'https://pi.lilly.com/ca/mounjaro-ca-pm.pdf',
+    revision: '2026-06-23',
+    lastChecked: PEN_LAST_CHECKED
   };
-  var WEGOVY_PEN_ORDER = [0.25, 0.5, 1, 1.7, 2.4];
+  var MOUNJARO_PENS = [
+    { doseMg: 2.5, totalMg: 10, totalMl: 2.4, labeledDoses: 4, doseMl: 0.6, source: MOUNJARO_SOURCE },
+    { doseMg: 5, totalMg: 20, totalMl: 2.4, labeledDoses: 4, doseMl: 0.6, source: MOUNJARO_SOURCE },
+    { doseMg: 7.5, totalMg: 30, totalMl: 2.4, labeledDoses: 4, doseMl: 0.6, source: MOUNJARO_SOURCE },
+    { doseMg: 10, totalMg: 40, totalMl: 2.4, labeledDoses: 4, doseMl: 0.6, source: MOUNJARO_SOURCE },
+    { doseMg: 12.5, totalMg: 50, totalMl: 2.4, labeledDoses: 4, doseMl: 0.6, source: MOUNJARO_SOURCE },
+    { doseMg: 15, totalMg: 60, totalMl: 2.4, labeledDoses: 4, doseMl: 0.6, source: MOUNJARO_SOURCE }
+  ];
+  var MOUNJARO_PEN_BY_DOSE = {};
+  MOUNJARO_PENS.forEach(function (spec) { MOUNJARO_PEN_BY_DOSE[spec.doseMg] = spec; });
+  MOUNJARO_PENS.forEach(function (spec) {
+    spec.estimates = {
+      official: false,
+      clickVolumeMl: PEN_CLICK_VOLUME_ML,
+      residualMl: { min: 0.3, max: 0.6 }
+    };
+  });
 
-  // Pure math: given pen mg-strength + which field anchors + its value,
-  // return all four linked values { mg, ml, clicks, units }.
-  // Empty/invalid anchor -> all zeros.
-  function mounjaroCalc(pen, anchor, value) {
+  var WEGOVY_SOURCE = {
+    market: '英國（英國 eMC 仿單）',
+    penType: 'Wegovy FlexTouch 預充填筆',
+    label: 'Novo Nordisk A/S · electronic Medicines Compendium',
+    url: 'https://www.medicines.org.uk/emc/medicine/41757/SPC',
+    revision: '2026-06',
+    lastChecked: PEN_LAST_CHECKED
+  };
+  var WEGOVY_PENS = [
+    { doseMg: 0.25, totalMg: 1, totalMl: 1.5, labeledDoses: 4, doseMl: 0.375, source: WEGOVY_SOURCE },
+    { doseMg: 0.5, totalMg: 2, totalMl: 1.5, labeledDoses: 4, doseMl: 0.375, source: WEGOVY_SOURCE,
+      packNote: '來源另列 3 ml presentation；本工具採 1.5 ml pack profile，須以手上筆標示核對。' },
+    { doseMg: 1, totalMg: 4, totalMl: 3, labeledDoses: 4, doseMl: 0.75, source: WEGOVY_SOURCE },
+    { doseMg: 1.7, totalMg: 6.8, totalMl: 3, labeledDoses: 4, doseMl: 0.75, source: WEGOVY_SOURCE },
+    { doseMg: 2.4, totalMg: 9.6, totalMl: 3, labeledDoses: 4, doseMl: 0.75, source: WEGOVY_SOURCE }
+  ];
+  var WEGOVY_PEN_BY_DOSE = {};
+  WEGOVY_PENS.forEach(function (spec) { WEGOVY_PEN_BY_DOSE[spec.doseMg] = spec; });
+  WEGOVY_PENS.forEach(function (spec) {
+    spec.estimates = {
+      official: false,
+      clickVolumeMl: PEN_CLICK_VOLUME_ML
+    };
+  });
+
+  function emptyPenConversion() {
+    return { mg: 0, ml: 0, clicks: 0, units: 0 };
+  }
+
+  function hasTraceableSource(source) {
+    return !!(source && typeof source.market === 'string' && source.market.trim() &&
+      typeof source.penType === 'string' && source.penType.trim() &&
+      typeof source.label === 'string' && source.label.trim() &&
+      typeof source.url === 'string' && /^https:\/\//.test(source.url) &&
+      typeof source.revision === 'string' && source.revision.trim() &&
+      typeof source.lastChecked === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(source.lastChecked));
+  }
+
+  function isUsablePenSpec(spec) {
+    return !!(spec && hasTraceableSource(spec.source) &&
+      isFinite(spec.doseMg) && spec.doseMg > 0 &&
+      isFinite(spec.totalMg) && spec.totalMg > 0 &&
+      isFinite(spec.totalMl) && spec.totalMl > 0 &&
+      isFinite(spec.labeledDoses) && spec.labeledDoses > 0 &&
+      isFinite(spec.doseMl) && spec.doseMl > 0 &&
+      Math.abs(spec.totalMg / spec.labeledDoses - spec.doseMg) < 1e-9 &&
+      Math.abs(spec.totalMl / spec.labeledDoses - spec.doseMl) < 1e-9);
+  }
+
+  function convertPenValue(spec, anchor, value) {
     var v = Number(value);
-    if (!pen || !isFinite(v) || v < 0) return { mg: 0, ml: 0, clicks: 0, units: 0 };
-    var conc = pen / MOUNJARO_DOSE_VOL_ML; // mg/ml
+    if (!isUsablePenSpec(spec) || !isFinite(v) || v < 0) return emptyPenConversion();
+    var concentration = spec.totalMg / spec.totalMl;
     var ml;
-    if (anchor === 'mg')          ml = v / conc;
+    if (anchor === 'mg')          ml = v / concentration;
     else if (anchor === 'ml')     ml = v;
-    else if (anchor === 'clicks') ml = v / 100;
-    else if (anchor === 'units')  ml = v / 100;
+    else if (anchor === 'clicks') ml = v / (1 / PEN_CLICK_VOLUME_ML);
+    else if (anchor === 'units')  ml = v / (1 / PEN_CLICK_VOLUME_ML);
     else                          ml = 0;
-    return { mg: ml * conc, ml: ml, clicks: ml * 100, units: ml * 100 };
+    return {
+      mg: ml * concentration,
+      ml: ml,
+      clicks: ml / PEN_CLICK_VOLUME_ML,
+      units: ml / PEN_CLICK_VOLUME_ML
+    };
+  }
+
+  // Pure math: given pen strength + which field anchors + its value, return
+  // all linked values. The click value is a theoretical estimate, not a
+  // labelled dose setting. Empty/invalid/untraceable specs return all zeros.
+  function mounjaroCalc(pen, anchor, value) {
+    return convertPenValue(MOUNJARO_PEN_BY_DOSE[pen], anchor, value);
   }
 
   function wegovyCalc(pen, anchor, value) {
-    var spec = WEGOVY_PENS[pen];
-    var v = Number(value);
-    if (!spec || !isFinite(v) || v < 0) return { mg: 0, ml: 0, clicks: 0, units: 0 };
-    var conc = spec.totalMg / spec.totalMl;
-    var ml;
-    if (anchor === 'mg')          ml = v / conc;
-    else if (anchor === 'ml')     ml = v;
-    else if (anchor === 'clicks') ml = v / 100;
-    else if (anchor === 'units')  ml = v / 100;
-    else                          ml = 0;
-    return { mg: ml * conc, ml: ml, clicks: ml * 100, units: ml * 100 };
+    return convertPenValue(WEGOVY_PEN_BY_DOSE[pen], anchor, value);
+  }
+
+  function sourcePanel(source, safetyText) {
+    var sourceLink = el('a', {
+      href: source.url,
+      target: '_blank',
+      rel: 'noreferrer noopener'
+    }, [source.label]);
+    return el('div', { class: 'calc-note pen-source-panel' }, [
+      el('strong', null, ['標示規格與安全基線']),
+      el('div', null, ['適用市場／筆型：' + source.market + ' · ' + source.penType]),
+      el('div', null, ['來源：', sourceLink, ' · 仿單／資料版本：' + source.revision]),
+      el('div', null, ['最後查核日：' + source.lastChecked]),
+      el('div', null, ['醫療人員限定；非病人自我操作指引：本頁不提供分抽、喀噠給藥、穿刺或殘液使用步驟。']),
+      el('div', null, [safetyText])
+    ]);
+  }
+
+  function unavailableSpecResult() {
+    return el('div', { class: 'result-card' }, [
+      el('div', { class: 'result-head' }, [el('div', { class: 'result-label' }, ['無法呈現換算結果'])]),
+      el('div', { class: 'result-body' }, [
+        note('標示規格來源不完整或無法追溯，已停止一般成功結果；請核對適用市場、筆型與最新仿單。', 'warn')
+      ])
+    ]);
   }
 
   // Display: round to 3 decimals, strip trailing zeros.
@@ -1389,10 +1754,10 @@
 
     function makePenPicker() {
       var seg = el('div', { class: 'seg' });
-      MOUNJARO_PENS.forEach(function (p) {
-        var b = el('button', { type: 'button', class: s.pen === p ? 'is-on' : '' }, [p + ' mg']);
+      MOUNJARO_PENS.forEach(function (spec) {
+        var b = el('button', { type: 'button', class: s.pen === spec.doseMg ? 'is-on' : '' }, [spec.doseMg + ' mg']);
         b.addEventListener('click', function () {
-          s.pen = p;
+          s.pen = spec.doseMg;
           Array.prototype.forEach.call(seg.children, function (x) { x.classList.remove('is-on'); });
           b.classList.add('is-on');
           recompute();
@@ -1438,22 +1803,25 @@
       if (!s.pen) {
         return el('p', { class: 'lead' }, ['請先選擇 pen 規格。']);
       }
-      var conc = s.pen / MOUNJARO_DOSE_VOL_ML;
-      var total = s.pen * 4;
-      var perClick = formatNum(conc / 100);
-      var resLo = formatNum(MOUNJARO_RESIDUAL_LO_ML * conc);
-      var resHi = formatNum(MOUNJARO_RESIDUAL_HI_ML * conc);
+      var spec = MOUNJARO_PEN_BY_DOSE[s.pen];
+      if (!isUsablePenSpec(spec)) return el('p', { class: 'lead' }, ['標示規格來源不可用，已停止換算。']);
+      var concentration = spec.totalMg / spec.totalMl;
+      var resLo = formatNum(spec.estimates.residualMl.min * concentration);
+      var resHi = formatNum(spec.estimates.residualMl.max * concentration);
       return el('p', { class: 'lead' }, [
-        s.pen + ' mg pen:標示總容量 ' + MOUNJARO_PEN_VOL_ML + ' ml(4 × ' + MOUNJARO_DOSE_VOL_ML + ' ml)= ' + total + ' mg。' +
-        '每喀噠 ≈ ' + perClick + ' mg。' +
-        '4 劑後殘量約 ' + MOUNJARO_RESIDUAL_LO_ML + '–' + MOUNJARO_RESIDUAL_HI_ML + ' ml(≈ ' + resLo + '–' + resHi + ' mg)。'
+        '標示事實：' + spec.doseMg + ' mg pen 每支總量 ' + spec.totalMg + ' mg / ' + spec.totalMl +
+        ' ml，共 ' + spec.labeledDoses + ' 個標示劑量，每劑 ' + spec.doseMl + ' ml。' +
+        '非官方估算層：理論喀噠值以每喀噠 ' + spec.estimates.clickVolumeMl + ' ml 的換算假設計算；' +
+        '四個標示劑量後殘液理論範圍約 ' + spec.estimates.residualMl.min + '–' + spec.estimates.residualMl.max +
+        ' ml（約 ' + resLo + '–' + resHi + ' mg），不代表官方可用劑量。'
       ]);
     }
 
     function safetyLine() {
-      return el('p', { class: 'field-hint', style: 'margin-top:12px;line-height:1.6' }, [
-        '分抽與殘劑使用屬 off-label,請注意:單支 pen 限同一病人、重複穿刺橡膠塞有 sterility 風險、開封後保存期依藥廠規範。'
-      ]);
+      return sourcePanel(MOUNJARO_SOURCE,
+        '官方標示／仿單優先；分抽、喀噠值換算與殘液使用均屬 off-label；同一病人限用同一支筆，' +
+        '每次換新針，重複穿刺橡膠塞有 sterility 風險；四個標示劑量後官方建議丟棄剩餘藥液；' +
+        '開封後依來源保存規範（2–8°C 冷藏，或首次使用後 ≤30°C 最多 30 天），不得因本工具延長。');
     }
 
     function updateResult() {
@@ -1462,6 +1830,11 @@
           el('div', { class: 'result-head' }, [el('div', { class: 'result-label' }, ['等待輸入'])]),
           el('div', { class: 'result-body' }, [el('p', { class: 'lead' }, ['選擇 pen 規格後,任一欄輸入數字即會即時換算。'])])
         ]));
+        return;
+      }
+      var spec = MOUNJARO_PEN_BY_DOSE[s.pen];
+      if (!isUsablePenSpec(spec)) {
+        setResult(unavailableSpecResult());
         return;
       }
       var hasInput = ['mg','ml','clicks'].some(function (k) { return s[k] !== '' && s[k] != null; });
@@ -1476,14 +1849,14 @@
       var ml = formatNum(Number(s.ml));
       var clicks = formatNum(Number(s.clicks));
       var explain = explainBlock([
-        [{ strong: s.pen + ' mg pen' }, ' · 濃度 ', { strong: formatNum(s.pen / MOUNJARO_DOSE_VOL_ML) + ' mg/ml' }],
-        ['抽取體積 ', { strong: ml + ' ml' }, ' = 劑量 ', { strong: mg + ' mg' }],
-        ['= 旋鈕 ', { strong: clicks + ' 喀噠' }]
+        [{ strong: spec.doseMg + ' mg pen' }, ' · 濃度 ', { strong: formatNum(spec.totalMg / spec.totalMl) + ' mg/ml' }],
+        ['劑量 ', { strong: mg + ' mg' }, ' · 體積 ', { strong: ml + ' ml' }],
+        ['理論約略喀噠值 ', { strong: clicks }]
       ]);
       setResult(resultCard({
-        label: '目標劑量', value: mg, unit: 'mg',
-        verdict: { label: '抽 ' + ml + ' ml / 數 ' + clicks + ' 喀噠', kind: 'info', shape: '●' },
-        body: [explain, summary('從 ' + s.pen + ' mg pen 抽取 ' + ml + ' ml,相當於 ' + mg + ' mg(' + clicks + ' 喀噠)。')]
+        label: '換算對照', value: mg, unit: 'mg',
+        verdict: { label: '體積 ' + ml + ' ml · 理論約略喀噠值 ' + clicks, kind: 'info', shape: '●' },
+        body: [explain, summary('此組數值為 ' + spec.doseMg + ' mg pen 的劑量、體積與理論約略喀噠值對照；喀噠與殘液均非官方標示刻度或用法。')]
       }));
     }
 
@@ -1492,12 +1865,12 @@
     function rerender() {
       var card = el('div', { class: 'calc-card' }, [
         el('h3', null, ['猛健樂針劑換算 (Mounjaro)']),
-        el('p', { class: 'lead' }, ['Tirzepatide KwikPen 分抽 / 殘劑換算。選 pen 規格後,任一欄輸入即時連動其他三欄。']),
+        el('p', { class: 'lead' }, ['Tirzepatide KwikPen 標示規格與 off-label 換算參考。選 pen 規格後，任一欄輸入即時連動其他欄位。']),
         section('Pen 規格', [makePenPicker()]),
         section('劑量換算(3 欄連動)', [
           makeField('mg',     '目標劑量 (mg)', null,                'mg'),
-          makeField('ml',     '抽取體積 (ml)', null,                'ml'),
-          makeField('clicks', '旋鈕喀噠數',    '1 喀噠 = 0.01 ml',  '喀噠')
+          makeField('ml',     '體積 (ml)', null,                'ml'),
+          makeField('clicks', '理論約略喀噠值', '非官方估算',  '喀噠')
         ]),
         refLine(),
         safetyLine()
@@ -1531,10 +1904,10 @@
 
     function makePenPicker() {
       var seg = el('div', { class: 'seg' });
-      WEGOVY_PEN_ORDER.forEach(function (p) {
-        var b = el('button', { type: 'button', class: s.pen === p ? 'is-on' : '' }, [p + ' mg']);
+      WEGOVY_PENS.forEach(function (spec) {
+        var b = el('button', { type: 'button', class: s.pen === spec.doseMg ? 'is-on' : '' }, [spec.doseMg + ' mg']);
         b.addEventListener('click', function () {
-          s.pen = p;
+          s.pen = spec.doseMg;
           Array.prototype.forEach.call(seg.children, function (x) { x.classList.remove('is-on'); });
           b.classList.add('is-on');
           recompute();
@@ -1578,22 +1951,22 @@
       if (!s.pen) {
         return el('p', { class: 'lead' }, ['請先選擇 pen 規格。']);
       }
-      var spec = WEGOVY_PENS[s.pen];
-      var conc = spec.totalMg / spec.totalMl;
-      var doseMl = spec.totalMl / 4;
-      var perClick = formatNum(conc / 100);
+      var spec = WEGOVY_PEN_BY_DOSE[s.pen];
+      if (!isUsablePenSpec(spec)) return el('p', { class: 'lead' }, ['標示規格來源不可用，已停止換算。']);
       return el('p', { class: 'lead' }, [
-        s.pen + ' mg FlexTouch:每支 ' + spec.totalMg + ' mg / ' + spec.totalMl + ' ml,共 4 劑。' +
-        '每標示劑 ' + formatNum(doseMl) + ' ml。' +
-        '每喀噠約 ' + perClick + ' mg。' +
-        '4 劑後若仍有殘液,官方建議丟棄。'
+        '標示事實：' + spec.doseMg + ' mg FlexTouch 每支總量 ' + spec.totalMg + ' mg / ' + spec.totalMl +
+        ' ml，共 ' + spec.labeledDoses + ' 個標示劑量，每劑 ' + spec.doseMl + ' ml。' +
+        '非官方估算層：理論約略喀噠值以每喀噠 ' + PEN_CLICK_VOLUME_ML + ' ml 的換算假設計算；' +
+        '四個標示劑量後若有殘液，官方建議丟棄，不代表可再使用。' +
+        (spec.packNote ? ' ' + spec.packNote : '')
       ]);
     }
 
     function safetyLine() {
-      return el('p', { class: 'field-hint', style: 'margin-top:12px;line-height:1.6' }, [
-        '分抽、喀噠換算與殘液使用屬 off-label。官方給藥應以劑量窗為準,不以喀噠數作為標準給藥。單支 pen 限同一病人,每次注射需換新針,開封後保存期依藥廠規範。'
-      ]);
+      return sourcePanel(WEGOVY_SOURCE,
+        '官方標示／仿單優先；分抽、喀噠換算與殘液使用均屬 off-label；官方以劑量窗為準，' +
+        '不以喀噠數作為標準給藥；同一病人限用同一支筆，每次換新針，重複穿刺有 sterility 風險；' +
+        '四個標示劑量後殘液不足一個標示劑量，官方建議丟棄；開封後依來源保存規範（≤30°C 或 2–8°C 最多 6 週），不得因本工具延長。');
     }
 
     function updateResult() {
@@ -1604,6 +1977,11 @@
         ]));
         return;
       }
+      var spec = WEGOVY_PEN_BY_DOSE[s.pen];
+      if (!isUsablePenSpec(spec)) {
+        setResult(unavailableSpecResult());
+        return;
+      }
       var hasInput = ['mg','ml','clicks'].some(function (k) { return s[k] !== '' && s[k] != null; });
       if (!hasInput) {
         setResult(el('div', { class: 'result-card' }, [
@@ -1612,19 +1990,18 @@
         ]));
         return;
       }
-      var spec = WEGOVY_PENS[s.pen];
       var mg = formatNum(Number(s.mg));
       var ml = formatNum(Number(s.ml));
       var clicks = formatNum(Number(s.clicks));
       var explain = explainBlock([
-        [{ strong: s.pen + ' mg FlexTouch' }, ' · 濃度 ', { strong: formatNum(spec.totalMg / spec.totalMl) + ' mg/ml' }],
-        ['抽取體積 ', { strong: ml + ' ml' }, ' = 劑量 ', { strong: mg + ' mg' }],
-        ['= 約 ', { strong: clicks + ' 喀噠' }]
+        [{ strong: spec.doseMg + ' mg FlexTouch' }, ' · 濃度 ', { strong: formatNum(spec.totalMg / spec.totalMl) + ' mg/ml' }],
+        ['劑量 ', { strong: mg + ' mg' }, ' · 體積 ', { strong: ml + ' ml' }],
+        ['理論約略喀噠值 ', { strong: clicks }]
       ]);
       setResult(resultCard({
-        label: '目標劑量', value: mg, unit: 'mg',
-        verdict: { label: '抽 ' + ml + ' ml / 約 ' + clicks + ' 喀噠', kind: 'info', shape: '●' },
-        body: [explain, summary('從 ' + s.pen + ' mg Wegovy FlexTouch 抽取 ' + ml + ' ml,約相當於 ' + mg + ' mg(' + clicks + ' 喀噠)。')]
+        label: '換算對照', value: mg, unit: 'mg',
+        verdict: { label: '體積 ' + ml + ' ml · 理論約略喀噠值 ' + clicks, kind: 'info', shape: '●' },
+        body: [explain, summary('此組數值為 ' + spec.doseMg + ' mg FlexTouch 的劑量、體積與理論約略喀噠值對照；喀噠與殘液均非官方標示刻度或用法。')]
       }));
     }
 
@@ -1633,12 +2010,12 @@
     function rerender() {
       var card = el('div', { class: 'calc-card' }, [
         el('h3', null, ['週纖達針劑換算 (Wegovy)']),
-        el('p', { class: 'lead' }, ['Semaglutide FlexTouch 諾特筆 off-label 分抽換算。選 pen 規格後,任一欄輸入即時連動其他三欄。']),
+        el('p', { class: 'lead' }, ['Semaglutide FlexTouch 諾特筆標示規格與 off-label 換算參考。選 pen 規格後，任一欄輸入即時連動其他欄位。']),
         section('Pen 規格', [makePenPicker()]),
         section('劑量換算(3 欄連動)', [
           makeField('mg',     '目標劑量 (mg)', null,                    'mg'),
-          makeField('ml',     '抽取體積 (ml)', null,                    'ml'),
-          makeField('clicks', '約略喀噠數',    '1 喀噠約 0.01 ml',      '喀噠')
+          makeField('ml',     '體積 (ml)', null,                    'ml'),
+          makeField('clicks', '理論約略喀噠值', '非官方估算',      '喀噠')
         ]),
         refLine(),
         safetyLine()
@@ -1660,6 +2037,8 @@
   if (typeof window !== 'undefined') {
     window.__mounjaroCalc = mounjaroCalc;
     window.__wegovyCalc = wegovyCalc;
+    window.__mounjaroPens = MOUNJARO_PENS;
+    window.__wegovyPens = WEGOVY_PENS;
     window.__formatNum = formatNum;
     window.__lipidCoverage = lipidCoverage;
     window.__bmiClassify = bmiClassify;
@@ -1668,10 +2047,13 @@
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
       state: state,
+      ClinicCatalog: ClinicCatalog,
       goNext: goNext,
       goPrev: goPrev,
       mounjaroCalc: mounjaroCalc,
       wegovyCalc: wegovyCalc,
+      mounjaroPens: MOUNJARO_PENS,
+      wegovyPens: WEGOVY_PENS,
       formatNum: formatNum,
       lipidCoverage: lipidCoverage,
       bmiClassify: bmiClassify,

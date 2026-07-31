@@ -2,16 +2,22 @@
   "id": "otitis-media-effusion",
   "title": "小兒中耳積水",
   "type": "explain",
+  "subtitle": "",
+  "region": "",
   "category": "ent",
+  "categories": [
+    "ent"
+  ],
+  "thumbnail": "images/otitis-media-effusion/thumb.webp",
   "steps": [
     {
-      "image": "images/otitis-media-effusion/step1.png",
+      "image": "images/otitis-media-effusion/step1.webp",
       "title": "生活處方",
       "description": "",
       "alt": "小兒中耳積水生活處方"
     },
     {
-      "image": "images/otitis-media-effusion/step2.png",
+      "image": "images/otitis-media-effusion/step2.webp",
       "title": "營養處方",
       "description": "",
       "alt": "小兒中耳積水營養處方"

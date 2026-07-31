@@ -16,10 +16,25 @@
 | `README.md` | 給接手者的上手說明 |
 | `DESIGN.md` | 設計系統與元件規格(色彩 token、元件 class、無障礙、資料格式);改 UI 同步更新 |
 
+## Agent skills
+
+### Issue tracker
+
+Issues 與 PRDs 使用 GitHub Issues 追蹤。詳見 `docs/agents/issue-tracker.md`。
+
+### Triage labels
+
+使用預設 triage role labels。詳見 `docs/agents/triage-labels.md`。
+
+### Domain docs
+
+採 single-context domain docs，由根目錄 `CONTEXT.md` 與 `docs/adr/` 提供語彙及決策。詳見 `docs/agents/domain.md`。
+
 ## 已知限制
 
 - **admin.html 線上版無寫入能力** — GitHub Pages 是純靜態主機,跑不了 `scripts/admin.js` 提供的 `/api/*`。編輯衛教只能在 localhost(`npm run admin`)。線上版靠 hostname 偵測顯示 local-only 說明卡。
 - **Service Worker 只在 production 生效** — 本機快取行為與線上不一致,debug 快取問題時要注意。
+- **衛教寫入只能穿越 persistence Module** — `procedures/{id}.json` 是 canonical source，`index.json` 是 projection；admin server 不得再拆成 JSON 與圖片兩段寫入。`npm run integrity` 是唯讀 gate，journal recovery 會在 admin server listen 前完成。
 
 ## 慣例
 

@@ -35,25 +35,38 @@
       "title": "幽門螺旋桿菌治療",
       "type": "explain",
       "category": "internal-medicine",
+      "categories": [
+        "internal-medicine"
+      ],
       "subtitle": "系列性療法 · 14 天療程",
+      "region": "",
       "slides": 1,
-      "thumbnail": "images/h-pylori-sequential/thumb.png"
+      "thumbnail": "images/h-pylori-sequential/thumb.webp"
     },
     {
       "id": "snore",
       "title": "打呼",
-      "subtitle": "成因解說 · 7 步驟",
-      "category": "ent",
       "type": "explain",
+      "category": "ent",
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "成因解說 · 7 步驟",
       "region": "頭頸",
       "slides": 7,
-      "thumbnail": "images/snore/thumb.png"
+      "thumbnail": "images/snore/thumb.webp"
     },
     {
       "id": "nasal-obstruction",
       "title": "鼻塞",
       "type": "explain",
       "category": "ent",
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 4,
       "thumbnail": "images/nasal-obstruction/thumb.webp"
     },
     {
@@ -61,86 +74,156 @@
       "title": "聲帶",
       "type": "explain",
       "category": "ent",
-      "thumbnail": "images/vocal-cord/thumb.jpg"
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 5,
+      "thumbnail": "images/vocal-cord/thumb.webp"
     },
     {
       "id": "influenza",
       "title": "流感",
       "type": "explain",
       "category": "ent",
-      "thumbnail": "images/influenza/thumb.png"
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 4,
+      "thumbnail": "images/influenza/thumb.webp"
     },
     {
       "id": "quit-smoke",
       "title": "戒菸",
       "type": "explain",
       "category": "ent",
-      "thumbnail": "images/quit-smoke/thumb.png"
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 3,
+      "thumbnail": "images/quit-smoke/thumb.webp"
     },
     {
       "id": "oral-ulcer",
       "title": "口腔潰瘍",
       "type": "explain",
       "category": "ent",
-      "thumbnail": "images/oral-ulcer/thumb.png"
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 4,
+      "thumbnail": "images/oral-ulcer/thumb.webp"
     },
     {
       "id": "menieres",
       "title": "梅尼爾氏症",
       "type": "explain",
       "category": "ent",
-      "thumbnail": "images/menieres/thumb.png"
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 3,
+      "thumbnail": "images/menieres/thumb.webp"
     },
     {
       "id": "tinnitus",
       "title": "耳鳴",
       "type": "explain",
       "category": "ent",
-      "thumbnail": "images/tinnitus/thumb.png"
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 4,
+      "thumbnail": "images/tinnitus/thumb.webp"
     },
     {
       "id": "ssnhl",
       "title": "突發性耳聾",
       "type": "explain",
       "category": "ent",
-      "thumbnail": "images/ssnhl/thumb.png"
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 3,
+      "thumbnail": "images/ssnhl/thumb.webp"
     },
     {
       "id": "otitis-media-effusion",
       "title": "小兒中耳積水",
       "type": "explain",
       "category": "ent",
-      "thumbnail": "images/otitis-media-effusion/thumb.png"
+      "categories": [
+        "ent"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 2,
+      "thumbnail": "images/otitis-media-effusion/thumb.webp"
     },
     {
       "id": "vitd",
       "title": "維他命D補充",
       "type": "explain",
       "category": "functional",
-      "thumbnail": "images/vitd/thumb.png"
+      "categories": [
+        "functional"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 4,
+      "thumbnail": "images/vitd/thumb.webp"
     },
     {
       "id": "atopic-dermatitis",
       "title": "異位性皮膚炎",
       "type": "explain",
       "category": "functional",
-      "thumbnail": "images/atopic-dermatitis/thumb.png"
+      "categories": [
+        "functional"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 3,
+      "thumbnail": "images/atopic-dermatitis/thumb.webp"
     },
     {
       "id": "testosterone",
       "title": "睪固酮",
       "type": "explain",
       "category": "functional",
-      "thumbnail": "images/testosterone/thumb.png"
+      "categories": [
+        "functional"
+      ],
+      "subtitle": "",
+      "region": "",
+      "slides": 2,
+      "thumbnail": "images/testosterone/thumb.webp"
     },
     {
       "id": "chlorella",
       "title": "小球藻",
       "type": "explain",
       "category": "supplements",
+      "categories": [
+        "supplements"
+      ],
       "subtitle": "營養解析 · 5 步驟",
+      "region": "",
       "slides": 5,
-      "thumbnail": "images/chlorella/thumb.webp"
+      "thumbnail": "images/chlorella/thumb-optimized.webp"
     }
   ]
 }

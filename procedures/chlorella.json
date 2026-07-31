@@ -2,9 +2,13 @@
   "id": "chlorella",
   "title": "小球藻",
   "type": "explain",
-  "category": "functional",
   "subtitle": "營養解析 · 5 步驟",
-  "slides": 5,
+  "region": "",
+  "category": "supplements",
+  "categories": [
+    "supplements"
+  ],
+  "thumbnail": "images/chlorella/thumb-optimized.webp",
   "steps": [
     {
       "image": "images/chlorella/step1.webp",
