@@ -1502,54 +1502,140 @@
     update();
   }
 
-  // ---------- Mounjaro (tirzepatide KwikPen) split-draw / residual ----------
-  // KwikPen: 2.4 ml total, 4 doses × 0.6 ml, 60 clicks per labeled dose,
-  // 1 click = 0.01 ml. 6 strengths share fixed volume; concentration scales.
-  var MOUNJARO_PENS = [2.5, 5, 7.5, 10, 12.5, 15];
-  var MOUNJARO_PEN_VOL_ML = 2.4;
-  var MOUNJARO_DOSE_VOL_ML = 0.6;
-  var MOUNJARO_RESIDUAL_LO_ML = 0.3;
-  var MOUNJARO_RESIDUAL_HI_ML = 0.6;
+  // ---------- Pen specification and safety baseline ----------
+  // Labelled facts and off-label estimates intentionally live in separate
+  // objects. A missing source invalidates the whole specification: the UI
+  // must not show a normal conversion result from an untraceable baseline.
+  var PEN_LAST_CHECKED = '2026-07-31';
+  var PEN_CLICK_VOLUME_ML = 0.01; // estimate only; neither label defines clicks
 
-  // Wegovy FlexTouch: each pen contains 4 labeled doses. Low-dose pens
-  // contain 1.5 ml; 1 mg and higher pens contain 3 ml.
-  var WEGOVY_PENS = {
-    0.25: { doseMg: 0.25, totalMg: 1, totalMl: 1.5 },
-    0.5:  { doseMg: 0.5,  totalMg: 2, totalMl: 1.5 },
-    1:    { doseMg: 1,    totalMg: 4, totalMl: 3 },
-    1.7:  { doseMg: 1.7,  totalMg: 6.8, totalMl: 3 },
-    2.4:  { doseMg: 2.4,  totalMg: 9.6, totalMl: 3 }
+  var MOUNJARO_SOURCE = {
+    market: '加拿大（加拿大仿單）',
+    penType: 'MOUNJARO KwikPen 多劑預充填筆',
+    label: 'Eli Lilly Canada Inc. Product Monograph',
+    url: 'https://pi.lilly.com/ca/mounjaro-ca-pm.pdf',
+    revision: '2026-06-23',
+    lastChecked: PEN_LAST_CHECKED
   };
-  var WEGOVY_PEN_ORDER = [0.25, 0.5, 1, 1.7, 2.4];
+  var MOUNJARO_PENS = [
+    { doseMg: 2.5, totalMg: 10, totalMl: 2.4, labeledDoses: 4, doseMl: 0.6, source: MOUNJARO_SOURCE },
+    { doseMg: 5, totalMg: 20, totalMl: 2.4, labeledDoses: 4, doseMl: 0.6, source: MOUNJARO_SOURCE },
+    { doseMg: 7.5, totalMg: 30, totalMl: 2.4, labeledDoses: 4, doseMl: 0.6, source: MOUNJARO_SOURCE },
+    { doseMg: 10, totalMg: 40, totalMl: 2.4, labeledDoses: 4, doseMl: 0.6, source: MOUNJARO_SOURCE },
+    { doseMg: 12.5, totalMg: 50, totalMl: 2.4, labeledDoses: 4, doseMl: 0.6, source: MOUNJARO_SOURCE },
+    { doseMg: 15, totalMg: 60, totalMl: 2.4, labeledDoses: 4, doseMl: 0.6, source: MOUNJARO_SOURCE }
+  ];
+  var MOUNJARO_PEN_BY_DOSE = {};
+  MOUNJARO_PENS.forEach(function (spec) { MOUNJARO_PEN_BY_DOSE[spec.doseMg] = spec; });
+  MOUNJARO_PENS.forEach(function (spec) {
+    spec.estimates = {
+      official: false,
+      clickVolumeMl: PEN_CLICK_VOLUME_ML,
+      residualMl: { min: 0.3, max: 0.6 }
+    };
+  });
 
-  // Pure math: given pen mg-strength + which field anchors + its value,
-  // return all four linked values { mg, ml, clicks, units }.
-  // Empty/invalid anchor -> all zeros.
-  function mounjaroCalc(pen, anchor, value) {
+  var WEGOVY_SOURCE = {
+    market: '英國（英國 eMC 仿單）',
+    penType: 'Wegovy FlexTouch 預充填筆',
+    label: 'Novo Nordisk A/S · electronic Medicines Compendium',
+    url: 'https://www.medicines.org.uk/emc/medicine/41757/SPC',
+    revision: '2026-06',
+    lastChecked: PEN_LAST_CHECKED
+  };
+  var WEGOVY_PENS = [
+    { doseMg: 0.25, totalMg: 1, totalMl: 1.5, labeledDoses: 4, doseMl: 0.375, source: WEGOVY_SOURCE },
+    { doseMg: 0.5, totalMg: 2, totalMl: 1.5, labeledDoses: 4, doseMl: 0.375, source: WEGOVY_SOURCE,
+      packNote: '來源另列 3 ml presentation；本工具採 1.5 ml pack profile，須以手上筆標示核對。' },
+    { doseMg: 1, totalMg: 4, totalMl: 3, labeledDoses: 4, doseMl: 0.75, source: WEGOVY_SOURCE },
+    { doseMg: 1.7, totalMg: 6.8, totalMl: 3, labeledDoses: 4, doseMl: 0.75, source: WEGOVY_SOURCE },
+    { doseMg: 2.4, totalMg: 9.6, totalMl: 3, labeledDoses: 4, doseMl: 0.75, source: WEGOVY_SOURCE }
+  ];
+  var WEGOVY_PEN_BY_DOSE = {};
+  WEGOVY_PENS.forEach(function (spec) { WEGOVY_PEN_BY_DOSE[spec.doseMg] = spec; });
+  WEGOVY_PENS.forEach(function (spec) {
+    spec.estimates = {
+      official: false,
+      clickVolumeMl: PEN_CLICK_VOLUME_ML
+    };
+  });
+
+  function emptyPenConversion() {
+    return { mg: 0, ml: 0, clicks: 0, units: 0 };
+  }
+
+  function hasTraceableSource(source) {
+    return !!(source && typeof source.market === 'string' && source.market.trim() &&
+      typeof source.penType === 'string' && source.penType.trim() &&
+      typeof source.label === 'string' && source.label.trim() &&
+      typeof source.url === 'string' && /^https:\/\//.test(source.url) &&
+      typeof source.revision === 'string' && source.revision.trim() &&
+      typeof source.lastChecked === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(source.lastChecked));
+  }
+
+  function isUsablePenSpec(spec) {
+    return !!(spec && hasTraceableSource(spec.source) &&
+      isFinite(spec.doseMg) && spec.doseMg > 0 &&
+      isFinite(spec.totalMg) && spec.totalMg > 0 &&
+      isFinite(spec.totalMl) && spec.totalMl > 0 &&
+      isFinite(spec.labeledDoses) && spec.labeledDoses > 0 &&
+      isFinite(spec.doseMl) && spec.doseMl > 0 &&
+      Math.abs(spec.totalMg / spec.labeledDoses - spec.doseMg) < 1e-9 &&
+      Math.abs(spec.totalMl / spec.labeledDoses - spec.doseMl) < 1e-9);
+  }
+
+  function convertPenValue(spec, anchor, value) {
     var v = Number(value);
-    if (!pen || !isFinite(v) || v < 0) return { mg: 0, ml: 0, clicks: 0, units: 0 };
-    var conc = pen / MOUNJARO_DOSE_VOL_ML; // mg/ml
+    if (!isUsablePenSpec(spec) || !isFinite(v) || v < 0) return emptyPenConversion();
+    var concentration = spec.totalMg / spec.totalMl;
     var ml;
-    if (anchor === 'mg')          ml = v / conc;
+    if (anchor === 'mg')          ml = v / concentration;
     else if (anchor === 'ml')     ml = v;
-    else if (anchor === 'clicks') ml = v / 100;
-    else if (anchor === 'units')  ml = v / 100;
+    else if (anchor === 'clicks') ml = v / (1 / PEN_CLICK_VOLUME_ML);
+    else if (anchor === 'units')  ml = v / (1 / PEN_CLICK_VOLUME_ML);
     else                          ml = 0;
-    return { mg: ml * conc, ml: ml, clicks: ml * 100, units: ml * 100 };
+    return {
+      mg: ml * concentration,
+      ml: ml,
+      clicks: ml / PEN_CLICK_VOLUME_ML,
+      units: ml / PEN_CLICK_VOLUME_ML
+    };
+  }
+
+  // Pure math: given pen strength + which field anchors + its value, return
+  // all linked values. The click value is a theoretical estimate, not a
+  // labelled dose setting. Empty/invalid/untraceable specs return all zeros.
+  function mounjaroCalc(pen, anchor, value) {
+    return convertPenValue(MOUNJARO_PEN_BY_DOSE[pen], anchor, value);
   }
 
   function wegovyCalc(pen, anchor, value) {
-    var spec = WEGOVY_PENS[pen];
-    var v = Number(value);
-    if (!spec || !isFinite(v) || v < 0) return { mg: 0, ml: 0, clicks: 0, units: 0 };
-    var conc = spec.totalMg / spec.totalMl;
-    var ml;
-    if (anchor === 'mg')          ml = v / conc;
-    else if (anchor === 'ml')     ml = v;
-    else if (anchor === 'clicks') ml = v / 100;
-    else if (anchor === 'units')  ml = v / 100;
-    else                          ml = 0;
-    return { mg: ml * conc, ml: ml, clicks: ml * 100, units: ml * 100 };
+    return convertPenValue(WEGOVY_PEN_BY_DOSE[pen], anchor, value);
+  }
+
+  function sourcePanel(source, safetyText) {
+    var sourceLink = el('a', {
+      href: source.url,
+      target: '_blank',
+      rel: 'noreferrer noopener'
+    }, [source.label]);
+    return el('div', { class: 'calc-note pen-source-panel' }, [
+      el('strong', null, ['標示規格與安全基線']),
+      el('div', null, ['適用市場／筆型：' + source.market + ' · ' + source.penType]),
+      el('div', null, ['來源：', sourceLink, ' · 仿單／資料版本：' + source.revision]),
+      el('div', null, ['最後查核日：' + source.lastChecked]),
+      el('div', null, ['醫療人員限定；非病人自我操作指引：本頁不提供分抽、喀噠給藥、穿刺或殘液使用步驟。']),
+      el('div', null, [safetyText])
+    ]);
+  }
+
+  function unavailableSpecResult() {
+    return el('div', { class: 'result-card' }, [
+      el('div', { class: 'result-head' }, [el('div', { class: 'result-label' }, ['無法呈現換算結果'])]),
+      el('div', { class: 'result-body' }, [
+        note('標示規格來源不完整或無法追溯，已停止一般成功結果；請核對適用市場、筆型與最新仿單。', 'warn')
+      ])
+    ]);
   }
 
   // Display: round to 3 decimals, strip trailing zeros.
@@ -1578,10 +1664,10 @@
 
     function makePenPicker() {
       var seg = el('div', { class: 'seg' });
-      MOUNJARO_PENS.forEach(function (p) {
-        var b = el('button', { type: 'button', class: s.pen === p ? 'is-on' : '' }, [p + ' mg']);
+      MOUNJARO_PENS.forEach(function (spec) {
+        var b = el('button', { type: 'button', class: s.pen === spec.doseMg ? 'is-on' : '' }, [spec.doseMg + ' mg']);
         b.addEventListener('click', function () {
-          s.pen = p;
+          s.pen = spec.doseMg;
           Array.prototype.forEach.call(seg.children, function (x) { x.classList.remove('is-on'); });
           b.classList.add('is-on');
           recompute();
@@ -1627,22 +1713,25 @@
       if (!s.pen) {
         return el('p', { class: 'lead' }, ['請先選擇 pen 規格。']);
       }
-      var conc = s.pen / MOUNJARO_DOSE_VOL_ML;
-      var total = s.pen * 4;
-      var perClick = formatNum(conc / 100);
-      var resLo = formatNum(MOUNJARO_RESIDUAL_LO_ML * conc);
-      var resHi = formatNum(MOUNJARO_RESIDUAL_HI_ML * conc);
+      var spec = MOUNJARO_PEN_BY_DOSE[s.pen];
+      if (!isUsablePenSpec(spec)) return el('p', { class: 'lead' }, ['標示規格來源不可用，已停止換算。']);
+      var concentration = spec.totalMg / spec.totalMl;
+      var resLo = formatNum(spec.estimates.residualMl.min * concentration);
+      var resHi = formatNum(spec.estimates.residualMl.max * concentration);
       return el('p', { class: 'lead' }, [
-        s.pen + ' mg pen:標示總容量 ' + MOUNJARO_PEN_VOL_ML + ' ml(4 × ' + MOUNJARO_DOSE_VOL_ML + ' ml)= ' + total + ' mg。' +
-        '每喀噠 ≈ ' + perClick + ' mg。' +
-        '4 劑後殘量約 ' + MOUNJARO_RESIDUAL_LO_ML + '–' + MOUNJARO_RESIDUAL_HI_ML + ' ml(≈ ' + resLo + '–' + resHi + ' mg)。'
+        '標示事實：' + spec.doseMg + ' mg pen 每支總量 ' + spec.totalMg + ' mg / ' + spec.totalMl +
+        ' ml，共 ' + spec.labeledDoses + ' 個標示劑量，每劑 ' + spec.doseMl + ' ml。' +
+        '非官方估算層：理論喀噠值以每喀噠 ' + spec.estimates.clickVolumeMl + ' ml 的換算假設計算；' +
+        '四個標示劑量後殘液理論範圍約 ' + spec.estimates.residualMl.min + '–' + spec.estimates.residualMl.max +
+        ' ml（約 ' + resLo + '–' + resHi + ' mg），不代表官方可用劑量。'
       ]);
     }
 
     function safetyLine() {
-      return el('p', { class: 'field-hint', style: 'margin-top:12px;line-height:1.6' }, [
-        '分抽與殘劑使用屬 off-label,請注意:單支 pen 限同一病人、重複穿刺橡膠塞有 sterility 風險、開封後保存期依藥廠規範。'
-      ]);
+      return sourcePanel(MOUNJARO_SOURCE,
+        '官方標示／仿單優先；分抽、喀噠值換算與殘液使用均屬 off-label；同一病人限用同一支筆，' +
+        '每次換新針，重複穿刺橡膠塞有 sterility 風險；四個標示劑量後官方建議丟棄剩餘藥液；' +
+        '開封後依來源保存規範（2–8°C 冷藏，或首次使用後 ≤30°C 最多 30 天），不得因本工具延長。');
     }
 
     function updateResult() {
@@ -1651,6 +1740,11 @@
           el('div', { class: 'result-head' }, [el('div', { class: 'result-label' }, ['等待輸入'])]),
           el('div', { class: 'result-body' }, [el('p', { class: 'lead' }, ['選擇 pen 規格後,任一欄輸入數字即會即時換算。'])])
         ]));
+        return;
+      }
+      var spec = MOUNJARO_PEN_BY_DOSE[s.pen];
+      if (!isUsablePenSpec(spec)) {
+        setResult(unavailableSpecResult());
         return;
       }
       var hasInput = ['mg','ml','clicks'].some(function (k) { return s[k] !== '' && s[k] != null; });
@@ -1665,14 +1759,14 @@
       var ml = formatNum(Number(s.ml));
       var clicks = formatNum(Number(s.clicks));
       var explain = explainBlock([
-        [{ strong: s.pen + ' mg pen' }, ' · 濃度 ', { strong: formatNum(s.pen / MOUNJARO_DOSE_VOL_ML) + ' mg/ml' }],
-        ['抽取體積 ', { strong: ml + ' ml' }, ' = 劑量 ', { strong: mg + ' mg' }],
-        ['= 旋鈕 ', { strong: clicks + ' 喀噠' }]
+        [{ strong: spec.doseMg + ' mg pen' }, ' · 濃度 ', { strong: formatNum(spec.totalMg / spec.totalMl) + ' mg/ml' }],
+        ['劑量 ', { strong: mg + ' mg' }, ' · 體積 ', { strong: ml + ' ml' }],
+        ['理論約略喀噠值 ', { strong: clicks }]
       ]);
       setResult(resultCard({
-        label: '目標劑量', value: mg, unit: 'mg',
-        verdict: { label: '抽 ' + ml + ' ml / 數 ' + clicks + ' 喀噠', kind: 'info', shape: '●' },
-        body: [explain, summary('從 ' + s.pen + ' mg pen 抽取 ' + ml + ' ml,相當於 ' + mg + ' mg(' + clicks + ' 喀噠)。')]
+        label: '換算對照', value: mg, unit: 'mg',
+        verdict: { label: '體積 ' + ml + ' ml · 理論約略喀噠值 ' + clicks, kind: 'info', shape: '●' },
+        body: [explain, summary('此組數值為 ' + spec.doseMg + ' mg pen 的劑量、體積與理論約略喀噠值對照；喀噠與殘液均非官方標示刻度或用法。')]
       }));
     }
 
@@ -1681,12 +1775,12 @@
     function rerender() {
       var card = el('div', { class: 'calc-card' }, [
         el('h3', null, ['猛健樂針劑換算 (Mounjaro)']),
-        el('p', { class: 'lead' }, ['Tirzepatide KwikPen 分抽 / 殘劑換算。選 pen 規格後,任一欄輸入即時連動其他三欄。']),
+        el('p', { class: 'lead' }, ['Tirzepatide KwikPen 標示規格與 off-label 換算參考。選 pen 規格後，任一欄輸入即時連動其他欄位。']),
         section('Pen 規格', [makePenPicker()]),
         section('劑量換算(3 欄連動)', [
           makeField('mg',     '目標劑量 (mg)', null,                'mg'),
-          makeField('ml',     '抽取體積 (ml)', null,                'ml'),
-          makeField('clicks', '旋鈕喀噠數',    '1 喀噠 = 0.01 ml',  '喀噠')
+          makeField('ml',     '體積 (ml)', null,                'ml'),
+          makeField('clicks', '理論約略喀噠值', '非官方估算',  '喀噠')
         ]),
         refLine(),
         safetyLine()
@@ -1720,10 +1814,10 @@
 
     function makePenPicker() {
       var seg = el('div', { class: 'seg' });
-      WEGOVY_PEN_ORDER.forEach(function (p) {
-        var b = el('button', { type: 'button', class: s.pen === p ? 'is-on' : '' }, [p + ' mg']);
+      WEGOVY_PENS.forEach(function (spec) {
+        var b = el('button', { type: 'button', class: s.pen === spec.doseMg ? 'is-on' : '' }, [spec.doseMg + ' mg']);
         b.addEventListener('click', function () {
-          s.pen = p;
+          s.pen = spec.doseMg;
           Array.prototype.forEach.call(seg.children, function (x) { x.classList.remove('is-on'); });
           b.classList.add('is-on');
           recompute();
@@ -1767,22 +1861,22 @@
       if (!s.pen) {
         return el('p', { class: 'lead' }, ['請先選擇 pen 規格。']);
       }
-      var spec = WEGOVY_PENS[s.pen];
-      var conc = spec.totalMg / spec.totalMl;
-      var doseMl = spec.totalMl / 4;
-      var perClick = formatNum(conc / 100);
+      var spec = WEGOVY_PEN_BY_DOSE[s.pen];
+      if (!isUsablePenSpec(spec)) return el('p', { class: 'lead' }, ['標示規格來源不可用，已停止換算。']);
       return el('p', { class: 'lead' }, [
-        s.pen + ' mg FlexTouch:每支 ' + spec.totalMg + ' mg / ' + spec.totalMl + ' ml,共 4 劑。' +
-        '每標示劑 ' + formatNum(doseMl) + ' ml。' +
-        '每喀噠約 ' + perClick + ' mg。' +
-        '4 劑後若仍有殘液,官方建議丟棄。'
+        '標示事實：' + spec.doseMg + ' mg FlexTouch 每支總量 ' + spec.totalMg + ' mg / ' + spec.totalMl +
+        ' ml，共 ' + spec.labeledDoses + ' 個標示劑量，每劑 ' + spec.doseMl + ' ml。' +
+        '非官方估算層：理論約略喀噠值以每喀噠 ' + PEN_CLICK_VOLUME_ML + ' ml 的換算假設計算；' +
+        '四個標示劑量後若有殘液，官方建議丟棄，不代表可再使用。' +
+        (spec.packNote ? ' ' + spec.packNote : '')
       ]);
     }
 
     function safetyLine() {
-      return el('p', { class: 'field-hint', style: 'margin-top:12px;line-height:1.6' }, [
-        '分抽、喀噠換算與殘液使用屬 off-label。官方給藥應以劑量窗為準,不以喀噠數作為標準給藥。單支 pen 限同一病人,每次注射需換新針,開封後保存期依藥廠規範。'
-      ]);
+      return sourcePanel(WEGOVY_SOURCE,
+        '官方標示／仿單優先；分抽、喀噠換算與殘液使用均屬 off-label；官方以劑量窗為準，' +
+        '不以喀噠數作為標準給藥；同一病人限用同一支筆，每次換新針，重複穿刺有 sterility 風險；' +
+        '四個標示劑量後殘液不足一個標示劑量，官方建議丟棄；開封後依來源保存規範（≤30°C 或 2–8°C 最多 6 週），不得因本工具延長。');
     }
 
     function updateResult() {
@@ -1793,6 +1887,11 @@
         ]));
         return;
       }
+      var spec = WEGOVY_PEN_BY_DOSE[s.pen];
+      if (!isUsablePenSpec(spec)) {
+        setResult(unavailableSpecResult());
+        return;
+      }
       var hasInput = ['mg','ml','clicks'].some(function (k) { return s[k] !== '' && s[k] != null; });
       if (!hasInput) {
         setResult(el('div', { class: 'result-card' }, [
@@ -1801,19 +1900,18 @@
         ]));
         return;
       }
-      var spec = WEGOVY_PENS[s.pen];
       var mg = formatNum(Number(s.mg));
       var ml = formatNum(Number(s.ml));
       var clicks = formatNum(Number(s.clicks));
       var explain = explainBlock([
-        [{ strong: s.pen + ' mg FlexTouch' }, ' · 濃度 ', { strong: formatNum(spec.totalMg / spec.totalMl) + ' mg/ml' }],
-        ['抽取體積 ', { strong: ml + ' ml' }, ' = 劑量 ', { strong: mg + ' mg' }],
-        ['= 約 ', { strong: clicks + ' 喀噠' }]
+        [{ strong: spec.doseMg + ' mg FlexTouch' }, ' · 濃度 ', { strong: formatNum(spec.totalMg / spec.totalMl) + ' mg/ml' }],
+        ['劑量 ', { strong: mg + ' mg' }, ' · 體積 ', { strong: ml + ' ml' }],
+        ['理論約略喀噠值 ', { strong: clicks }]
       ]);
       setResult(resultCard({
-        label: '目標劑量', value: mg, unit: 'mg',
-        verdict: { label: '抽 ' + ml + ' ml / 約 ' + clicks + ' 喀噠', kind: 'info', shape: '●' },
-        body: [explain, summary('從 ' + s.pen + ' mg Wegovy FlexTouch 抽取 ' + ml + ' ml,約相當於 ' + mg + ' mg(' + clicks + ' 喀噠)。')]
+        label: '換算對照', value: mg, unit: 'mg',
+        verdict: { label: '體積 ' + ml + ' ml · 理論約略喀噠值 ' + clicks, kind: 'info', shape: '●' },
+        body: [explain, summary('此組數值為 ' + spec.doseMg + ' mg FlexTouch 的劑量、體積與理論約略喀噠值對照；喀噠與殘液均非官方標示刻度或用法。')]
       }));
     }
 
@@ -1822,12 +1920,12 @@
     function rerender() {
       var card = el('div', { class: 'calc-card' }, [
         el('h3', null, ['週纖達針劑換算 (Wegovy)']),
-        el('p', { class: 'lead' }, ['Semaglutide FlexTouch 諾特筆 off-label 分抽換算。選 pen 規格後,任一欄輸入即時連動其他三欄。']),
+        el('p', { class: 'lead' }, ['Semaglutide FlexTouch 諾特筆標示規格與 off-label 換算參考。選 pen 規格後，任一欄輸入即時連動其他欄位。']),
         section('Pen 規格', [makePenPicker()]),
         section('劑量換算(3 欄連動)', [
           makeField('mg',     '目標劑量 (mg)', null,                    'mg'),
-          makeField('ml',     '抽取體積 (ml)', null,                    'ml'),
-          makeField('clicks', '約略喀噠數',    '1 喀噠約 0.01 ml',      '喀噠')
+          makeField('ml',     '體積 (ml)', null,                    'ml'),
+          makeField('clicks', '理論約略喀噠值', '非官方估算',      '喀噠')
         ]),
         refLine(),
         safetyLine()
@@ -1849,6 +1947,8 @@
   if (typeof window !== 'undefined') {
     window.__mounjaroCalc = mounjaroCalc;
     window.__wegovyCalc = wegovyCalc;
+    window.__mounjaroPens = MOUNJARO_PENS;
+    window.__wegovyPens = WEGOVY_PENS;
     window.__formatNum = formatNum;
     window.__lipidCoverage = lipidCoverage;
     window.__bmiClassify = bmiClassify;
@@ -1862,6 +1962,8 @@
       goPrev: goPrev,
       mounjaroCalc: mounjaroCalc,
       wegovyCalc: wegovyCalc,
+      mounjaroPens: MOUNJARO_PENS,
+      wegovyPens: WEGOVY_PENS,
       formatNum: formatNum,
       lipidCoverage: lipidCoverage,
       bmiClassify: bmiClassify,

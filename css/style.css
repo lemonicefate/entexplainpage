@@ -1014,6 +1014,24 @@ img.card-thumb-logo {
   color: var(--warn-fg);
   font-weight: 500;
 }
+.pen-source-panel {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--tint-2);
+  line-height: 1.7;
+}
+.pen-source-panel > strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--teal-2);
+}
+.pen-source-panel a {
+  color: var(--teal-2);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 
 .summary {
   margin-top: 14px;

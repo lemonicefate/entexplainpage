@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Mounjaro / Wegovy 規格與安全基線** — `#/calc/mounjaro` 鎖定六種 MOUNJARO KwikPen 標示規格，`#/calc/wegovy` 鎖定五種 Wegovy FlexTouch 標示規格；每筆包含適用市場／筆型、第一方來源與最後查核日。來源不完整時 fail closed，不顯示一般成功結果。喀噠與殘液維持為明確的非官方估算，結果改為中性劑量／體積／理論約略喀噠對照，並常駐顯示醫療人員限定、非病人自我操作指引、同一病人、換新針、sterility、殘液棄置與開封保存規範。
+
 ## [0.2.3.3] - 2026-05-08
 
 ### Fixed
