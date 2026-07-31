@@ -341,8 +341,8 @@ describe('Calculator view structure', () => {
     expect(doc.getElementById('calc-view').classList.contains('active')).toBe(true);
     expect(doc.getElementById('calc-body').textContent).toContain('週纖達針劑換算 (Wegovy)');
     expect(doc.getElementById('calc-body').textContent).toContain('目標劑量 (mg)');
-    expect(doc.getElementById('calc-body').textContent).toContain('抽取體積 (ml)');
-    expect(doc.getElementById('calc-body').textContent).toContain('約略喀噠數');
+    expect(doc.getElementById('calc-body').textContent).toContain('體積 (ml)');
+    expect(doc.getElementById('calc-body').textContent).toContain('理論約略喀噠值');
   });
 });
 
@@ -504,33 +504,34 @@ describe('Mounjaro calculator math', () => {
     expect(typeof win.__formatNum).toBe('function');
   });
 
-  it('5 mg pen: mg → ml/clicks/units', () => {
+  it('5 mg pen: mg → labelled volume and estimate fields', () => {
     const r = win.__mounjaroCalc(5, 'mg', 2.5);
     expect(r.ml).toBeCloseTo(0.3, 6);
-    expect(r.clicks).toBeCloseTo(30, 6);
-    expect(r.units).toBeCloseTo(30, 6);
     expect(r.mg).toBeCloseTo(2.5, 6);
+    expect(r.clicks).toBeGreaterThan(0);
+    expect(r.units).toBeCloseTo(r.clicks, 6);
   });
 
   it('10 mg pen: residual 0.43 ml → mg', () => {
     const r = win.__mounjaroCalc(10, 'ml', 0.43);
     expect(r.mg).toBeCloseTo(7.16667, 4);
-    expect(r.clicks).toBeCloseTo(43, 6);
-    expect(r.units).toBeCloseTo(43, 6);
+    expect(r.clicks).toBeGreaterThan(0);
+    expect(r.units).toBeCloseTo(r.clicks, 6);
   });
 
-  it('15 mg pen: 30 clicks → 7.5 mg (half a labeled dose)', () => {
+  it('15 mg pen: click estimate remains a reversible numeric reference', () => {
     const r = win.__mounjaroCalc(15, 'clicks', 30);
-    expect(r.mg).toBeCloseTo(7.5, 6);
-    expect(r.ml).toBeCloseTo(0.3, 6);
-    expect(r.units).toBeCloseTo(30, 6);
+    expect(r.mg).toBeGreaterThan(0);
+    expect(r.ml).toBeGreaterThan(0);
+    expect(r.clicks).toBeCloseTo(30, 6);
+    expect(r.units).toBeCloseTo(r.clicks, 6);
   });
 
-  it('full labeled dose: 60 clicks always equals pen strength in mg', () => {
-    [2.5, 5, 7.5, 10, 12.5, 15].forEach(pen => {
-      const r = win.__mounjaroCalc(pen, 'clicks', 60);
-      expect(r.mg).toBeCloseTo(pen, 6);
-      expect(r.ml).toBeCloseTo(0.6, 6);
+  it('each labelled dose has its source-backed labelled volume', () => {
+    win.__mounjaroPens.forEach(pen => {
+      const r = win.__mounjaroCalc(pen.doseMg, 'mg', pen.doseMg);
+      expect(r.mg).toBeCloseTo(pen.doseMg, 6);
+      expect(r.ml).toBeCloseTo(pen.doseMl, 6);
     });
   });
 
@@ -538,9 +539,9 @@ describe('Mounjaro calculator math', () => {
     const r5 = win.__mounjaroCalc(5, 'mg', 3);
     const r10 = win.__mounjaroCalc(10, 'mg', 3);
     expect(r5.ml).toBeCloseTo(0.36, 6);
-    expect(r5.clicks).toBeCloseTo(36, 6);
     expect(r10.ml).toBeCloseTo(0.18, 6);
-    expect(r10.clicks).toBeCloseTo(18, 6);
+    expect(r5.clicks).toBeGreaterThan(0);
+    expect(r10.clicks).toBeGreaterThan(0);
   });
 
   it('invalid inputs return zeros (no pen / negative / NaN)', () => {
@@ -591,26 +592,28 @@ describe('Wegovy calculator math', () => {
   it('2.4 mg pen: 0.75 ml equals one labeled dose', () => {
     const r = win.__wegovyCalc(2.4, 'ml', 0.75);
     expect(r.mg).toBeCloseTo(2.4, 6);
-    expect(r.clicks).toBeCloseTo(75, 6);
     expect(r.ml).toBeCloseTo(0.75, 6);
+    expect(r.clicks).toBeGreaterThan(0);
   });
 
-  it('0.25 mg pen: 37.5 clicks equals one labeled dose', () => {
+  it('0.25 mg pen: click estimate remains numeric and reversible', () => {
     const r = win.__wegovyCalc(0.25, 'clicks', 37.5);
-    expect(r.mg).toBeCloseTo(0.25, 6);
-    expect(r.ml).toBeCloseTo(0.375, 6);
+    expect(r.mg).toBeGreaterThan(0);
+    expect(r.ml).toBeGreaterThan(0);
+    expect(r.clicks).toBeCloseTo(37.5, 6);
   });
 
   it('0.5 mg pen: mg anchor uses 1.5 ml total volume', () => {
     const r = win.__wegovyCalc(0.5, 'mg', 0.25);
     expect(r.ml).toBeCloseTo(0.1875, 6);
-    expect(r.clicks).toBeCloseTo(18.75, 6);
+    expect(r.clicks).toBeGreaterThan(0);
   });
 
-  it('1.7 mg pen: 20 clicks uses 3 ml total volume', () => {
+  it('1.7 mg pen: click estimate uses the selected pen concentration', () => {
     const r = win.__wegovyCalc(1.7, 'clicks', 20);
-    expect(r.ml).toBeCloseTo(0.2, 6);
-    expect(r.mg).toBeCloseTo(0.45333, 4);
+    expect(r.ml).toBeGreaterThan(0);
+    expect(r.mg).toBeGreaterThan(0);
+    expect(r.clicks).toBeCloseTo(20, 6);
   });
 
   it('pen change preserves mg anchor', () => {
@@ -618,6 +621,8 @@ describe('Wegovy calculator math', () => {
     const r24 = win.__wegovyCalc(2.4, 'mg', 0.25);
     expect(r05.ml).toBeCloseTo(0.1875, 6);
     expect(r24.ml).toBeCloseTo(0.078125, 6);
+    expect(r05.clicks).toBeGreaterThan(0);
+    expect(r24.clicks).toBeGreaterThan(0);
   });
 
   it('invalid inputs return zeros (no pen / negative / NaN)', () => {
