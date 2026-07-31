@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
 
+async function waitForReader(page) {
+  await expect(page.locator('#slide-view')).toBeVisible();
+  await expect(page.locator('#reader-loading')).toBeHidden();
+}
+
 test.describe('Complete consultation flow', () => {
   test('loads home, enters player, navigates steps, and returns', async ({ page }) => {
     await page.goto('/');
@@ -14,7 +19,7 @@ test.describe('Complete consultation flow', () => {
     await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
 
     // Player visible
-    await expect(page.locator('#slide-view')).toBeVisible();
+    await waitForReader(page);
     await expect(page.locator('#step-indicator')).toContainText('01 /');
 
     // Next / Prev
@@ -32,7 +37,7 @@ test.describe('Complete consultation flow', () => {
     await page.goto('/');
     await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
     await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
-    await expect(page.locator('#slide-view')).toBeVisible();
+    await waitForReader(page);
 
     await page.keyboard.press('ArrowRight');
     await expect(page.locator('#step-indicator')).toContainText('02 /');
@@ -77,7 +82,7 @@ test.describe('Reader mode (tap zones + scrubber + auto-hide)', () => {
     await page.goto('/');
     await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
     await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
-    await expect(page.locator('#slide-view')).toBeVisible();
+    await waitForReader(page);
     await expect(page.locator('#step-indicator')).toContainText('01 /');
 
     // Right zone → next
@@ -93,7 +98,7 @@ test.describe('Reader mode (tap zones + scrubber + auto-hide)', () => {
     await page.goto('/');
     await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
     await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
-    await expect(page.locator('#slide-view')).toBeVisible();
+    await waitForReader(page);
 
     // First center tap → hide chrome (was visible on entry)
     await page.locator('#tap-toggle').click();
@@ -108,7 +113,7 @@ test.describe('Reader mode (tap zones + scrubber + auto-hide)', () => {
     await page.goto('/');
     await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
     await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
-    await expect(page.locator('#slide-view')).toBeVisible();
+    await waitForReader(page);
 
     // Activate laser → stage gets tool-laser class
     await page.keyboard.press('l');
@@ -126,7 +131,7 @@ test.describe('Reader mode (tap zones + scrubber + auto-hide)', () => {
     await page.goto('/');
     await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
     await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
-    await expect(page.locator('#slide-view')).toBeVisible();
+    await waitForReader(page);
 
     // Set scrubber to index 2 via input event
     const scrubber = page.locator('#scrubber');
@@ -143,7 +148,7 @@ test.describe('Reader mode (tap zones + scrubber + auto-hide)', () => {
     await page.goto('/');
     await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
     await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
-    await expect(page.locator('#slide-view')).toBeVisible();
+    await waitForReader(page);
 
     // Chrome visible on entry
     await expect(page.locator('#slide-view')).not.toHaveClass(/is-immersive/);
@@ -156,7 +161,7 @@ test.describe('Reader mode (tap zones + scrubber + auto-hide)', () => {
     await page.goto('/');
     await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
     await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
-    await expect(page.locator('#slide-view')).toBeVisible();
+    await waitForReader(page);
 
     // Activate pen
     await page.keyboard.press('p');
@@ -191,7 +196,7 @@ test.describe('Reader mode (tap zones + scrubber + auto-hide)', () => {
     await page.goto('/');
     await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
     await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
-    await expect(page.locator('#slide-view')).toBeVisible();
+    await waitForReader(page);
 
     await page.keyboard.press('p');
     const box = await page.locator('#pen-canvas').boundingBox();
@@ -225,7 +230,7 @@ test.describe('Reader mode (tap zones + scrubber + auto-hide)', () => {
     await page.goto('/');
     await expect(page.locator('.card:not(.skeleton)').first()).toBeVisible({ timeout: 5000 });
     await page.locator('a.card[href^="#/"]:not([href^="#/calc"])').first().click();
-    await expect(page.locator('#slide-view')).toBeVisible();
+    await waitForReader(page);
     await expect(page.locator('#slide-view')).not.toHaveClass(/is-immersive/);
 
     // Navigate via scrubber every 1s for 5s. Each jumpTo runs renderStep

@@ -13,8 +13,9 @@ function createDOM() {
 }
 
 function createRunningAppDOM(hash, indexData) {
+  const sessionSrc = fs.readFileSync(path.resolve(__dirname, '../../js/reader-session.js'), 'utf-8');
   const appSrc = fs.readFileSync(path.resolve(__dirname, '../../js/app.js'), 'utf-8');
-  const dom = new JSDOM(htmlContent.replace('</body>', `<script>${appSrc}</script></body>`), {
+  const dom = new JSDOM(htmlContent.replace('</body>', `<script>${sessionSrc}</script><script>${appSrc}</script></body>`), {
     url: 'http://localhost/' + (hash || ''),
     runScripts: 'dangerously',
     pretendToBeVisual: true,
@@ -457,6 +458,7 @@ describe('Service worker', () => {
   it('precaches core resources (relative paths for project-site scope)', () => {
     expect(swContent).toContain('./index.html');
     expect(swContent).toContain('./css/style.css');
+    expect(swContent).toContain('./js/reader-session.js');
     expect(swContent).toContain('./js/app.js');
     expect(swContent).toContain('./procedures/index.json');
   });
