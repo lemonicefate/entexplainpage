@@ -19,10 +19,12 @@
     wakeLock: null,
     preloadImages: [],
     chromeHidden: false,
-    chromeTimer: null
+    chromeTimer: null,
+    readerLoading: false
   };
 
   var CHROME_AUTO_HIDE_MS = 3000;
+  var readerSession = null;
 
   // --- DOM refs ---
   var $ = function (id) { return document.getElementById(id); };
@@ -39,6 +41,8 @@
   var slideStage = $('slide-stage');
   var slideImage = $('slide-image');
   var imagePlaceholder = $('image-placeholder');
+  var readerLoading = $('reader-loading');
+  var readerLoadingTitle = $('reader-loading-title');
   var placeholderTitle = $('placeholder-title');
   var placeholderAlt = $('placeholder-alt');
   var stepIndicator = $('step-indicator');
@@ -343,6 +347,7 @@
     syncCatalogMetadata();
     setupSearch();
     setupKeyboard();
+    setupReaderSession();
     setupRouting();
     setupSwipe();
     setupOffline();
@@ -395,6 +400,13 @@
   function loadProcedure(id) {
     return fetch('procedures/' + id + '.json')
       .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  }
+
+  function setupReaderSession() {
+    readerSession = ReaderSession.create({
+      load: loadProcedure,
+      onStateChange: handleReaderSessionState
+    });
   }
 
   // ============================================================
@@ -573,6 +585,7 @@
     if (state.procedureStatus === 'loading' && /^#\/(?!calc(?:\/|$))/.test(hash)) return;
     var destination = state.catalog.resolve(hash);
     if (destination.kind === 'calculator') {
+      readerSession.transition({ type: 'leave' });
       enterCalc(destination);
       return;
     }
@@ -581,9 +594,11 @@
       return;
     }
     if (destination.kind === 'not-found' && hash) {
+      readerSession.transition({ type: 'leave' });
       window.location.hash = '';
       return;
     }
+    readerSession.transition({ type: 'leave' });
     exitToHome();
   }
 
@@ -594,14 +609,6 @@
   }
 
   function exitToHome() {
-    state.current = null;
-    state.stepIndex = 0;
-    setTool(null);
-    cancelPreload();
-    releaseWakeLock();
-    clearChromeTimer();
-    clearPen();
-    showChrome(); // reset so next entry starts with chrome visible
     switchView(homeView);
   }
 
@@ -610,24 +617,105 @@
   // ============================================================
   function enterPlayer(id) {
     var proc = state.catalog && state.catalog.item(id);
-    if (!proc || !proc.href || proc.href.indexOf('#/calc/') === 0) { window.location.hash = ''; return; }
+    if (!proc || !proc.href || proc.href.indexOf('#/calc/') === 0) {
+      readerSession.transition({ type: 'leave' });
+      window.location.hash = '';
+      return;
+    }
 
-    loadProcedure(id)
-      .then(function (data) {
-        state.current = Object.assign({}, proc, data);
-        state.stepIndex = 0;
-        switchView(slideView);
-        endScreen.hidden = true;
-        playerTitle.textContent = state.current.title;
-        resizePenCanvas(); // canvas only has real dimensions once slideView is active
-        renderThumbs();
-        renderStep();
-        preloadImages(data.steps);
-        requestWakeLock();
-        showChrome();
-        scheduleChromeHide();
-      })
-      .catch(function () { window.location.hash = ''; });
+    readerSession.transition({ type: 'procedure', id: id });
+  }
+
+  function handleReaderSessionState(event) {
+    if (event.type === 'loading') {
+      showReaderLoading(event.target.id);
+      return;
+    }
+    if (event.type === 'active') {
+      // A hash can change before the browser dispatches hashchange. Do not
+      // let a completion that no longer matches the URL paint the Reader.
+      if (window.location.hash !== '#/' + event.target.id) {
+        readerSession.transition({ type: 'leave' });
+        return;
+      }
+      commitReader(event.target.id, event.data);
+      return;
+    }
+    if (event.type === 'error') {
+      // The dedicated Reader error state belongs to issue #15. Preserve the
+      // existing fallback for the current target; stale errors never emit.
+      if (window.location.hash === '#/' + event.target.id) window.location.hash = '';
+      return;
+    }
+    if (event.type === 'leave') resetReaderLifecycle();
+  }
+
+  function resetReaderLifecycle() {
+    state.current = null;
+    state.stepIndex = 0;
+    state.readerLoading = false;
+    clearChromeTimer();
+    setTool(null);
+    clearChromeTimer();
+    cancelPreload();
+    releaseWakeLock();
+    clearPen();
+    penDrawing = false;
+    thumbStrip.textContent = '';
+    endScreen.hidden = true;
+    if (readerLoading) readerLoading.hidden = true;
+    if (readerLoadingTitle) readerLoadingTitle.textContent = '';
+    slideView.classList.remove('reader-loading');
+    slideView.setAttribute('aria-busy', 'false');
+    showChrome(); // reset so next entry starts with chrome visible
+    setReaderInteractionEnabled(false);
+  }
+
+  function setReaderInteractionEnabled(enabled) {
+    [prevBtn, nextBtn].forEach(function (button) { if (button) button.disabled = !enabled; });
+    document.querySelectorAll('.tool[data-tool]').forEach(function (button) {
+      button.disabled = !enabled;
+    });
+    if (scrubber) scrubber.disabled = !enabled;
+  }
+
+  function showReaderLoading(id) {
+    var proc = state.catalog && state.catalog.item(id);
+    resetReaderLifecycle();
+    state.readerLoading = true;
+    switchView(slideView);
+    slideView.classList.add('reader-loading');
+    slideView.setAttribute('aria-busy', 'true');
+    readerLoading.hidden = false;
+    readerLoadingTitle.textContent = proc ? proc.title : id;
+    playerTitle.textContent = proc ? proc.title : '';
+    playerPageTitle.textContent = '載入中';
+    stepIndicator.textContent = '— / —';
+    if (slideImage) slideImage.hidden = true;
+    if (imagePlaceholder) imagePlaceholder.hidden = true;
+    setReaderInteractionEnabled(false);
+  }
+
+  function commitReader(id, data) {
+    var proc = state.catalog && state.catalog.item(id);
+    if (!proc || !proc.href || proc.href.indexOf('#/calc/') === 0) return;
+    state.current = Object.assign({}, proc, data);
+    state.stepIndex = 0;
+    state.readerLoading = false;
+    switchView(slideView);
+    slideView.classList.remove('reader-loading');
+    slideView.setAttribute('aria-busy', 'false');
+    readerLoading.hidden = true;
+    endScreen.hidden = true;
+    playerTitle.textContent = state.current.title;
+    setReaderInteractionEnabled(true);
+    resizePenCanvas(); // canvas only has real dimensions once slideView is active
+    renderThumbs();
+    renderStep();
+    preloadImages(data.steps);
+    requestWakeLock();
+    showChrome();
+    scheduleChromeHide();
   }
 
   function renderThumbs() {
@@ -759,6 +847,7 @@
   }
 
   function setTool(t) {
+    if (t && (!state.current || state.readerLoading)) return;
     state.activeTool = t;
     document.querySelectorAll('.tool[data-tool]').forEach(function (b) {
       b.classList.toggle('is-active', b.getAttribute('data-tool') === t);
@@ -834,15 +923,15 @@
   function setupTapZones() {
     if (!tapPrev || !tapNext || !tapToggle) return;
     tapPrev.addEventListener('click', function () {
-      if (state.activeTool) return; // let tools own the stage
+      if (state.activeTool || !state.current) return; // let tools own the stage
       goPrev();
     });
     tapNext.addEventListener('click', function () {
-      if (state.activeTool) return;
+      if (state.activeTool || !state.current) return;
       goNext();
     });
     tapToggle.addEventListener('click', function () {
-      if (state.activeTool) return;
+      if (state.activeTool || !state.current) return;
       toggleChrome();
     });
   }
@@ -872,6 +961,7 @@
     scheduleChromeHide();
   }
   function toggleChrome() {
+    if (!state.current) return;
     if (state.chromeHidden) { showChrome(); scheduleChromeHide(); }
     else                    { hideChrome(); clearChromeTimer(); }
   }

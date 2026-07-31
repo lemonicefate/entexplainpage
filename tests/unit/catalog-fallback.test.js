@@ -4,10 +4,11 @@ import fs from 'fs';
 import path from 'path';
 
 const htmlContent = fs.readFileSync(path.resolve(__dirname, '../../index.html'), 'utf-8');
+const sessionSrc = fs.readFileSync(path.resolve(__dirname, '../../js/reader-session.js'), 'utf-8');
 const appSrc = fs.readFileSync(path.resolve(__dirname, '../../js/app.js'), 'utf-8');
 
 function runApp(hash, fetchImpl) {
-  const dom = new JSDOM(htmlContent.replace('</body>', `<script>${appSrc}</script></body>`), {
+  const dom = new JSDOM(htmlContent.replace('</body>', `<script>${sessionSrc}</script><script>${appSrc}</script></body>`), {
     url: 'http://localhost/' + (hash || ''),
     runScripts: 'dangerously',
     pretendToBeVisual: true,

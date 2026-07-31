@@ -4,6 +4,7 @@ var PRECACHE_URLS = [
   './',
   './index.html',
   './css/style.css',
+  './js/reader-session.js',
   './js/app.js',
   './manifest.json',
   './procedures/index.json',
