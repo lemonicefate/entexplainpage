@@ -7,6 +7,7 @@
 - 建立、讀取、留言、加減 labels 與關閉 issue，使用對應的 `gh issue` 指令。
 - 發布 ticket 時依 dependency order 建立，並套用 `ready-for-agent` label。
 - Blocking 優先使用 GitHub native issue dependencies；若 repository 或 CLI 尚不支援，回退為 issue body 的 `Blocked by: #<number>`。
+- 只有所有 blocker 都已關閉的 ticket 才能標為 `ready-for-agent`。
 - GitHub issue 與 PR 共用編號；遇到裸編號時先判斷其實際類型。
 
 ## Pull requests as a triage surface
