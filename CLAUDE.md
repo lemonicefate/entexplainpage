@@ -27,3 +27,17 @@
 - 計算機是寫在 `js/app.js` 的靜態邏輯(不走 JSON);新增計算機的步驟見 `README.md`「新增計算機」。
 - 「權威抄寫型」計算機規則(健保給付、國健署分級、藥典劑量)一律配 `tests/unit/calc/{id}.test.js` golden-file 測試鎖死;自創 / 估算公式不寫單元測試以免把 bug 變規格。詳見 `TODOS.md` 的 Calculator 測試策略。
 - **CI gate(`.github/workflows/ci.yml`,2026-05-18 起)**:push 與 PR 自動跑 `unit`(vitest)與 `e2e`(playwright chromium)兩段 job,失敗時上傳 `playwright-report/` 為 artifact。Node 22 固定(Vite 7 要求 ≥ 22.12);同分支重 push 用 `concurrency.cancel-in-progress` 砍前一輪。本機 Node 若 < 22.12 (如 22.11) 須加 `NODE_OPTIONS='--experimental-require-module'` 跑 vitest。
+
+## Agent skills
+
+### Issue tracker
+
+工作項目使用 GitHub Issues，repository 由 git remote 推導。詳見 `docs/agents/issue-tracker.md`。
+
+### Triage labels
+
+使用預設五種 triage labels。詳見 `docs/agents/triage-labels.md`。
+
+### Domain docs
+
+採 single-context：領域語彙位於根目錄 `CONTEXT.md`，架構決策位於 `docs/adr/`。詳見 `docs/agents/domain.md`。
