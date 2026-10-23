@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.3.9] - 2026-10-23
+
+### Fixed
+- **計算機列印版型（impeccable critique P2）** — `css/style.css` 新增 `@media print`：從計算機頁列印時隱藏輸入卡（`.calc-card`）、`.calc-tabs`、`.calc-topbar`、banner 與其他 chrome，只印結果卡（`.result-card`，全寬、黑字白底、`break-inside: avoid` 不跨頁切斷），並移除列印按鈕本身；筆針的來源面板（`.pen-source-panel`，位於輸入卡內）以「輸入卡只保留該面板」的方式一併納入列印。
+- **Admin 對齊設計系統（impeccable critique P2）** — `admin.html` 的色彩 token 值、字型與 focus 樣式改與 DESIGN.md §1 一致（input focus 改用 `--gold` outline ring，不再 `outline: none` ＋邊框變色；danger 色對齊 `--danger-fg`/`--danger-bg`）；右側預覽改成播放器骨架：上方 topbar（頁數＋步驟標題）、中央 `object-fit: contain` 全圖、說明文字在圖下方，移除原「標題／說明壓在圖片底部」的 overlay 構圖。
+- **小字對比未達 AA（critique 交叉驗證）** — `--ink-3` 自 `#8aa3a0`（對白約 2.7:1）加深為 `#54736e`（對白 5.18:1、對 `--tint-1` 4.76:1）；`--teal-2` 自 `#4a9e94`（約 3.2:1）加深為 `#2f7a6e`（對白 5.08:1、對 `--tint-1` 4.68:1），同色相家族只降明度，達 DESIGN.md §9 自訂 WCAG AA 4.5:1。DESIGN.md token 表同步更新並註明實算對比；admin 的 `--text-disabled` 同步新 `--ink-3` 值。
+- **CI：persistence/http 測試逾時（issue #53）** — `tests/unit/persistence/http.test.js` 首行加 `// @vitest-environment node`：jsdom 的 FormData/fetch 組合遺失 multipart boundary 使請求逾時，改用 Node 原生環境後兩項測試正常通過，全套 unit 測試全綠。
+
 ## [0.2.3.8] - 2026-10-23
 
 ### Fixed
