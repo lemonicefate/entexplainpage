@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>頭暈鑑別診斷流程圖 · 草稿</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fg:#0f2a42; --teal:#0e7c7b; --teal-deep:#0a6968; --teal-2:#4a9e94;
+  --bg:#ffffff; --muted:#56706c;
+  --ink:#1a3942; --ink-2:#3a5064; --ink-3:#8aa3a0;
+  --surface:#ffffff; --line:#eaf2ef; --line-strong:#d7e4e0;
+  --tint-1:#f0f7f4; --tint-2:#f5faf8;
+  --ok-fg:#1a7a4a; --ok-bg:#e7f5ef;
+  --warn-fg:#a07a14; --warn-bg:#fdf4d9;
+  --danger-fg:#c44a2e; --danger-bg:#fde6e0;
+  --info-fg:#0e7c7b; --info-bg:#e7f3f1;
+  --r:10px; --r-md:14px; --r-lg:20px; --r-pill:999px;
+  --shadow-card:0 1px 2px rgba(15,42,66,0.04);
+  --shadow-pop:0 12px 32px -12px rgba(15,42,66,0.18);
+  --font:"Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+  --c-acute:#b5683f; --c-trig:#2f8f86; --c-spont:#3a6ea0; --c-chronic:#6b6480;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);color:var(--ink-2);background:var(--tint-2);line-height:1.6;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 20px 64px}
+
+/* ---- header ---- */
+.draft-tag{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.06em;
+  color:var(--warn-fg);background:var(--warn-bg);padding:3px 10px;border-radius:var(--r-pill);margin-bottom:14px}
+h1{font-size:26px;font-weight:700;color:var(--ink);letter-spacing:-.01em}
+.subtitle{font-size:14px;color:var(--muted);margin-top:4px}
+.reframe{margin-top:18px;background:var(--info-bg);border:1px solid #cde6e2;border-radius:var(--r-md);
+  padding:14px 18px;font-size:13.5px;color:var(--ink-2)}
+.reframe b{color:var(--teal-deep)}
+
+/* ---- generic node ---- */
+.node{background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r-md);
+  box-shadow:var(--shadow-card);padding:14px 16px}
+.node-title{font-size:14px;font-weight:600;color:var(--ink)}
+.node-meta{font-size:12px;color:var(--ink-3);margin-top:2px}
+
+/* ---- spine ---- */
+.spine{display:flex;flex-direction:column;align-items:center;margin-top:28px}
+.entry{background:linear-gradient(135deg,var(--teal),var(--teal-deep));color:#fff;
+  border:none;text-align:center;padding:16px 28px;border-radius:var(--r-md);box-shadow:var(--shadow-pop)}
+.entry .node-title{color:#fff;font-size:15px}
+.entry .node-meta{color:#cdeae8}
+.connector{width:2px;height:24px;background:var(--line-strong)}
+.step-badge{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--teal-2);
+  text-transform:uppercase;margin-bottom:6px;display:block}
+.axis{background:var(--tint-1);border:1px dashed var(--line-strong);text-align:center;
+  border-radius:var(--r-md);padding:14px 22px;max-width:560px}
+.axis ul{list-style:none;font-size:12.5px;color:var(--ink-2);margin-top:6px}
+.axis li{display:inline-block;margin:2px 8px}
+.axis li::before{content:"·";color:var(--teal-2);margin-right:5px;font-weight:700}
+
+/* ---- branch label + tap instruction ---- */
+.branch-label{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--ink-3);
+  text-align:center;margin:22px 0 4px}
+.tap-instruction{text-align:center;font-size:12.5px;color:var(--teal-deep);
+  background:var(--info-bg);border-radius:var(--r-pill);padding:5px 14px;
+  display:inline-block;margin:0 auto 12px;}
+.tap-instruction-wrap{text-align:center}
+
+/* ---- 4 syndrome columns ---- */
+.cols{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.col{display:flex;flex-direction:column;gap:10px}
+.syndrome{border-radius:var(--r-md);padding:13px 14px;color:#fff}
+.syndrome .node-title{color:#fff;font-size:13.5px}
+.syndrome .node-meta{color:rgba(255,255,255,.82);font-size:11.5px;line-height:1.45}
+.s-acute{background:var(--c-acute)}
+.s-trig{background:var(--c-trig)}
+.s-spont{background:var(--c-spont)}
+.s-chronic{background:var(--c-chronic)}
+.dx{background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--r);
+  padding:9px 11px;border-left:3px solid var(--line-strong)}
+.dx-trigger{font-size:11px;font-weight:600;color:var(--ink-3)}
+.dx-name{font-size:13px;font-weight:600;color:var(--ink);margin-top:1px}
+.dx-test{font-size:11.5px;color:var(--muted);margin-top:2px}
+.dx-time{font-size:11px;color:var(--teal-2);font-weight:600}
+.dx.lead{border-left-color:var(--teal)}
+.dx.danger-dx{border-left-color:var(--danger-fg);background:var(--danger-bg)}
+.dx.danger-dx .dx-name{color:var(--danger-fg)}
+
+/* HINTS callout */
+.hints{background:var(--warn-bg);border:1px solid #ecd9a8;border-radius:var(--r);
+  padding:9px 11px;font-size:11.5px;color:var(--warn-fg)}
+.hints b{display:block;font-size:12px;margin-bottom:2px}
+
+/* ---- red flag bands ---- */
+.flags{margin-top:30px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.flag-band{border-radius:var(--r-md);padding:15px 18px}
+.flag-central{background:var(--danger-bg);border:1px solid #f2c4b6}
+.flag-cardiac{background:var(--warn-bg);border:1px solid #ecd9a8}
+.flag-band h3{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:7px}
+.flag-central h3{color:var(--danger-fg)}
+.flag-cardiac h3{color:var(--warn-fg)}
+.flag-list{list-style:none;margin-top:8px;display:flex;flex-wrap:wrap;gap:5px 7px}
+.flag-list li{font-size:11.5px;background:rgba(255,255,255,.66);border-radius:var(--r-pill);
+  padding:3px 9px;color:var(--ink-2)}
+.flag-action{font-size:12px;margin-top:9px;font-weight:600}
+.flag-central .flag-action{color:var(--danger-fg)}
+.flag-cardiac .flag-action{color:var(--warn-fg)}
+
+/* ---- focusable affordance ---- */
+.focusable{position:relative;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
+body:not([data-focus]) .focusable:hover{transform:translateY(-2px)}
+body:not([data-focus]) .focusable:active{transform:translateY(0)}
+.zoom-cue{position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;
+  background:rgba(255,255,255,.85);color:var(--ink-2);font-size:13px;display:flex;
+  align-items:center;justify-content:center;z-index:2;box-shadow:var(--shadow-card)}
+.flag-band .zoom-cue{background:rgba(255,255,255,.9)}
+
+/* ---- pitfalls ---- */
+.pitfalls{margin-top:24px;background:var(--surface);border:1px solid var(--line);
+  border-radius:var(--r-md);padding:16px 20px}
+.pitfalls h3{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px}
+.pitfalls ol{margin-left:18px;font-size:12.5px;color:var(--ink-2)}
+.pitfalls li{margin:4px 0}
+.pitfalls b{color:var(--danger-fg)}
+
+footer{margin-top:30px;font-size:11px;color:var(--ink-3);text-align:center;line-height:1.7}
+.disclaimer{margin-top:8px;font-size:11.5px;color:var(--muted);background:var(--tint-1);
+  border-radius:var(--r);padding:9px 14px;display:inline-block}
+
+/* =================================================================
+   FOCUS MODE
+   ================================================================= */
+.focus-bar{display:none}
+body[data-focus] .focus-bar{
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px;
+  position:sticky;top:0;z-index:20;background:var(--bg);
+  margin:-32px -20px 8px;padding:12px 20px;
+  border-bottom:1px solid var(--line-strong);box-shadow:0 4px 12px -8px rgba(15,42,66,.25)}
+.fb-back{font-size:13px;font-weight:600;color:#fff;background:var(--teal);
+  border:none;border-radius:var(--r-pill);padding:8px 16px;cursor:pointer;min-height:40px}
+.fb-back:hover{background:var(--teal-deep)}
+.fb-tabs{display:flex;flex-wrap:wrap;gap:6px}
+.fb-tab{font-size:12.5px;font-weight:600;color:var(--ink-2);background:var(--surface);
+  border:1px solid var(--line-strong);border-left-width:4px;border-radius:var(--r);
+  padding:7px 11px;cursor:pointer;min-height:40px}
+.fb-tab[data-go="acute"]{border-left-color:var(--c-acute)}
+.fb-tab[data-go="trig"]{border-left-color:var(--c-trig)}
+.fb-tab[data-go="spont"]{border-left-color:var(--c-spont)}
+.fb-tab[data-go="chronic"]{border-left-color:var(--c-chronic)}
+.fb-tab[data-go="central"]{border-left-color:var(--danger-fg)}
+.fb-tab[data-go="cardiac"]{border-left-color:var(--warn-fg)}
+.fb-tab.is-active{color:#fff}
+.fb-tab.is-active[data-go="acute"]{background:var(--c-acute);border-color:var(--c-acute)}
+.fb-tab.is-active[data-go="trig"]{background:var(--c-trig);border-color:var(--c-trig)}
+.fb-tab.is-active[data-go="spont"]{background:var(--c-spont);border-color:var(--c-spont)}
+.fb-tab.is-active[data-go="chronic"]{background:var(--c-chronic);border-color:var(--c-chronic)}
+.fb-tab.is-active[data-go="central"]{background:var(--danger-fg);border-color:var(--danger-fg)}
+.fb-tab.is-active[data-go="cardiac"]{background:var(--warn-fg);border-color:var(--warn-fg)}
+
+/* hide overview chrome in focus mode */
+body[data-focus] .intro,
+body[data-focus] .spine,
+body[data-focus] .branch-label,
+body[data-focus] .tap-instruction-wrap,
+body[data-focus] .pitfalls,
+body[data-focus] .zoom-cue{display:none}
+
+/* break columns/bands out of their grids */
+body[data-focus] .cols,
+body[data-focus] .flags{display:block;margin-top:0}
+body[data-focus] .focusable{display:none;cursor:default}
+body[data-focus] .focusable.is-focused{display:flex;flex-direction:column}
+
+/* enlarge the focused section */
+.is-focused{max-width:780px;margin:0 auto;gap:14px}
+.is-focused .syndrome{padding:22px 26px}
+.is-focused .syndrome .node-title{font-size:24px}
+.is-focused .syndrome .node-meta{font-size:15px;line-height:1.55;margin-top:5px}
+.is-focused .dx{padding:16px 20px;border-left-width:6px;border-radius:var(--r-md)}
+.is-focused .dx-trigger{font-size:14px}
+.is-focused .dx-name{font-size:20px;margin-top:3px}
+.is-focused .dx-test{font-size:15px;margin-top:5px;line-height:1.55}
+.is-focused .dx-time{font-size:14px}
+.is-focused .hints{padding:16px 20px;font-size:15px;line-height:1.6}
+.is-focused .hints b{font-size:17px;margin-bottom:4px}
+.is-focused.flag-band{padding:26px 30px}
+.is-focused.flag-band h3{font-size:21px;margin-bottom:4px}
+.is-focused .flag-list{margin-top:14px;gap:8px 10px}
+.is-focused .flag-list li{font-size:15px;padding:7px 15px}
+.is-focused .flag-action{font-size:16.5px;margin-top:14px;line-height:1.55}
+
+@media (max-width:880px){
+  .cols{grid-template-columns:1fr 1fr}
+  .flags{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .cols{grid-template-columns:1fr}
+  h1{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- focus-mode top bar (hidden in overview) -->
+  <div class="focus-bar">
+    <button class="fb-back" type="button">← 總覽</button>
+    <div class="fb-tabs">
+      <button class="fb-tab" type="button" data-go="acute">急性前庭</button>
+      <button class="fb-tab" type="button" data-go="trig">陣發·誘發</button>
+      <button class="fb-tab" type="button" data-go="spont">發作·自發</button>
+      <button class="fb-tab" type="button" data-go="chronic">慢性前庭</button>
+      <button class="fb-tab" type="button" data-go="central">▲ 中樞紅旗</button>
+      <button class="fb-tab" type="button" data-go="cardiac">■ 心源紅旗</button>
+    </div>
+  </div>
+
+  <div class="intro">
+    <span class="draft-tag">草稿 DRAFT · 未上線</span>
+    <h1>頭暈問診 — 鑑別診斷流程圖</h1>
+    <p class="subtitle">TiTrATE / ATTEST 雙軸框架 · 給醫師問診用,也讓病人看見思考流程</p>
+
+    <div class="reframe">
+      不要先問「<b>你是哪一種暈</b>」（旋轉／快昏倒／不平衡／頭重腳輕）—— 病人的主觀字眼會混用,容易把醫師帶往錯誤亞型。
+      改成先問 <b>時序</b> 與 <b>誘發因子</b>,分流到四個臨床症候群,再用兩組紅旗篩出需要立即處理的病人。
+    </div>
+  </div>
+
+  <!-- ===== spine ===== -->
+  <div class="spine">
+    <div class="node entry">
+      <div class="node-title">病人主訴「頭暈 / 眩暈 / 不平衡」</div>
+      <div class="node-meta">先不分類症狀性質</div>
+    </div>
+    <div class="connector"></div>
+    <div class="node axis">
+      <span class="step-badge">Step 1 · 時序</span>
+      <div class="node-title">這次發作多久?發作之間會完全恢復嗎?</div>
+      <ul>
+        <li>第幾次發作</li><li>持續秒/分/時/天/月</li><li>發作間是否完全恢復</li><li>頭部動作是否加重</li>
+      </ul>
+    </div>
+    <div class="connector"></div>
+    <div class="node axis">
+      <span class="step-badge">Step 2 · 誘發因子</span>
+      <div class="node-title">有沒有明確的外部誘發?</div>
+      <ul>
+        <li>翻身/抬頭/躺下</li><li>站起來</li><li>用力/咳嗽/閉氣/大聲/氣壓</li><li>視覺擁擠場景</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== 4 syndromes ===== -->
+  <div class="branch-label">Step 3 · 分流到四個臨床症候群（「三大」,陣發性拆誘發/自發）</div>
+  <div class="tap-instruction-wrap">
+    <span class="tap-instruction">⤢ 點任一欄位或紅旗帶 → 放大滿版,方便診間解說</span>
+  </div>
+  <div class="cols">
+
+    <!-- 急性 -->
+    <div class="col focusable" data-section="acute" role="button" tabindex="0" aria-label="放大 急性前庭症候群">
+      <div class="node syndrome s-acute">
+        <span class="zoom-cue" aria-hidden="true">⤢</span>
+        <div class="node-title">急性前庭症候群</div>
+        <div class="node-meta">急性發作 · 持續數天 · 不間斷。頭動加重,但非僅動作當下才有</div>
+      </div>
+      <div class="dx lead">
+        <div class="dx-name">前庭神經炎</div>
+        <div class="dx-test">近期上呼吸道感染支持,但不能因此排除中樞</div>
+      </div>
+      <div class="dx danger-dx">
+        <div class="dx-name">後循環腦中風</div>
+        <div class="dx-test">小腦／腦幹中風。CT 不足以排除後顱窩中風</div>
+      </div>
+      <div class="hints">
+        <b>HINTS 床邊檢查</b>
+        頭衝動 · 眼震型態 · 眼偏斜。<b>僅適用「急性、持續、正在有眼震」</b>的病人 — 不可套用所有頭暈。中樞型結果或合併中樞紅旗 → 優先腦部 MRI。
+      </div>
+    </div>
+
+    <!-- 陣發性·誘發性 -->
+    <div class="col focusable" data-section="trig" role="button" tabindex="0" aria-label="放大 陣發性誘發性">
+      <div class="node syndrome s-trig">
+        <span class="zoom-cue" aria-hidden="true">⤢</span>
+        <div class="node-title">陣發性 · 誘發性</div>
+        <div class="node-meta">數秒～數十秒 · 有明確外部誘發因子</div>
+      </div>
+      <div class="dx">
+        <div class="dx-trigger">頭位觸發（翻身/抬頭/躺下）</div>
+        <div class="dx-name">良性陣發性姿勢性眩暈 BPPV</div>
+        <div class="dx-test">Dix-Hallpike · 仰臥滾轉測試</div>
+      </div>
+      <div class="dx">
+        <div class="dx-trigger">站立觸發（起身時）</div>
+        <div class="dx-name">姿勢性低血壓</div>
+        <div class="dx-test">自律神經失調 · 容積不足 · 藥物影響</div>
+      </div>
+      <div class="dx">
+        <div class="dx-trigger">用力/咳嗽/閉氣/大聲/氣壓</div>
+        <div class="dx-name">上半規管裂隙症候群 · 外淋巴廔管</div>
+      </div>
+    </div>
+
+    <!-- 發作性·自發性 -->
+    <div class="col focusable" data-section="spont" role="button" tabindex="0" aria-label="放大 發作性自發性">
+      <div class="node syndrome s-spont">
+        <span class="zoom-cue" aria-hidden="true">⤢</span>
+        <div class="node-title">發作性 · 自發性</div>
+        <div class="node-meta">反覆短暫發作 · 無明確外部誘發因子</div>
+      </div>
+      <div class="dx">
+        <div class="dx-time">20 分鐘～12 小時（疑似可放寬至 24h）</div>
+        <div class="dx-name">梅尼爾氏症</div>
+        <div class="dx-test">合併單側聽力下降 · 耳鳴 · 耳脹</div>
+      </div>
+      <div class="dx">
+        <div class="dx-time">5 分鐘～72 小時</div>
+        <div class="dx-name">前庭性偏頭痛</div>
+        <div class="dx-test">畏光 · 畏聲 · 視覺先兆 · 偏頭痛病史</div>
+      </div>
+      <div class="dx danger-dx">
+        <div class="dx-time">數秒～數分鐘</div>
+        <div class="dx-name">後循環短暫性腦缺血 TIA</div>
+        <div class="dx-test">血管風險,或複視/構音/吞嚥/共濟失調/感覺異常</div>
+      </div>
+      <div class="dx danger-dx">
+        <div class="dx-name">心律不整 · 心源性暈厥</div>
+        <div class="dx-test">心悸/胸痛/呼吸困難 · 仰臥或運動中發作 · 無前驅暈厥。勿只往耳鼻喉想 → 心電圖</div>
+      </div>
+    </div>
+
+    <!-- 慢性 -->
+    <div class="col focusable" data-section="chronic" role="button" tabindex="0" aria-label="放大 慢性前庭症候群">
+      <div class="node syndrome s-chronic">
+        <span class="zoom-cue" aria-hidden="true">⤢</span>
+        <div class="node-title">慢性前庭症候群</div>
+        <div class="node-meta">症狀持續數月,或幾乎天天存在</div>
+      </div>
+      <div class="dx">
+        <div class="dx-trigger">&gt;3 個月 · 站立/移動/視覺擁擠加重 · 常合併焦慮</div>
+        <div class="dx-name">持續性姿勢知覺性頭暈 PPPD</div>
+        <div class="dx-test">前提:已先排除危險的神經與心臟原因</div>
+      </div>
+      <div class="dx">
+        <div class="dx-trigger">漸進性平衡失調 · 步態不穩</div>
+        <div class="dx-name">小腦退化 · 多重神經病變 · 多感覺平衡失調</div>
+      </div>
+      <div class="dx">
+        <div class="dx-trigger">長期用藥</div>
+        <div class="dx-name">藥物性頭暈</div>
+        <div class="dx-test">抗癲癇藥 · 苯二氮平類 · 鎮靜安眠 · 利尿劑 · 降壓藥</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ===== red flag bands ===== -->
+  <div class="flags">
+    <div class="flag-band flag-central focusable" data-section="central" role="button" tabindex="0" aria-label="放大 中樞紅旗">
+      <span class="zoom-cue" aria-hidden="true">⤢</span>
+      <h3>▲ 中樞紅旗 — 橫貫所有症候群</h3>
+      <ul class="flag-list">
+        <li>複視</li><li>構音困難</li><li>吞嚥困難</li><li>聲音改變</li><li>共濟失調</li>
+        <li>感覺異常</li><li>無法獨立站立</li><li>突發劇烈頭痛</li><li>近期頸部過度伸展/推拿/外傷（→椎動脈剝離）</li>
+      </ul>
+      <div class="flag-action">→ 優先腦部 MRI。CT 不足以排除後顱窩中風;早期 DWI 仍可能偽陰性,懷疑度高需 48–72h 後重做。</div>
+    </div>
+    <div class="flag-band flag-cardiac focusable" data-section="cardiac" role="button" tabindex="0" aria-label="放大 心源性紅旗">
+      <span class="zoom-cue" aria-hidden="true">⤢</span>
+      <h3>■ 心源性紅旗 — 橫貫所有症候群</h3>
+      <ul class="flag-list">
+        <li>心悸</li><li>胸痛</li><li>呼吸困難</li><li>仰臥時發作</li><li>運動中發作</li>
+        <li>無前驅症狀的暈厥</li><li>冠心病/心衰竭/心律不整/結構性心臟病</li><li>家族猝死史</li>
+      </ul>
+      <div class="flag-action">→ 心電圖,必要時長時間心電圖監測。勿只往耳鼻喉科方向想。</div>
+    </div>
+  </div>
+
+  <!-- ===== pitfalls ===== -->
+  <div class="pitfalls">
+    <h3>容易踩雷的鑑別陷阱</h3>
+    <ol>
+      <li><b>「真眩暈」不等於周邊性</b> — 後循環中風病人也可主訴天旋地轉。</li>
+      <li><b>有聽覺症狀不等於周邊性</b> — 前下小腦動脈（AICA）梗塞可同時造成內耳缺血與腦幹症狀。</li>
+      <li><b>年輕不等於前庭性偏頭痛</b> — 椎動脈剝離與心源性暈厥在年輕人也會發生。</li>
+      <li><b>頭部 CT 不能排除後顱窩中風</b> — 急性前庭症候群若 HINTS 中樞型或有中樞紅旗,即使 CT 陰性仍應安排 MRI。</li>
+      <li><b>早期 MRI 也非百分之百</b> — DWI 在急性早期仍可能偽陰性,臨床懷疑度高時須持續追蹤、必要時 48–72h 後重做影像。</li>
+    </ol>
+  </div>
+
+  <footer>
+    <div class="disclaimer">此圖為問診思路骨架,非診斷結論;實際處置依醫師臨床判斷。</div>
+    <p>來源:Harrison's 22e（頭暈與眩暈;暈厥）· Scott-Brown's 8e · Washington Manual 38e · UpToDate · DynaMed（2026/5 查閱）</p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var body = document.body;
+  var focusables = Array.prototype.slice.call(document.querySelectorAll('.focusable'));
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.fb-tab'));
+
+  function setFocus(id){
+    focusables.forEach(function(el){
+      el.classList.toggle('is-focused', el.dataset.section === id);
+    });
+    tabs.forEach(function(t){
+      t.classList.toggle('is-active', t.dataset.go === id);
+    });
+    body.dataset.focus = id;
+    window.scrollTo(0, 0);
+  }
+  function clearFocus(){
+    focusables.forEach(function(el){ el.classList.remove('is-focused'); });
+    tabs.forEach(function(t){ t.classList.remove('is-active'); });
+    delete body.dataset.focus;
+  }
+
+  focusables.forEach(function(el){
+    function open(){ if(!body.dataset.focus) setFocus(el.dataset.section); }
+    el.addEventListener('click', open);
+    el.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); open(); }
+    });
+  });
+  tabs.forEach(function(t){
+    t.addEventListener('click', function(){ setFocus(t.dataset.go); });
+  });
+  document.querySelector('.fb-back').addEventListener('click', clearFocus);
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && body.dataset.focus) clearFocus();
+  });
+})();
+</script>
+</body>
+</html>
