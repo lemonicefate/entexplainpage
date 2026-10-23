@@ -645,35 +645,6 @@ img.card-thumb-logo {
 .player-stage.tool-spot  .tap-zone,
 .player-stage.tool-laser .tap-zone { pointer-events: none; cursor: none; }
 
-/* One-time tap-zone hint: a single slim bar at the stage bottom, shown on
-   the first Reader visit only (dismissed state lives in localStorage).
-   The bar itself never blocks the tap zones; only its button is clickable. */
-.tap-hint {
-  position: absolute;
-  left: 50%; bottom: 18px;
-  transform: translateX(-50%);
-  z-index: 26;
-  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
-  gap: 6px 18px;
-  max-width: 92%;
-  padding: 10px 14px;
-  border-radius: var(--r-pill);
-  background: rgba(8,26,44,0.85);
-  color: #fff;
-  font-size: 13px;
-  text-align: center;
-  pointer-events: none;
-}
-.tap-hint-close {
-  pointer-events: auto;
-  min-height: 32px;
-  padding: 6px 14px;
-  border-radius: var(--r-pill);
-  background: var(--teal);
-  color: #fff;
-  font-size: 13px; font-weight: 600;
-}
-
 /* One-shot notice at the top of the home view (e.g. unknown route). */
 .home-notice {
   display: flex; align-items: center; gap: 12px;
