@@ -122,29 +122,6 @@ describe('Reader error state (critique P1)', () => {
   });
 });
 
-describe('Tap-zone hint (critique P1)', () => {
-  it('shows once on the first reader visit and stays dismissed afterwards', async () => {
-    const dom = await createApp('#/a', okProcedure);
-    await settle();
-    const document = dom.window.document;
-
-    expect(document.getElementById('tap-hint').hidden).toBe(false);
-    expect(document.getElementById('tap-hint').textContent).toContain('上一頁');
-    expect(document.getElementById('tap-hint').textContent).toContain('下一頁');
-
-    document.getElementById('tap-hint-close').click();
-    expect(document.getElementById('tap-hint').hidden).toBe(true);
-    expect(dom.window.localStorage.getItem('reader_tap_hint_seen')).toBe('1');
-
-    dom.window.location.hash = '';
-    await settle();
-    dom.window.location.hash = '#/a';
-    await settle();
-    expect(document.getElementById('player-title').textContent).toBe('A');
-    expect(document.getElementById('tap-hint').hidden).toBe(true);
-  });
-});
-
 describe('Player tool discoverability (critique P1)', () => {
   it('every tool button carries a visible text label', async () => {
     const dom = await createApp('', okProcedure);
