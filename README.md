@@ -257,7 +257,7 @@ npm run admin
 
 首頁由 `ClinicCatalog` 將 `procedures/index.json` metadata 與 calculator registrations 投影成同一種 semantic card；Catalog 不載入 procedure detail、不操作 DOM，也不執行計算。新增計算機只需要新增一筆 registration，首頁卡片、計算機 tab、合法 route 與 renderer dispatch 都由同一筆資料提供。
 
-Mounjaro 與 Wegovy 計算機會常駐顯示適用市場／筆型、第一方來源、最後查核日、醫療人員限定與安全基線。標示規格與喀噠／殘液估算分層；分抽、喀噠換算與殘液使用不代表官方給藥方式，也不是病人自我操作指引。Mounjaro 規格採加拿大 Eli Lilly KwikPen 仿單；Wegovy 規格採英國 eMC FlexTouch 仿單，使用時仍須以手上筆標示與當地仿單為準。
+Mounjaro 與 Wegovy 計算機會常駐顯示適用市場／筆型、第一方來源、最後查核日、醫療人員限定與安全基線。標示規格與喀噠／殘液估算分層；分抽、喀噠換算與殘液使用不代表官方給藥方式，也不是病人自我操作指引。Mounjaro 規格採台灣禮來 KwikPen 仿單（2025-06-30）；Wegovy 規格採台灣諾和諾德 FlexTouch 仿單（2025-03-04），使用時仍須以手上筆標示為準。
 
 ### 步驟
 
