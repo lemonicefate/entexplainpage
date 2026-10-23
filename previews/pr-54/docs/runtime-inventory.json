@@ -1,0 +1,802 @@
+{
+  "budget": {
+    "maxRuntimeBytes": 31457280,
+    "maxStepBytes": 512000,
+    "maxThumbnailBytes": 204800,
+    "maxThumbnailDimensions": [
+      800,
+      600
+    ]
+  },
+  "runtimeFiles": [
+    "index.html",
+    "css/style.css",
+    "js/app.js",
+    "manifest.json",
+    "sw.js",
+    "procedures/index.json",
+    "procedures/h-pylori-sequential.json",
+    "procedures/snore.json",
+    "procedures/nasal-obstruction.json",
+    "procedures/vocal-cord.json",
+    "procedures/influenza.json",
+    "procedures/quit-smoke.json",
+    "procedures/oral-ulcer.json",
+    "procedures/menieres.json",
+    "procedures/tinnitus.json",
+    "procedures/ssnhl.json",
+    "procedures/otitis-media-effusion.json",
+    "procedures/vitd.json",
+    "procedures/atopic-dermatitis.json",
+    "procedures/testosterone.json",
+    "procedures/chlorella.json"
+  ],
+  "runtimeEntries": [
+    "css/style.css",
+    "images/atopic-dermatitis/step1.webp",
+    "images/atopic-dermatitis/step2.webp",
+    "images/atopic-dermatitis/step3.webp",
+    "images/atopic-dermatitis/thumb.webp",
+    "images/brand/logo.webp",
+    "images/chlorella/step1.webp",
+    "images/chlorella/step2.webp",
+    "images/chlorella/step3.webp",
+    "images/chlorella/step4.webp",
+    "images/chlorella/step5.webp",
+    "images/chlorella/thumb-optimized.webp",
+    "images/h-pylori-sequential/step1.webp",
+    "images/h-pylori-sequential/thumb.webp",
+    "images/influenza/step1.webp",
+    "images/influenza/step2.webp",
+    "images/influenza/step3.webp",
+    "images/influenza/step4.webp",
+    "images/influenza/thumb.webp",
+    "images/menieres/step1.webp",
+    "images/menieres/step2.webp",
+    "images/menieres/step3.webp",
+    "images/menieres/thumb.webp",
+    "images/mounjaro/mounjaro-logo.svg",
+    "images/nasal-obstruction/step1.webp",
+    "images/nasal-obstruction/step2.webp",
+    "images/nasal-obstruction/step3.webp",
+    "images/nasal-obstruction/step4.webp",
+    "images/nasal-obstruction/thumb.webp",
+    "images/oral-ulcer/step1.webp",
+    "images/oral-ulcer/step2.webp",
+    "images/oral-ulcer/step3.webp",
+    "images/oral-ulcer/step4.webp",
+    "images/oral-ulcer/thumb.webp",
+    "images/otitis-media-effusion/step1.webp",
+    "images/otitis-media-effusion/step2.webp",
+    "images/otitis-media-effusion/thumb.webp",
+    "images/quit-smoke/step1.webp",
+    "images/quit-smoke/step2.webp",
+    "images/quit-smoke/step3.webp",
+    "images/quit-smoke/thumb.webp",
+    "images/snore/step1.webp",
+    "images/snore/step2.webp",
+    "images/snore/step3.webp",
+    "images/snore/step4.webp",
+    "images/snore/step5.webp",
+    "images/snore/step6.webp",
+    "images/snore/step7.webp",
+    "images/snore/thumb.webp",
+    "images/ssnhl/step1.webp",
+    "images/ssnhl/step2.webp",
+    "images/ssnhl/step3.webp",
+    "images/ssnhl/thumb.webp",
+    "images/testosterone/step1.webp",
+    "images/testosterone/step2.webp",
+    "images/testosterone/thumb.webp",
+    "images/tinnitus/step1.webp",
+    "images/tinnitus/step2.webp",
+    "images/tinnitus/step3.webp",
+    "images/tinnitus/step4.webp",
+    "images/tinnitus/thumb.webp",
+    "images/vitd/step1.webp",
+    "images/vitd/step2.webp",
+    "images/vitd/step3.webp",
+    "images/vitd/step4.webp",
+    "images/vitd/thumb.webp",
+    "images/vocal-cord/step1.webp",
+    "images/vocal-cord/step2.webp",
+    "images/vocal-cord/step3.jpg",
+    "images/vocal-cord/step4.jpg",
+    "images/vocal-cord/step5.webp",
+    "images/vocal-cord/thumb.webp",
+    "images/wegovy/wegovy-logo-nav.webp",
+    "index.html",
+    "js/app.js",
+    "manifest.json",
+    "procedures/atopic-dermatitis.json",
+    "procedures/chlorella.json",
+    "procedures/h-pylori-sequential.json",
+    "procedures/index.json",
+    "procedures/influenza.json",
+    "procedures/menieres.json",
+    "procedures/nasal-obstruction.json",
+    "procedures/oral-ulcer.json",
+    "procedures/otitis-media-effusion.json",
+    "procedures/quit-smoke.json",
+    "procedures/snore.json",
+    "procedures/ssnhl.json",
+    "procedures/testosterone.json",
+    "procedures/tinnitus.json",
+    "procedures/vitd.json",
+    "procedures/vocal-cord.json",
+    "sw.js"
+  ],
+  "references": [
+    "images/atopic-dermatitis/step1.webp",
+    "images/atopic-dermatitis/step2.webp",
+    "images/atopic-dermatitis/step3.webp",
+    "images/atopic-dermatitis/thumb.webp",
+    "images/brand/logo.webp",
+    "images/chlorella/step1.webp",
+    "images/chlorella/step2.webp",
+    "images/chlorella/step3.webp",
+    "images/chlorella/step4.webp",
+    "images/chlorella/step5.webp",
+    "images/chlorella/thumb-optimized.webp",
+    "images/h-pylori-sequential/step1.webp",
+    "images/h-pylori-sequential/thumb.webp",
+    "images/influenza/step1.webp",
+    "images/influenza/step2.webp",
+    "images/influenza/step3.webp",
+    "images/influenza/step4.webp",
+    "images/influenza/thumb.webp",
+    "images/menieres/step1.webp",
+    "images/menieres/step2.webp",
+    "images/menieres/step3.webp",
+    "images/menieres/thumb.webp",
+    "images/mounjaro/mounjaro-logo.svg",
+    "images/nasal-obstruction/step1.webp",
+    "images/nasal-obstruction/step2.webp",
+    "images/nasal-obstruction/step3.webp",
+    "images/nasal-obstruction/step4.webp",
+    "images/nasal-obstruction/thumb.webp",
+    "images/oral-ulcer/step1.webp",
+    "images/oral-ulcer/step2.webp",
+    "images/oral-ulcer/step3.webp",
+    "images/oral-ulcer/step4.webp",
+    "images/oral-ulcer/thumb.webp",
+    "images/otitis-media-effusion/step1.webp",
+    "images/otitis-media-effusion/step2.webp",
+    "images/otitis-media-effusion/thumb.webp",
+    "images/quit-smoke/step1.webp",
+    "images/quit-smoke/step2.webp",
+    "images/quit-smoke/step3.webp",
+    "images/quit-smoke/thumb.webp",
+    "images/snore/step1.webp",
+    "images/snore/step2.webp",
+    "images/snore/step3.webp",
+    "images/snore/step4.webp",
+    "images/snore/step5.webp",
+    "images/snore/step6.webp",
+    "images/snore/step7.webp",
+    "images/snore/thumb.webp",
+    "images/ssnhl/step1.webp",
+    "images/ssnhl/step2.webp",
+    "images/ssnhl/step3.webp",
+    "images/ssnhl/thumb.webp",
+    "images/testosterone/step1.webp",
+    "images/testosterone/step2.webp",
+    "images/testosterone/thumb.webp",
+    "images/tinnitus/step1.webp",
+    "images/tinnitus/step2.webp",
+    "images/tinnitus/step3.webp",
+    "images/tinnitus/step4.webp",
+    "images/tinnitus/thumb.webp",
+    "images/vitd/step1.webp",
+    "images/vitd/step2.webp",
+    "images/vitd/step3.webp",
+    "images/vitd/step4.webp",
+    "images/vitd/thumb.webp",
+    "images/vocal-cord/step1.webp",
+    "images/vocal-cord/step2.webp",
+    "images/vocal-cord/step3.jpg",
+    "images/vocal-cord/step4.jpg",
+    "images/vocal-cord/step5.webp",
+    "images/vocal-cord/thumb.webp",
+    "images/wegovy/wegovy-logo-nav.webp"
+  ],
+  "missingReferences": [],
+  "caseMismatches": [],
+  "unreferencedImages": [
+    "images/chlorella/thumb.webp"
+  ],
+  "budgetViolations": [],
+  "images": [
+    {
+      "path": "images/atopic-dermatitis/step1.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 295192,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/atopic-dermatitis/step2.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 223544,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/atopic-dermatitis/step3.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 191840,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/atopic-dermatitis/thumb.webp",
+      "role": "thumbnail",
+      "format": "webp",
+      "bytes": 49550,
+      "width": 800,
+      "height": 436
+    },
+    {
+      "path": "images/brand/logo.webp",
+      "role": "supporting",
+      "format": "webp",
+      "bytes": 8202,
+      "width": 432,
+      "height": 91
+    },
+    {
+      "path": "images/chlorella/step1.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 564214,
+      "width": 735,
+      "height": 735
+    },
+    {
+      "path": "images/chlorella/step2.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 554662,
+      "width": 735,
+      "height": 735
+    },
+    {
+      "path": "images/chlorella/step3.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 526072,
+      "width": 735,
+      "height": 735
+    },
+    {
+      "path": "images/chlorella/step4.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 507902,
+      "width": 735,
+      "height": 735
+    },
+    {
+      "path": "images/chlorella/step5.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 517772,
+      "width": 735,
+      "height": 735
+    },
+    {
+      "path": "images/chlorella/thumb-optimized.webp",
+      "role": "thumbnail",
+      "format": "webp",
+      "bytes": 58038,
+      "width": 600,
+      "height": 600
+    },
+    {
+      "path": "images/chlorella/thumb.webp",
+      "role": "thumbnail",
+      "format": "webp",
+      "bytes": 564214,
+      "width": 735,
+      "height": 735
+    },
+    {
+      "path": "images/h-pylori-sequential/step1.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 132084,
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "path": "images/h-pylori-sequential/thumb.webp",
+      "role": "thumbnail",
+      "format": "webp",
+      "bytes": 45656,
+      "width": 800,
+      "height": 450
+    },
+    {
+      "path": "images/influenza/step1.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 274978,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/influenza/step2.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 448582,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/influenza/step3.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 98112,
+      "width": 1600,
+      "height": 1200
+    },
+    {
+      "path": "images/influenza/step4.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 11084,
+      "width": 259,
+      "height": 194
+    },
+    {
+      "path": "images/influenza/thumb.webp",
+      "role": "thumbnail",
+      "format": "webp",
+      "bytes": 50236,
+      "width": 800,
+      "height": 436
+    },
+    {
+      "path": "images/menieres/step1.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 454128,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/menieres/step2.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 368732,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/menieres/step3.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 326218,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/menieres/thumb.webp",
+      "role": "thumbnail",
+      "format": "webp",
+      "bytes": 74130,
+      "width": 800,
+      "height": 436
+    },
+    {
+      "path": "images/mounjaro/mounjaro-logo.svg",
+      "role": "supporting",
+      "format": "svg",
+      "bytes": 15479,
+      "width": null,
+      "height": null
+    },
+    {
+      "path": "images/nasal-obstruction/step1.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 81540,
+      "width": 799,
+      "height": 494
+    },
+    {
+      "path": "images/nasal-obstruction/step2.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 23172,
+      "width": 800,
+      "height": 500
+    },
+    {
+      "path": "images/nasal-obstruction/step3.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 133798,
+      "width": 2217,
+      "height": 1074
+    },
+    {
+      "path": "images/nasal-obstruction/step4.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 33402,
+      "width": 968,
+      "height": 659
+    },
+    {
+      "path": "images/nasal-obstruction/thumb.webp",
+      "role": "thumbnail",
+      "format": "webp",
+      "bytes": 81540,
+      "width": 799,
+      "height": 494
+    },
+    {
+      "path": "images/oral-ulcer/step1.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 316608,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/oral-ulcer/step2.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 330440,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/oral-ulcer/step3.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 316632,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/oral-ulcer/step4.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 453290,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/oral-ulcer/thumb.webp",
+      "role": "thumbnail",
+      "format": "webp",
+      "bytes": 56818,
+      "width": 800,
+      "height": 436
+    },
+    {
+      "path": "images/otitis-media-effusion/step1.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 334680,
+      "width": 2752,
+      "height": 1536
+    },
+    {
+      "path": "images/otitis-media-effusion/step2.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 426342,
+      "width": 2048,
+      "height": 2048
+    },
+    {
+      "path": "images/otitis-media-effusion/thumb.webp",
+      "role": "thumbnail",
+      "format": "webp",
+      "bytes": 61534,
+      "width": 800,
+      "height": 447
+    },
+    {
+      "path": "images/quit-smoke/step1.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 266448,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/quit-smoke/step2.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 303464,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/quit-smoke/step3.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 298718,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/quit-smoke/thumb.webp",
+      "role": "thumbnail",
+      "format": "webp",
+      "bytes": 43728,
+      "width": 800,
+      "height": 436
+    },
+    {
+      "path": "images/snore/step1.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 350048,
+      "width": 1536,
+      "height": 2752
+    },
+    {
+      "path": "images/snore/step2.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 86014,
+      "width": 1368,
+      "height": 826
+    },
+    {
+      "path": "images/snore/step3.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 89880,
+      "width": 1440,
+      "height": 1440
+    },
+    {
+      "path": "images/snore/step4.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 23172,
+      "width": 800,
+      "height": 500
+    },
+    {
+      "path": "images/snore/step5.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 81540,
+      "width": 799,
+      "height": 494
+    },
+    {
+      "path": "images/snore/step6.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 133798,
+      "width": 2217,
+      "height": 1074
+    },
+    {
+      "path": "images/snore/step7.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 63832,
+      "width": 1061,
+      "height": 782
+    },
+    {
+      "path": "images/snore/thumb.webp",
+      "role": "thumbnail",
+      "format": "webp",
+      "bytes": 40532,
+      "width": 335,
+      "height": 600
+    },
+    {
+      "path": "images/ssnhl/step1.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 363682,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/ssnhl/step2.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 327464,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/ssnhl/step3.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 335828,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/ssnhl/thumb.webp",
+      "role": "thumbnail",
+      "format": "webp",
+      "bytes": 65752,
+      "width": 800,
+      "height": 436
+    },
+    {
+      "path": "images/testosterone/step1.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 307766,
+      "width": 2752,
+      "height": 1536
+    },
+    {
+      "path": "images/testosterone/step2.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 330714,
+      "width": 1728,
+      "height": 2464
+    },
+    {
+      "path": "images/testosterone/thumb.webp",
+      "role": "thumbnail",
+      "format": "webp",
+      "bytes": 52460,
+      "width": 800,
+      "height": 447
+    },
+    {
+      "path": "images/tinnitus/step1.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 342968,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/tinnitus/step2.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 311368,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/tinnitus/step3.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 421712,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/tinnitus/step4.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 387698,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/tinnitus/thumb.webp",
+      "role": "thumbnail",
+      "format": "webp",
+      "bytes": 57516,
+      "width": 800,
+      "height": 436
+    },
+    {
+      "path": "images/vitd/step1.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 303468,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/vitd/step2.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 318318,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/vitd/step3.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 342934,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/vitd/step4.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 416994,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/vitd/thumb.webp",
+      "role": "thumbnail",
+      "format": "webp",
+      "bytes": 58014,
+      "width": 800,
+      "height": 436
+    },
+    {
+      "path": "images/vocal-cord/step1.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 23690,
+      "width": 1072,
+      "height": 397
+    },
+    {
+      "path": "images/vocal-cord/step2.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 49088,
+      "width": 1044,
+      "height": 696
+    },
+    {
+      "path": "images/vocal-cord/step3.jpg",
+      "role": "step",
+      "format": "jpg",
+      "bytes": 32386,
+      "width": 762,
+      "height": 573
+    },
+    {
+      "path": "images/vocal-cord/step4.jpg",
+      "role": "step",
+      "format": "jpg",
+      "bytes": 19186,
+      "width": null,
+      "height": null
+    },
+    {
+      "path": "images/vocal-cord/step5.webp",
+      "role": "step",
+      "format": "webp",
+      "bytes": 362176,
+      "width": 2816,
+      "height": 1536
+    },
+    {
+      "path": "images/vocal-cord/thumb.webp",
+      "role": "thumbnail",
+      "format": "webp",
+      "bytes": 12876,
+      "width": 800,
+      "height": 296
+    },
+    {
+      "path": "images/wegovy/wegovy-logo-nav.webp",
+      "role": "supporting",
+      "format": "webp",
+      "bytes": 84304,
+      "width": 1280,
+      "height": 448
+    }
+  ],
+  "summary": {
+    "runtimeFileCount": 93,
+    "runtimeBytes": 15682758,
+    "runtimeImageFileCount": 72,
+    "imageFileCount": 73,
+    "imageBytes": 16119953
+  }
+}
