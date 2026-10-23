@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
 - **Reader 載入失敗靜默跳回首頁（impeccable critique P1）** — 圖卡載入失敗改在播放器內顯示專屬錯誤狀態（「〈標題〉載入失敗」＋重試／返回列表），重試重新載入同一張圖卡，不再無訊息跳回首頁；直接輸入未知網址時改為回首頁並顯示一次性通知，不再無聲消失。
 
 ### Changed
-- **播放器工具可發現性（impeccable critique P1）** — 工具按鈕自 40×40px 放大至最小 44px 寬、48px 高（DESIGN.md §7 觸控標準），並在圖示下加文字標籤（畫筆／聚光燈／雷射／退出）；chrome 自動隱藏時返回按鈕保持可見，不再連同工具列一起消失；首次開啟 Reader 時於畫面底部顯示一次性點按區提示（左／右翻頁、中央工具列），關閉後以 localStorage 記住不再顯示。
+- **播放器工具可發現性（impeccable critique P1）** — 工具按鈕自 40×40px 放大至最小 44px 寬、48px 高（DESIGN.md §7 觸控標準），並在圖示下加文字標籤（畫筆／聚光燈／雷射／退出）；chrome 自動隱藏時返回按鈕保持可見，不再連同工具列一起消失。
 
 ## [0.2.3.7] - 2026-10-23
 
