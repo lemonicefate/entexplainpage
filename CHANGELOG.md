@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.3.8] - 2026-10-23
+
+### Fixed
+- **計算機未輸入先給判讀（impeccable critique P0）** — BMI 移除預填的 170 cm / 75 kg：欄位改為空白＋範例 placeholder，身高與體重皆輸入且在合理範圍內才計算分級，否則結果區顯示「等待輸入」並列出尚缺項目；非法值（≤0、超出範圍）在欄位下方顯示提示，不再經 `Number(raw) || 0` 默默以 0 判讀。血脂計算機的病人類別與危險因子（DM、高血壓、年齡等）改為預設全部不勾選，且四項檢驗值（LDL-C、HDL-C、Triglyceride、Total Cholesterol）未齊或非法時只列出尚缺／待修正欄位，不渲染「符合／不符合」任一判讀，非法數值不以 0 參與判定。筆針計算機經查已有「未選規格不給結果」的 gate（`isUsablePenSpec`＋等待輸入卡），維持不動。
+- **Reader 載入失敗靜默跳回首頁（impeccable critique P1）** — 圖卡載入失敗改在播放器內顯示專屬錯誤狀態（「〈標題〉載入失敗」＋重試／返回列表），重試重新載入同一張圖卡，不再無訊息跳回首頁；直接輸入未知網址時改為回首頁並顯示一次性通知，不再無聲消失。
+
+### Changed
+- **播放器工具可發現性（impeccable critique P1）** — 工具按鈕自 40×40px 放大至最小 44px 寬、48px 高（DESIGN.md §7 觸控標準），並在圖示下加文字標籤（畫筆／聚光燈／雷射／退出）；chrome 自動隱藏時返回按鈕保持可見，不再連同工具列一起消失；首次開啟 Reader 時於畫面底部顯示一次性點按區提示（左／右翻頁、中央工具列），關閉後以 localStorage 記住不再顯示。
+
 ## [0.2.3.7] - 2026-10-23
 
 ### Changed
