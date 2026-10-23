@@ -1563,7 +1563,6 @@
   // Labelled facts and off-label estimates intentionally live in separate
   // objects. A missing source invalidates the whole specification: the UI
   // must not show a normal conversion result from an untraceable baseline.
-  var PEN_LAST_CHECKED = '2026-07-31';
   var PEN_CLICK_VOLUME_ML = 0.01; // estimate only; neither label defines clicks
 
   var MOUNJARO_SOURCE = {
@@ -1593,17 +1592,16 @@
   });
 
   var WEGOVY_SOURCE = {
-    market: '英國（英國 eMC 仿單）',
-    penType: 'Wegovy FlexTouch 預充填筆',
-    label: 'Novo Nordisk A/S · electronic Medicines Compendium',
-    url: 'https://www.medicines.org.uk/emc/medicine/41757/SPC',
-    revision: '2026-06',
-    lastChecked: PEN_LAST_CHECKED
+    market: '台灣',
+    penType: '週纖達諾特筆 Wegovy® FlexTouch 預充填筆',
+    label: '台灣仿單（台灣諾和諾德）',
+    url: 'https://www.fda.gov.tw/MLMS/H0001.aspx',
+    revision: '2025-03-04',
+    lastChecked: '2026-10-23'
   };
   var WEGOVY_PENS = [
     { doseMg: 0.25, totalMg: 1, totalMl: 1.5, labeledDoses: 4, doseMl: 0.375, source: WEGOVY_SOURCE },
-    { doseMg: 0.5, totalMg: 2, totalMl: 1.5, labeledDoses: 4, doseMl: 0.375, source: WEGOVY_SOURCE,
-      packNote: '來源另列 3 ml presentation；本工具採 1.5 ml pack profile，須以手上筆標示核對。' },
+    { doseMg: 0.5, totalMg: 2, totalMl: 1.5, labeledDoses: 4, doseMl: 0.375, source: WEGOVY_SOURCE },
     { doseMg: 1, totalMg: 4, totalMl: 3, labeledDoses: 4, doseMl: 0.75, source: WEGOVY_SOURCE },
     { doseMg: 1.7, totalMg: 6.8, totalMl: 3, labeledDoses: 4, doseMl: 0.75, source: WEGOVY_SOURCE },
     { doseMg: 2.4, totalMg: 9.6, totalMl: 3, labeledDoses: 4, doseMl: 0.75, source: WEGOVY_SOURCE }
@@ -1878,147 +1876,26 @@
 
   // ---------- Wegovy (semaglutide FlexTouch) off-label split-draw ----------
   function renderWegovy() {
-    var s = { pen: null, mg: '', ml: '', clicks: '', lastEdited: null };
-
-    function recompute() {
-      if (!s.pen || !s.lastEdited) return;
-      var anchor = s.lastEdited;
-      var anchorVal = s[anchor];
-      if (anchorVal === '' || anchorVal == null) return;
-      var r = wegovyCalc(s.pen, anchor, anchorVal);
-      if (anchor !== 'mg')     s.mg     = formatNum(r.mg);
-      if (anchor !== 'ml')     s.ml     = formatNum(r.ml);
-      if (anchor !== 'clicks') s.clicks = formatNum(r.clicks);
-    }
-
-    function makePenPicker() {
-      var seg = el('div', { class: 'seg' });
-      WEGOVY_PENS.forEach(function (spec) {
-        var b = el('button', { type: 'button', class: s.pen === spec.doseMg ? 'is-on' : '' }, [spec.doseMg + ' mg']);
-        b.addEventListener('click', function () {
-          s.pen = spec.doseMg;
-          Array.prototype.forEach.call(seg.children, function (x) { x.classList.remove('is-on'); });
-          b.classList.add('is-on');
-          recompute();
-          rerender();
-        });
-        seg.appendChild(b);
-      });
-      return el('div', { class: 'field field-wide' }, [
-        el('div', null, [el('label', { class: 'field-label' }, ['Pen 規格'])]),
-        seg
-      ]);
-    }
-
-    function makeField(key, label, hint, unit) {
-      var input = el('input', {
-        type: 'number', class: 'field-input',
-        value: s[key],
-        step: 'any',
-        min: '0',
-        oninput: function (e) {
-          s[key] = e.target.value;
-          s.lastEdited = key;
-          recompute();
-          ['mg', 'ml', 'clicks'].forEach(function (k) {
-            if (k === key) return;
-            var other = document.querySelector('[data-wg-field="' + k + '"]');
-            if (other) other.value = s[k];
-          });
-          updateResult();
-        }
-      });
-      input.setAttribute('data-wg-field', key);
-      var labelWrap = el('div', null, [
-        el('label', { class: 'field-label' }, [label]),
-        hint ? el('span', { class: 'field-hint' }, [hint]) : null
-      ]);
-      return el('div', { class: 'field' }, [labelWrap, input, el('span', { class: 'field-unit' }, [unit])]);
-    }
-
-    function refLine() {
-      if (!s.pen) {
-        return el('p', { class: 'lead' }, ['請先選擇 pen 規格。']);
-      }
-      var spec = WEGOVY_PEN_BY_DOSE[s.pen];
-      if (!isUsablePenSpec(spec)) return el('p', { class: 'lead' }, ['標示規格來源不可用，已停止換算。']);
-      return el('p', { class: 'lead' }, [
-        '標示事實：' + spec.doseMg + ' mg FlexTouch 每支總量 ' + spec.totalMg + ' mg / ' + spec.totalMl +
-        ' ml，共 ' + spec.labeledDoses + ' 個標示劑量，每劑 ' + spec.doseMl + ' ml。' +
-        '非官方估算層：理論約略喀噠值以每喀噠 ' + PEN_CLICK_VOLUME_ML + ' ml 的換算假設計算；' +
-        '四個標示劑量後若有殘液，官方建議丟棄，不代表可再使用。' +
-        (spec.packNote ? ' ' + spec.packNote : '')
-      ]);
-    }
-
-    function safetyLine() {
-      return sourcePanel(WEGOVY_SOURCE,
-        '官方標示／仿單優先；分抽、喀噠換算與殘液使用均屬 off-label；官方以劑量窗為準，' +
+    renderPenCalculator({
+      pens: WEGOVY_PENS,
+      penByDose: WEGOVY_PEN_BY_DOSE,
+      calc: wegovyCalc,
+      fieldAttr: 'data-wg-field',
+      title: '週纖達針劑換算 (Wegovy)',
+      lead: 'Semaglutide FlexTouch 諾特筆標示規格與 off-label 換算參考。選 pen 規格後，任一欄輸入即時連動其他欄位。',
+      source: WEGOVY_SOURCE,
+      safetyText: '官方標示／仿單優先；分抽、喀噠換算與殘液使用均屬 off-label；官方以劑量窗為準，' +
         '不以喀噠數作為標準給藥；同一病人限用同一支筆，每次換新針，重複穿刺有 sterility 風險；' +
-        '四個標示劑量後殘液不足一個標示劑量，官方建議丟棄；開封後依來源保存規範（≤30°C 或 2–8°C 最多 6 週），不得因本工具延長。');
-    }
-
-    function updateResult() {
-      if (!s.pen) {
-        setResult(el('div', { class: 'result-card' }, [
-          el('div', { class: 'result-head' }, [el('div', { class: 'result-label' }, ['等待輸入'])]),
-          el('div', { class: 'result-body' }, [el('p', { class: 'lead' }, ['選擇 pen 規格後,任一欄輸入數字即會即時換算。'])])
-        ]));
-        return;
+        '四個標示劑量後殘液不足一個標示劑量，官方建議丟棄；開封後依來源保存規範（≤30°C 或 2–8°C 最多 6 週），不得因本工具延長。',
+      sourceNote: '每劑體積（0.375／0.75 ml）為依台灣仿單每支筆總體積 ÷ 4 劑推算，台灣仿單未直接標示每劑體積；其餘數值均為仿單標示值。',
+      resultName: function (spec) { return spec.doseMg + ' mg FlexTouch'; },
+      refText: function (spec) {
+        return '標示事實：' + spec.doseMg + ' mg FlexTouch 每支總量 ' + spec.totalMg + ' mg / ' + spec.totalMl +
+          ' ml，共 ' + spec.labeledDoses + ' 個標示劑量，每劑 ' + spec.doseMl + ' ml。' +
+          '非官方估算層：理論約略喀噠值以每喀噠 ' + spec.estimates.clickVolumeMl + ' ml 的換算假設計算；' +
+          '四個標示劑量後若有殘液，官方建議丟棄，不代表可再使用。';
       }
-      var spec = WEGOVY_PEN_BY_DOSE[s.pen];
-      if (!isUsablePenSpec(spec)) {
-        setResult(unavailableSpecResult());
-        return;
-      }
-      var hasInput = ['mg','ml','clicks'].some(function (k) { return s[k] !== '' && s[k] != null; });
-      if (!hasInput) {
-        setResult(el('div', { class: 'result-card' }, [
-          el('div', { class: 'result-head' }, [el('div', { class: 'result-label' }, [s.pen + ' mg pen 已選'])]),
-          el('div', { class: 'result-body' }, [el('p', { class: 'lead' }, ['任一欄輸入數字即會即時換算其他三欄。'])])
-        ]));
-        return;
-      }
-      var mg = formatNum(Number(s.mg));
-      var ml = formatNum(Number(s.ml));
-      var clicks = formatNum(Number(s.clicks));
-      var explain = explainBlock([
-        [{ strong: spec.doseMg + ' mg FlexTouch' }, ' · 濃度 ', { strong: formatNum(spec.totalMg / spec.totalMl) + ' mg/ml' }],
-        ['劑量 ', { strong: mg + ' mg' }, ' · 體積 ', { strong: ml + ' ml' }],
-        ['理論約略喀噠值 ', { strong: clicks }]
-      ]);
-      setResult(resultCard({
-        label: '換算對照', value: mg, unit: 'mg',
-        verdict: { label: '體積 ' + ml + ' ml · 理論約略喀噠值 ' + clicks, kind: 'info', shape: '●' },
-        body: [explain, summary('此組數值為 ' + spec.doseMg + ' mg FlexTouch 的劑量、體積與理論約略喀噠值對照；喀噠與殘液均非官方標示刻度或用法。')]
-      }));
-    }
-
-    var inputsHost;
-
-    function rerender() {
-      var card = el('div', { class: 'calc-card' }, [
-        el('h3', null, ['週纖達針劑換算 (Wegovy)']),
-        el('p', { class: 'lead' }, ['Semaglutide FlexTouch 諾特筆標示規格與 off-label 換算參考。選 pen 規格後，任一欄輸入即時連動其他欄位。']),
-        section('Pen 規格', [makePenPicker()]),
-        section('劑量換算(3 欄連動)', [
-          makeField('mg',     '目標劑量 (mg)', null,                    'mg'),
-          makeField('ml',     '體積 (ml)', null,                    'ml'),
-          makeField('clicks', '理論約略喀噠值', '非官方估算',      '喀噠')
-        ]),
-        refLine(),
-        safetyLine()
-      ]);
-      if (inputsHost && inputsHost.parentNode) {
-        inputsHost.parentNode.replaceChild(card, inputsHost);
-      } else {
-        mountCalcLayout(card);
-      }
-      inputsHost = card;
-      updateResult();
-    }
-
-    rerender();
+    });
   }
 
   // Expose pure helpers for tests + browser debugging (must run before init()

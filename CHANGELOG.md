@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.3.6] - 2026-10-23
+
+### Changed
+- **筆針計算機共用 renderer（Wegovy 遷移完成）** — `renderWegovy()` 遷移至共用 `renderPenCalculator(config)` 薄 adapter（規格表＋來源＋安全文字＋參考行文字），兩支筆針自此共用同一份 DOM 實作；舊獨立 renderer 整段刪除。Wegovy 的殘液固定文字、安全文字與「X mg FlexTouch」結果命名皆以 adapter 資料原樣保留；喀噠體積改經規格表 estimates 讀取（數值不變）。共用 renderer 的 DOM 行為測試擴及 Wegovy 設定（欄位連動、換 pen 重算、來源失效 fail closed、0.5 mg 不再顯示包裝警示註記）。
+- **Wegovy 規格來源改以台灣仿單為準** — `WEGOVY_SOURCE` 自英國 eMC 改為台灣仿單（台灣諾和諾德；版本 2025-03-04；最後查核日 2026-10-23；來源連結改指食藥署仿單查詢系統）。查核結果：五種 FlexTouch 規格數值與台灣仿單逐欄一致，數值未變；來源面板加註每劑體積為依台灣仿單每支筆總體積 ÷ 4 劑推算（台灣仿單未直接標示每劑體積）。台灣僅核准 0.5 mg 的 1.5 ml 包裝，原英國來源「另列 3 ml presentation」警示註記（packNote）不適用台灣，已移除。同步 bump SW cache v20 → v21
+
 ## [0.2.3.5] - 2026-10-23
 
 ### Changed
