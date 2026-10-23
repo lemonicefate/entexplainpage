@@ -5,6 +5,7 @@ import path from 'path';
 
 const htmlContent = fs.readFileSync(path.resolve(__dirname, '../../../index.html'), 'utf-8');
 const sessionSrc = fs.readFileSync(path.resolve(__dirname, '../../../js/reader-session.js'), 'utf-8');
+const calculatorsSrc = fs.readFileSync(path.resolve(__dirname, '../../../js/calculators.js'), 'utf-8');
 const appSrc = fs.readFileSync(path.resolve(__dirname, '../../../js/app.js'), 'utf-8');
 
 function loadHelperWindow() {
@@ -14,6 +15,9 @@ function loadHelperWindow() {
     pretendToBeVisual: true
   });
   dom.window.addEventListener('error', () => {});
+  const calcScript = dom.window.document.createElement('script');
+  calcScript.textContent = calculatorsSrc;
+  try { dom.window.document.body.appendChild(calcScript); } catch (e) {}
   const script = dom.window.document.createElement('script');
   script.textContent = appSrc;
   try { dom.window.document.body.appendChild(script); } catch (e) {}
@@ -21,7 +25,7 @@ function loadHelperWindow() {
 }
 
 function loadCalculator() {
-  const dom = new JSDOM(htmlContent.replace('</body>', `<script>${sessionSrc}</script><script>${appSrc}</script></body>`), {
+  const dom = new JSDOM(htmlContent.replace('</body>', `<script>${sessionSrc}</script><script>${calculatorsSrc}</script><script>${appSrc}</script></body>`), {
     url: 'http://localhost/#/calc/wegovy',
     runScripts: 'dangerously',
     pretendToBeVisual: true,

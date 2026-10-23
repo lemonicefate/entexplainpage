@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.3.7] - 2026-10-23
+
+### Changed
+- **計算機全數搬出 app.js（重構第 1 步完成）** — BMI、血脂、Mounjaro、Wegovy 四支計算機的 registrations、純邏輯（BMI 分級、健保給付判定、筆針換算）、筆針規格與共用 renderer、計算機專用 UI helpers 全數移至新檔 `js/calculators.js`。新模組比照 `js/reader-session.js` 形狀：瀏覽器以 classic script 載入、測試以 CommonJS 載入，只暴露 `Calculators.create(deps)`；app shell 注入共用 DOM builder（`el`）與計算機掛載點（`calcBody`），並消費回傳的 registrations——app.js 自此不再包含任何計算機程式，只剩 shell、ClinicCatalog 與 Reader。`index.html` 於 app.js 前載入 calculators.js;SW precache 新增 `js/calculators.js`，runtime inventory 同步納入，同步 bump SW cache v21 → v22。畫面、操作與計算結果不變；測試 harness 比照 reader-session 先例，於各 fixture 先載入 calculators.js。
+
 ## [0.2.3.6] - 2026-10-23
 
 ### Changed

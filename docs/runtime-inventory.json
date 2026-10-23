@@ -12,6 +12,7 @@
     "index.html",
     "css/style.css",
     "js/app.js",
+    "js/calculators.js",
     "manifest.json",
     "sw.js",
     "procedures/index.json",
@@ -107,6 +108,7 @@
     "images/wegovy/wegovy-logo-nav.webp",
     "index.html",
     "js/app.js",
+    "js/calculators.js",
     "manifest.json",
     "procedures/atopic-dermatitis.json",
     "procedures/chlorella.json",
@@ -793,8 +795,8 @@
     }
   ],
   "summary": {
-    "runtimeFileCount": 93,
-    "runtimeBytes": 15682758,
+    "runtimeFileCount": 94,
+    "runtimeBytes": 15702759,
     "runtimeImageFileCount": 72,
     "imageFileCount": 73,
     "imageBytes": 16119953

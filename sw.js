@@ -1,10 +1,11 @@
-var CACHE_NAME = 'entexplain-v21';
+var CACHE_NAME = 'entexplain-v22';
 
 var PRECACHE_URLS = [
   './',
   './index.html',
   './css/style.css',
   './js/reader-session.js',
+  './js/calculators.js',
   './js/app.js',
   './manifest.json',
   './procedures/index.json',
