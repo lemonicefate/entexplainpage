@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.3.5] - 2026-10-23
+
+### Changed
+- **筆針計算機共用 renderer（Mounjaro 先行）** — `renderMounjaro()` 與 `renderWegovy()` 原為兩份近乎相同的 DOM renderer（pen picker、mg/ml/喀噠 3 欄連動、anchor 與 caret 保留、結果卡），抽出共用 `renderPenCalculator(config)` 一份實作，Mounjaro 改為薄 adapter（規格表＋來源＋安全文字＋參考行文字）。Wegovy 本階段維持原 renderer，下一階段再遷移。畫面與計算結果不變；新增共用 renderer 的 DOM 行為測試（欄位連動、錨點保留、來源失效 fail closed）。
+- **Mounjaro 規格來源改以台灣仿單為準** — `MOUNJARO_SOURCE` 自加拿大仿單改為台灣仿單（台灣禮來；版本 2025-06-30；最後查核日 2026-10-23；來源連結改指食藥署仿單查詢系統）。查核結果：六種 KwikPen 規格數值與台灣仿單逐欄一致，數值未變；來源面板加註每支筆總含量／總體積為依仿單「4 劑 × 每劑劑量／體積」推算（台灣仿單未直接標示總量）。同步 bump SW cache v19 → v20
+
 ## [0.2.3.4] - 2026-10-23
 
 ### Added
