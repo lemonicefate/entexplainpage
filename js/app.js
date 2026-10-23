@@ -49,8 +49,6 @@
   var readerErrorTitle = $('reader-error-title');
   var readerErrorRetry = $('reader-error-retry');
   var readerErrorBack = $('reader-error-back');
-  var tapHint = $('tap-hint');
-  var tapHintClose = $('tap-hint-close');
   var homeNotice = $('home-notice');
   var homeNoticeText = $('home-notice-text');
   var homeNoticeClose = $('home-notice-close');
@@ -687,7 +685,6 @@
     endScreen.hidden = true;
     if (readerLoading) readerLoading.hidden = true;
     if (readerError) readerError.hidden = true;
-    if (tapHint) tapHint.hidden = true;
     if (readerLoadingTitle) readerLoadingTitle.textContent = '';
     slideView.classList.remove('reader-loading');
     slideView.setAttribute('aria-busy', 'false');
@@ -733,23 +730,6 @@
     setReaderInteractionEnabled(false);
   }
 
-  // One-time tap-zone hint (critique P1): the three tap zones have no visual
-  // affordance, so the first Reader visit explains them once; dismissing (or
-  // using a zone) records it in localStorage and it never shows again.
-  var TAP_HINT_KEY = 'reader_tap_hint_seen';
-  function tapHintSeen() {
-    try { return localStorage.getItem(TAP_HINT_KEY) === '1'; } catch (e) { return false; }
-  }
-  function maybeShowTapHint() {
-    if (!tapHint || tapHintSeen()) return;
-    tapHint.hidden = false;
-  }
-  function dismissTapHint() {
-    if (!tapHint || tapHint.hidden) return;
-    tapHint.hidden = true;
-    try { localStorage.setItem(TAP_HINT_KEY, '1'); } catch (e) {}
-  }
-
   function setupReaderFeedback() {
     if (readerErrorRetry) readerErrorRetry.addEventListener('click', function () {
       if (!state.readerErrorId) return;
@@ -758,7 +738,6 @@
     if (readerErrorBack) readerErrorBack.addEventListener('click', function () {
       window.location.hash = '';
     });
-    if (tapHintClose) tapHintClose.addEventListener('click', dismissTapHint);
     if (homeNoticeClose) homeNoticeClose.addEventListener('click', function () {
       homeNotice.hidden = true;
     });
@@ -784,7 +763,6 @@
     requestWakeLock();
     showChrome();
     scheduleChromeHide();
-    maybeShowTapHint();
   }
 
   function renderThumbs() {
@@ -993,17 +971,14 @@
     if (!tapPrev || !tapNext || !tapToggle) return;
     tapPrev.addEventListener('click', function () {
       if (state.activeTool || !state.current) return; // let tools own the stage
-      dismissTapHint(); // using a zone means it has been discovered
       goPrev();
     });
     tapNext.addEventListener('click', function () {
       if (state.activeTool || !state.current) return;
-      dismissTapHint();
       goNext();
     });
     tapToggle.addEventListener('click', function () {
       if (state.activeTool || !state.current) return;
-      dismissTapHint();
       toggleChrome();
     });
   }
