@@ -65,7 +65,7 @@ describe('Mounjaro labelled specification safety baseline', () => {
         penType: expect.stringContaining('KwikPen'),
         url: expect.stringMatching(/^https:\/\//),
         revision: expect.any(String),
-        lastChecked: '2026-07-31'
+        lastChecked: '2026-10-23'
       });
     });
   });
@@ -110,9 +110,9 @@ describe('Mounjaro calculator safety presentation', () => {
     const text = dom.window.document.getElementById('calc-body').textContent;
 
     expect(text).toContain('適用市場');
-    expect(text).toContain('MOUNJARO KwikPen');
+    expect(text).toContain('MOUNJARO® KwikPen');
     expect(text).toContain('來源');
-    expect(text).toContain('最後查核日：2026-07-31');
+    expect(text).toContain('最後查核日：2026-10-23');
     expect(text).toContain('醫療人員限定');
     expect(text).toContain('非病人自我操作指引');
     expect(text).toContain('分抽');
@@ -151,5 +151,72 @@ describe('Mounjaro calculator safety presentation', () => {
 
     expect(doc.querySelector('#calc-result .result-value')).toBeNull();
     expect(doc.getElementById('calc-result').textContent).toContain('已停止一般成功結果');
+  });
+});
+
+describe('Mounjaro via the shared pen renderer', () => {
+  function typeField(dom, doc, key, value) {
+    const input = doc.querySelector(`[data-mj-field="${key}"]`);
+    input.value = value;
+    input.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
+    return input;
+  }
+
+  it('shows the Taiwan label as the source, with the derived-totals note', async () => {
+    const dom = await loadCalculator();
+    const text = dom.window.document.getElementById('calc-body').textContent;
+
+    expect(text).toContain('適用市場／筆型：台灣');
+    expect(text).toContain('猛健樂筆 MOUNJARO® KwikPen');
+    expect(text).toContain('台灣仿單（台灣禮來）');
+    expect(text).toContain('仿單／資料版本：2025-06-30');
+    expect(text).toContain('每支筆總含量／總體積為依台灣仿單「4 劑 × 每劑劑量／體積」推算');
+  });
+
+  it('syncs the non-anchor fields when a value is typed', async () => {
+    const dom = await loadCalculator();
+    const doc = dom.window.document;
+    doc.querySelectorAll('#calc-body .seg button')[1].click(); // 5 mg pen
+
+    typeField(dom, doc, 'mg', '2.5');
+
+    expect(doc.querySelector('[data-mj-field="ml"]').value).toBe('0.3');
+    expect(doc.querySelector('[data-mj-field="clicks"]').value).toBe('30');
+  });
+
+  it('never rewrites the anchor input while typing (caret preservation)', async () => {
+    const dom = await loadCalculator();
+    const doc = dom.window.document;
+    doc.querySelector('#calc-body .seg button').click(); // 2.5 mg pen
+
+    const input = typeField(dom, doc, 'mg', '2.50');
+
+    expect(input.value).toBe('2.50');
+    expect(doc.querySelector('[data-mj-field="ml"]').value).toBe('0.6');
+  });
+
+  it('keeps the anchor value as the basis when the pen changes', async () => {
+    const dom = await loadCalculator();
+    const doc = dom.window.document;
+    doc.querySelectorAll('#calc-body .seg button')[1].click(); // 5 mg pen
+    typeField(dom, doc, 'mg', '3');
+    expect(doc.querySelector('[data-mj-field="ml"]').value).toBe('0.36');
+
+    doc.querySelectorAll('#calc-body .seg button')[3].click(); // 10 mg pen
+
+    expect(doc.querySelector('[data-mj-field="mg"]').value).toBe('3');
+    expect(doc.querySelector('[data-mj-field="ml"]').value).toBe('0.18');
+    expect(doc.querySelector('[data-mj-field="clicks"]').value).toBe('18');
+  });
+
+  it('fails closed in both the reference line and the result when the source is broken', async () => {
+    const dom = await loadCalculator();
+    const doc = dom.window.document;
+    dom.window.__mounjaroPens[0].source.url = '';
+    doc.querySelector('#calc-body .seg button').click();
+
+    expect(doc.getElementById('calc-body').textContent).toContain('標示規格來源不可用，已停止換算。');
+    expect(doc.getElementById('calc-result').textContent).toContain('無法呈現換算結果');
+    expect(doc.querySelector('#calc-result .result-value')).toBeNull();
   });
 });
