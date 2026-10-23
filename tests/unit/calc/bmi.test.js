@@ -6,12 +6,13 @@ import path from 'path';
 // Golden-file for 國健署成人 BMI 分級 (衛福部國民健康署).
 // 邊界值 (18.5 / 24 / 27 / 30 / 35) 是抄寫自權威來源,所以這份測試的
 // 唯一任務是「抄對了嗎」— 國健署改版時這份測試必須跟著改。
-// 上游公告改了 → 改 js/app.js 的 bmiClassify 同 PR 改這份。
+// 上游公告改了 → 改 js/calculators.js 的 bmiClassify 同 PR 改這份。
 
 let bmiClassify;
 let bmiAssess;
 
 beforeEach(() => {
+  const calculatorsSrc = fs.readFileSync(path.resolve(__dirname, '../../../js/calculators.js'), 'utf-8');
   const appSrc = fs.readFileSync(path.resolve(__dirname, '../../../js/app.js'), 'utf-8');
   const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
     url: 'http://localhost/',
@@ -20,6 +21,9 @@ beforeEach(() => {
   });
   const win = dom.window;
   win.addEventListener('error', () => { /* swallow init throws on missing fetch */ });
+  const calcScript = win.document.createElement('script');
+  calcScript.textContent = calculatorsSrc;
+  try { win.document.body.appendChild(calcScript); } catch (e) { /* swallow */ }
   const script = win.document.createElement('script');
   script.textContent = appSrc;
   try { win.document.body.appendChild(script); }
