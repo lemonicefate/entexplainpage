@@ -39,7 +39,7 @@ describe('procedure catalog failure fallback', () => {
 
     expect(doc.getElementById('grid-error').hidden).toBe(false);
     expect(doc.getElementById('grid-error').textContent).toContain('衛教內容暫時無法載入');
-    expect(doc.querySelectorAll('a.card[href^="#/calc/"]').length).toBe(5);
+    expect(doc.querySelectorAll('a.card[href^="#/calc/"]').length).toBe(4);
     expect(doc.querySelectorAll('a.card:not([href^="#/calc/"])').length).toBe(0);
   });
 
@@ -56,7 +56,7 @@ describe('procedure catalog failure fallback', () => {
 
     expect(doc.getElementById('grid-error').hidden).toBe(false);
     expect(doc.querySelector('a[aria-label="可用圖卡"]')).toBeNull();
-    expect(doc.querySelectorAll('a.card[href^="#/calc/"]').length).toBe(5);
+    expect(doc.querySelectorAll('a.card[href^="#/calc/"]').length).toBe(4);
   });
 
   it('keeps a valid direct calculator route during procedure failure', async () => {

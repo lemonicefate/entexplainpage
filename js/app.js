@@ -81,7 +81,6 @@
   var CALCULATOR_REGISTRATIONS = [
     {id:'bmi',       title:'BMI 與肥胖分級',  subtitle:'身高體重 → BMI + 國健署分級',  tabLabel:'BMI', render: renderBmi},
     {id:'lipid',     title:'血脂異常用藥健保給付', subtitle:'LDL/HDL/TG/TC + 病人類別 → Statin / Fibrate 健保給付判定', tabLabel:'血脂給付', render: renderLipid},
-    {id:'peds-dose', title:'小兒劑量（mg/kg）', subtitle:'體重 + 目標劑量 → 總 mg + ml 數', tabLabel:'小兒劑量', render: renderPeds},
     {id:'mounjaro',  title:'猛健樂針劑換算 (Mounjaro)', subtitle:'Tirzepatide 筆針劑量、刻度與殘劑互算', tabLabel:'猛健樂', thumbnail:'images/mounjaro/mounjaro-logo.svg', thumbnailMode:'logo', render: renderMounjaro},
     {id:'wegovy',    title:'週纖達針劑換算 (Wegovy)', subtitle:'Semaglutide FlexTouch 諾特筆劑量、體積與喀噠互算', tabLabel:'週纖達', thumbnail:'images/wegovy/wegovy-logo-nav.webp', thumbnailMode:'logo', render: renderWegovy}
   ];
@@ -1556,38 +1555,6 @@
       ])
     ]);
 
-    mountCalcLayout(inputs);
-    update();
-  }
-
-  // ---------- Pediatric dose ----------
-  function renderPeds() {
-    var s = { wt: 15, dosePerKg: 10, concMl: 100 };
-    function update() {
-      var totalMg = s.wt * s.dosePerKg;
-      var totalMl = totalMg / (s.concMl / 5);
-
-      var explain = explainBlock([
-        [{ strong: '體重' }, ' ' + s.wt + ' kg × ', { strong: '劑量' }, ' ' + s.dosePerKg + ' mg/kg = ', { strong: totalMg + ' mg' }],
-        ['藥水濃度 ' + s.concMl + ' mg / 5 ml → 需 ', { strong: totalMl.toFixed(1) + ' ml' }]
-      ]);
-
-      setResult(resultCard({
-        label: '每次總劑量', value: totalMg, unit: 'mg',
-        verdict: { label: '= ' + totalMl.toFixed(1) + ' ml 藥水', kind: 'info', shape: '●' },
-        body: [explain, summary(s.wt + ' kg 病童，每次給予 ' + totalMg + ' mg（' + totalMl.toFixed(1) + ' ml）。請依醫囑頻次給藥。')]
-      }));
-    }
-
-    var inputs = el('div', { class: 'calc-card' }, [
-      el('h3', null, ['小兒劑量換算（mg/kg）']),
-      el('p', { class: 'lead' }, ['輸入體重與目標劑量，即時算出總 mg 與建議 ml 數。']),
-      section('參數', [
-        field('體重',     null,        s.wt,        'kg',     function (v) { s.wt        = v; update(); }, { min: 1, max: 120 }),
-        field('目標劑量', '每公斤',    s.dosePerKg, 'mg/kg',  function (v) { s.dosePerKg = v; update(); }),
-        field('藥水濃度', '每 5 ml 含', s.concMl,   'mg/5ml', function (v) { s.concMl    = v; update(); })
-      ])
-    ]);
     mountCalcLayout(inputs);
     update();
   }
