@@ -1,0 +1,44 @@
+{
+  "id": "vocal-cord",
+  "title": "聲帶",
+  "type": "explain",
+  "subtitle": "",
+  "region": "",
+  "category": "ent",
+  "categories": [
+    "ent"
+  ],
+  "thumbnail": "images/vocal-cord/thumb.webp",
+  "steps": [
+    {
+      "image": "images/vocal-cord/step1.webp",
+      "title": "正常聲帶",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/vocal-cord/step2.webp",
+      "title": "聲帶結節",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/vocal-cord/step3.jpg",
+      "title": "聲帶水腫",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/vocal-cord/step4.jpg",
+      "title": "聲帶麻痺",
+      "description": "",
+      "alt": ""
+    },
+    {
+      "image": "images/vocal-cord/step5.webp",
+      "title": "聲帶保養",
+      "description": "",
+      "alt": ""
+    }
+  ]
+}
