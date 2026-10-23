@@ -10,6 +10,7 @@ const RUNTIME_ROOT_FILES = [
   'index.html',
   'css/style.css',
   'js/app.js',
+  'js/calculators.js',
   'manifest.json',
   'sw.js',
   'procedures/index.json'

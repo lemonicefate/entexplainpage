@@ -11,6 +11,7 @@ import path from 'path';
 let lipidCoverage;
 
 beforeEach(() => {
+  const calculatorsSrc = fs.readFileSync(path.resolve(__dirname, '../../../js/calculators.js'), 'utf-8');
   const appSrc = fs.readFileSync(path.resolve(__dirname, '../../../js/app.js'), 'utf-8');
   const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
     url: 'http://localhost/',
@@ -19,6 +20,9 @@ beforeEach(() => {
   });
   const win = dom.window;
   win.addEventListener('error', () => { /* swallow init throws on missing fetch */ });
+  const calcScript = win.document.createElement('script');
+  calcScript.textContent = calculatorsSrc;
+  try { win.document.body.appendChild(calcScript); } catch (e) { /* swallow */ }
   const script = win.document.createElement('script');
   script.textContent = appSrc;
   try { win.document.body.appendChild(script); }

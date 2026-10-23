@@ -24,7 +24,8 @@ entexplainpage/
 ├── manifest.json            # PWA manifest
 ├── sw.js                    # Service Worker（必須放 repo 根部，scope 才對）
 ├── css/style.css            # Design tokens + 全站樣式
-├── js/app.js                # ClinicCatalog + app shell + calculator implementations
+├── js/app.js                # ClinicCatalog + app shell
+├── js/calculators.js        # 四支計算機實作 + registrations
 ├── procedures/
 │   ├── index.json           # 分類 + canonical detail 的策展投影
 │   ├── snore.json           # 單篇 canonical detail（每篇一檔）
@@ -251,7 +252,7 @@ npm run admin
 
 ## 新增計算機
 
-計算機是**寫在 `js/app.js` 裡的靜態邏輯**（不走 JSON），因為每個計算機的輸入欄位、規則邏輯、判讀文字都不同，沒必要為了 DRY 硬做資料驅動。
+計算機是**寫在 `js/calculators.js` 裡的靜態邏輯**（不走 JSON），因為每個計算機的輸入欄位、規則邏輯、判讀文字都不同，沒必要為了 DRY 硬做資料驅動。
 
 現有四支：`bmi`、`lipid`、`mounjaro`、`wegovy`，分別對應 `renderBmi()`、`renderLipid()`、`renderMounjaro()`、`renderWegovy()`。
 
@@ -263,10 +264,10 @@ Mounjaro 與 Wegovy 計算機會常駐顯示適用市場／筆型、第一方來
 
 **1. 登記 metadata（含分頁標籤）**
 
-`js/app.js` 找到 `CALCULATOR_REGISTRATIONS` 陣列（約第 76 行），加一筆；`tabLabel` 是分頁列的短標題，`render` 必須直接指向該計算機的靜態 renderer：
+`js/calculators.js` 的 `create()` 尾端找到 `registrations` 陣列，加一筆；`tabLabel` 是分頁列的短標題，`render` 必須直接指向該計算機的靜態 renderer：
 
 ```js
-var CALCULATOR_REGISTRATIONS = [
+var registrations = [
   {id:'bmi',       tabLabel:'BMI',     title:'BMI 與肥胖分級',  subtitle:'...', render: renderBmi},
   {id:'lipid',     tabLabel:'血脂給付', title:'血脂異常用藥健保給付', subtitle:'...', render: renderLipid},
   // 新增：
@@ -278,7 +279,7 @@ var CALCULATOR_REGISTRATIONS = [
 
 **2. 寫 render 函式**
 
-仿照 `renderBmi()`（約 995 行）。可用的共用 helpers：
+仿照 `renderBmi()`（`js/calculators.js`）。可用的共用 helpers：
 
 - `field(label, hint, value, unit, onInput, opts)` —— 數字輸入欄位
 - `check(label, checked, onChange)` —— checkbox
