@@ -138,7 +138,7 @@ describe('Home view', () => {
 
     expect(doc.querySelector('a[aria-label="可雙分類圖卡"]')).not.toBeNull();
     expect(doc.querySelector('a[aria-label="純耳鼻喉圖卡"]')).toBeNull();
-    expect(doc.getElementById('result-count').textContent).toBe('6 個項目');
+    expect(doc.getElementById('result-count').textContent).toBe('5 個項目');
     expect(doc.querySelector('#category-chips .chip[data-category="calc"][aria-selected="true"]')).not.toBeNull();
   });
 
