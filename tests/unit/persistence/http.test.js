@@ -1,3 +1,7 @@
+// @vitest-environment node
+// Issue #53: this suite drives a real HTTP server with FormData/fetch.
+// jsdom's FormData/fetch combination drops the multipart boundary, so the
+// requests hang until timeout; Node's native implementations are correct.
 import { afterEach, describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import os from 'node:os';
