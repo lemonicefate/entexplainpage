@@ -27,15 +27,57 @@
       var input = el('input', {
         type: 'number', class: 'field-input',
         value: String(value),
+        placeholder: opts.placeholder != null ? String(opts.placeholder) : '',
         min: opts.min != null ? String(opts.min) : '',
         max: opts.max != null ? String(opts.max) : '',
         step: opts.step ? String(opts.step) : 'any',
         oninput: function (e) {
           var raw = e.target.value;
-          onInput(opts.allowEmpty && raw === '' ? '' : Number(raw) || 0);
+          // opts.raw hands the renderer the untouched string so it can tell
+          // "empty" and "invalid" apart; the legacy path coerces to a number
+          // (and silently to 0) for renderers that do not validate.
+          onInput(opts.raw ? raw : (opts.allowEmpty && raw === '' ? '' : Number(raw) || 0));
         }
       });
-      return el('div', { class: 'field' }, [labelWrap, input, el('span', { class: 'field-unit' }, [unit || ''])]);
+      var error = el('span', { class: 'field-error', role: 'alert' }, []);
+      error.hidden = true;
+      var wrap = el('div', { class: 'field' }, [
+        labelWrap, input, el('span', { class: 'field-unit' }, [unit || '']), error
+      ]);
+      wrap.inputEl = input;
+      wrap.errorEl = error;
+      return wrap;
+    }
+
+    function setFieldError(fieldWrap, message) {
+      if (!fieldWrap || !fieldWrap.errorEl) return;
+      fieldWrap.errorEl.textContent = message || '';
+      fieldWrap.errorEl.hidden = !message;
+      fieldWrap.inputEl.classList.toggle('is-invalid', !!message);
+      if (message) fieldWrap.inputEl.setAttribute('aria-invalid', 'true');
+      else fieldWrap.inputEl.removeAttribute('aria-invalid');
+    }
+
+    // Classify a raw field string without ever letting a bad value reach a
+    // verdict: '' → empty, non-numeric / <= 0 / out of range → invalid.
+    function parseNumericField(raw, min, max) {
+      if (raw == null || String(raw).trim() === '') return { state: 'empty', value: null };
+      var n = Number(raw);
+      if (!isFinite(n) || n <= 0) return { state: 'invalid', value: null };
+      if (min != null && n < min) return { state: 'invalid', value: null };
+      if (max != null && n > max) return { state: 'invalid', value: null };
+      return { state: 'ok', value: n };
+    }
+
+    // Third state next to "符合 / 不符合": inputs are incomplete, so the
+    // result area explains what is missing instead of rendering a verdict
+    // (mirrors the pen calculators' 「等待輸入」 card).
+    function pendingResultCard(lines) {
+      var body = lines.map(function (text) { return el('p', { class: 'lead' }, [text]); });
+      return el('div', { class: 'result-card' }, [
+        el('div', { class: 'result-head' }, [el('div', { class: 'result-label' }, ['等待輸入'])]),
+        el('div', { class: 'result-body' }, body)
+      ]);
     }
 
     function check(label, checked, onChange) {
@@ -170,9 +212,34 @@
       return { bmi: bmi, grade: bmiClassify(bmi) };
     }
     function renderBmi() {
-      var s = { h: 170, w: 75 };
+      // No preset height/weight: a verdict computed from placeholder numbers
+      // looks identical to a real one on the patient's screen (critique P0).
+      // Fields start empty; the result stays in the 「等待輸入」 state until
+      // both values are present and plausible.
+      var s = { h: '', w: '' };
+      var hField = field('身高', null, '', 'cm', function (v) { s.h = v; update(); },
+        { min: 100, max: 250, raw: true, placeholder: '例：170' });
+      var wField = field('體重', null, '', 'kg', function (v) { s.w = v; update(); },
+        { min: 20, max: 250, raw: true, placeholder: '例：75' });
+
       function update() {
-        var r = bmiAssess(s.h, s.w);
+        var hp = parseNumericField(s.h, 100, 250);
+        var wp = parseNumericField(s.w, 20, 250);
+        setFieldError(hField, hp.state === 'invalid' ? '請輸入 100–250 cm 之間的身高。' : '');
+        setFieldError(wField, wp.state === 'invalid' ? '請輸入 20–250 kg 之間的體重。' : '');
+        if (hp.state !== 'ok' || wp.state !== 'ok') {
+          var problems = [];
+          if (hp.state === 'empty') problems.push('身高尚未輸入');
+          else if (hp.state === 'invalid') problems.push('身高超出合理範圍');
+          if (wp.state === 'empty') problems.push('體重尚未輸入');
+          else if (wp.state === 'invalid') problems.push('體重超出合理範圍');
+          setResult(pendingResultCard([
+            '輸入身高與體重後，這裡會顯示 BMI 與國健署分級。',
+            '尚待完成：' + problems.join('；') + '。'
+          ]));
+          return;
+        }
+        var r = bmiAssess(hp.value, wp.value);
         var bmi = r.bmi;
         var grade = r.grade;
         var advice = bmi >= 27 ? '建議搭配生活型態介入與藥物治療評估。'
@@ -194,10 +261,7 @@
       var inputs = el('div', { class: 'calc-card' }, [
         el('h3', null, ['BMI 與肥胖分級']),
         el('p', { class: 'lead' }, ['依國健署標準。BMI = 體重 (kg) ÷ 身高 (m)²']),
-        section('基本測量', [
-          field('身高', null, s.h, 'cm', function (v) { s.h = v; update(); }, { min: 100, max: 250 }),
-          field('體重', null, s.w, 'kg', function (v) { s.w = v; update(); }, { min: 20, max: 250 })
-        ])
+        section('基本測量', [hField, wField])
       ]);
       mountCalcLayout(inputs);
       update();
@@ -260,15 +324,20 @@
     }
 
     function renderLipid() {
+      // Risk factors and categories start unselected (critique P0): a
+      // pre-checked DM/HTN/age state produced a 「不符合」 verdict for a
+      // patient nobody had entered yet. Lab values stay raw strings in s
+      // until update() has validated all four.
       var s = {
         ldl: '', hdl: '', tg: '', tc: '',
-        cvd: false, dm: true,
-        htn: true, ageRisk: true, fhx: false, smoke: false
+        cvd: false, dm: false,
+        htn: false, ageRisk: false, fhx: false, smoke: false
       };
+      var labFields = {};
 
-      var hdlRow = derivedRow('HDL-C < 40 mg/dL（依 HDL-C 數值自動判定）', s.hdl !== '' && s.hdl < 40);
+      var hdlRow = derivedRow('HDL-C < 40 mg/dL（依 HDL-C 數值自動判定）', false);
 
-      function statinCard(r) {
+      function statinCard(r, v) {
         var st = r.statin;
         var tier = LIPID_STATIN_TIERS[st.category];
         var startText = st.startTC != null
@@ -279,10 +348,10 @@
           : 'LDL-C < ' + st.startLDL;
 
         var rules = [
-          { ok: st.byLDL, text: 'LDL-C ' + s.ldl + ' mg/dL ≧ ' + st.startLDL }
+          { ok: st.byLDL, text: 'LDL-C ' + v.ldl + ' mg/dL ≧ ' + st.startLDL }
         ];
         if (st.startTC != null) {
-          rules.push({ ok: st.byTC, text: 'TC ' + s.tc + ' mg/dL ≧ ' + st.startTC });
+          rules.push({ ok: st.byTC, text: 'TC ' + v.tc + ' mg/dL ≧ ' + st.startTC });
         }
 
         var summaryText = st.qualified
@@ -315,11 +384,11 @@
         });
       }
 
-      function fibrateCard(r) {
+      function fibrateCard(r, v) {
         var fb = r.fibrate;
         var rules = fb.category === 'cvd-dm'
           ? [
-              { ok: s.tg >= 200, text: 'TG ' + s.tg + ' mg/dL ≧ 200' },
+              { ok: v.tg >= 200, text: 'TG ' + v.tg + ' mg/dL ≧ 200' },
               {
                 ok: fb.ratio > 5 || r.hdlLow,
                 text: 'TC/HDL-C 比值 ' + fb.ratio.toFixed(1) + ' > 5 或 HDL-C < 40' +
@@ -327,7 +396,7 @@
               }
             ]
           : [
-              { ok: s.tg >= 500, text: 'TG ' + s.tg + ' mg/dL ≧ 500' }
+              { ok: v.tg >= 500, text: 'TG ' + v.tg + ' mg/dL ≧ 500' }
             ];
 
         var catLabel = fb.category === 'cvd-dm' ? '心血管疾病或糖尿病病人' : '非 CVD 且非 DM 病人';
@@ -366,21 +435,50 @@
         });
       }
 
+      var LAB_KEYS = ['ldl', 'hdl', 'tg', 'tc'];
+      var LAB_NAMES = { ldl: 'LDL-C', hdl: 'HDL-C', tg: 'Triglyceride', tc: 'Total Cholesterol' };
+
       function update() {
-        var r = lipidCoverage(s);
-        hdlRow.setState(r.hdlLow);
-        setResult(el('div', null, [statinCard(r), fibrateCard(r)]));
+        // Verdict gate (critique P0): all four lab values must be present
+        // and valid before any 符合/不符合 is rendered. Invalid values get a
+        // field-level message and never reach lipidCoverage as 0.
+        var parsed = {};
+        var ready = true;
+        LAB_KEYS.forEach(function (key) {
+          parsed[key] = parseNumericField(s[key], null, 2000);
+          setFieldError(labFields[key], parsed[key].state === 'invalid' ? '請輸入有效的檢驗值（大於 0）。' : '');
+          if (parsed[key].state !== 'ok') ready = false;
+        });
+        hdlRow.setState(parsed.hdl.state === 'ok' && parsed.hdl.value < 40);
+        if (!ready) {
+          var missing = LAB_KEYS.filter(function (key) { return parsed[key].state !== 'ok'; })
+            .map(function (key) { return LAB_NAMES[key]; });
+          setResult(pendingResultCard([
+            '輸入完整檢驗值後，這裡會顯示 Statin 與 Fibrate 的健保給付判定。',
+            '尚缺或待修正：' + missing.join('、') + '。'
+          ]));
+          return;
+        }
+        var values = {
+          ldl: parsed.ldl.value, hdl: parsed.hdl.value,
+          tg: parsed.tg.value, tc: parsed.tc.value,
+          cvd: s.cvd, dm: s.dm, htn: s.htn, ageRisk: s.ageRisk, fhx: s.fhx, smoke: s.smoke
+        };
+        var r = lipidCoverage(values);
+        setResult(el('div', null, [statinCard(r, values), fibrateCard(r, values)]));
       }
+
+      labFields = {
+        ldl: field('LDL-C',             '低密度脂蛋白', '', 'mg/dL', function (v) { s.ldl = v; update(); }, { raw: true }),
+        hdl: field('HDL-C',             '高密度脂蛋白', '', 'mg/dL', function (v) { s.hdl = v; update(); }, { raw: true }),
+        tg:  field('Triglyceride',      '三酸甘油酯',   '', 'mg/dL', function (v) { s.tg  = v; update(); }, { raw: true }),
+        tc:  field('Total Cholesterol', '總膽固醇',     '', 'mg/dL', function (v) { s.tc  = v; update(); }, { raw: true })
+      };
 
       var inputs = el('div', { class: 'calc-card' }, [
         el('h3', null, ['血脂異常用藥健保給付判定']),
         el('p', { class: 'lead' }, ['依健保署降血脂藥物給付規定（文件 031170）逐條核對 Statin 與 Fibrate 給付資格。']),
-        section('血脂檢驗值', [
-          field('LDL-C',             '低密度脂蛋白', s.ldl, 'mg/dL', function (v) { s.ldl = v; update(); }, { allowEmpty: true }),
-          field('HDL-C',             '高密度脂蛋白', s.hdl, 'mg/dL', function (v) { s.hdl = v; update(); }, { allowEmpty: true }),
-          field('Triglyceride',      '三酸甘油酯',   s.tg,  'mg/dL', function (v) { s.tg  = v; update(); }, { allowEmpty: true }),
-          field('Total Cholesterol', '總膽固醇',     s.tc,  'mg/dL', function (v) { s.tc  = v; update(); }, { allowEmpty: true })
-        ]),
+        section('血脂檢驗值', [labFields.ldl, labFields.hdl, labFields.tg, labFields.tc]),
         section('病人類別', [
           check('心血管疾病（CVD）', s.cvd, function (v) { s.cvd = v; update(); }),
           el('p', { class: 'check-hint' }, [

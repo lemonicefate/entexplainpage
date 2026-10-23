@@ -434,10 +434,9 @@ img.card-thumb-logo {
 .player-back {
   transition: opacity var(--chrome-fade) ease, background var(--t);
 }
-#slide-view.is-immersive .player-back {
-  opacity: 0;
-  pointer-events: none;
-}
+/* The back button is the only exit while presenting: it stays visible in
+   immersive mode (critique P1) instead of fading out with the rest of the
+   chrome. Losing it mid-explanation reads as a frozen screen. */
 #slide-view.is-immersive .player-topbar,
 #slide-view.is-immersive .player-controls,
 #slide-view.is-immersive .thumb-strip,
@@ -531,6 +530,10 @@ img.card-thumb-logo {
 }
 .reader-state-title { font-size: 18px; font-weight: 600; }
 .reader-state-sub { color: rgba(255,255,255,0.65); font-size: 14px; }
+/* Error variant of .reader-state: interactive (retry / back), unlike the
+   pointer-events:none loading state it sits next to. */
+.reader-error { pointer-events: auto; }
+.reader-error-actions { display: flex; gap: 10px; margin-top: 10px; }
 #slide-view.reader-loading .player-stage { touch-action: none; }
 #slide-view.reader-loading .player-controls,
 #slide-view.reader-loading .thumb-strip,
@@ -642,6 +645,49 @@ img.card-thumb-logo {
 .player-stage.tool-spot  .tap-zone,
 .player-stage.tool-laser .tap-zone { pointer-events: none; cursor: none; }
 
+/* One-time tap-zone hint: a single slim bar at the stage bottom, shown on
+   the first Reader visit only (dismissed state lives in localStorage).
+   The bar itself never blocks the tap zones; only its button is clickable. */
+.tap-hint {
+  position: absolute;
+  left: 50%; bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 26;
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  gap: 6px 18px;
+  max-width: 92%;
+  padding: 10px 14px;
+  border-radius: var(--r-pill);
+  background: rgba(8,26,44,0.85);
+  color: #fff;
+  font-size: 13px;
+  text-align: center;
+  pointer-events: none;
+}
+.tap-hint-close {
+  pointer-events: auto;
+  min-height: 32px;
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  background: var(--teal);
+  color: #fff;
+  font-size: 13px; font-weight: 600;
+}
+
+/* One-shot notice at the top of the home view (e.g. unknown route). */
+.home-notice {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r);
+  background: var(--warn-bg);
+  color: var(--warn-fg);
+  font-size: 14px; font-weight: 500;
+}
+.home-notice span { flex: 1; }
+.home-notice-close { color: inherit; font-size: 14px; padding: 4px 8px; }
+
 /* Player controls bar */
 .player-controls {
   display: flex; justify-content: space-between; align-items: center;
@@ -668,13 +714,17 @@ img.card-thumb-logo {
 .btn-pill:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .tool {
-  width: 40px; height: 40px;
+  /* DESIGN.md §7 touch target: at least 44x44px, with a visible text label
+     under the icon so first-time users need not guess (critique P1). */
+  min-width: 44px; height: 48px;
+  padding: 4px 8px;
   border-radius: 8px;
   background: rgba(255,255,255,0.1);
   color: #fff;
-  display: flex; align-items: center; justify-content: center;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
   transition: all var(--t);
 }
+.tool-label { font-size: 11px; line-height: 1.1; font-weight: 500; }
 .tool:hover { background: rgba(255,255,255,0.2); }
 .tool.is-active {
   background: var(--peach);
@@ -895,6 +945,13 @@ img.card-thumb-logo {
 }
 .field-input:focus { border-color: var(--teal); }
 .field-unit { font-size: 13px; color: var(--ink-3); font-weight: 500; min-width: 60px; }
+.field-input.is-invalid { border-color: var(--danger-fg); }
+.field-error {
+  grid-column: 2;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--danger-fg);
+}
 
 /* Checkbox row */
 .check {
@@ -1187,6 +1244,7 @@ img.card-thumb-logo {
   .calc-layout { grid-template-columns: 1fr; gap: 16px; }
   .result-sticky { position: static; }
   .field { grid-template-columns: 1fr; gap: 6px; }
+  .field-error { grid-column: 1; }
   .field-unit { display: none; }
   .ph-title { font-size: 22px; }
   .ph-desc { font-size: 14px; }
