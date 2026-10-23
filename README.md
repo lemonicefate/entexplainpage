@@ -12,7 +12,7 @@
 - **離線可用**：Service Worker 預載核心資源，iPad 連線不穩也能解說。
 - **Reader 模式**：仿電子書體驗——點左右換頁、點中間叫出工具列、下方拖拉桿快速跳頁、3 秒後工具自動淡出。
 - **診間工具**：畫筆、聚光燈、雷射指標，支援滑鼠、觸控、Apple Pencil（Pointer Events 統一處理）。
-- **內建計算機**：BMI、血脂異常用藥健保給付（Statin / Fibrate）、小兒劑量、Mounjaro KwikPen 與 Wegovy FlexTouch 的醫療人員 off-label 換算參考。
+- **內建計算機**：BMI、血脂異常用藥健保給付（Statin / Fibrate）、Mounjaro KwikPen 與 Wegovy FlexTouch 的醫療人員 off-label 換算參考。
 
 ---
 
@@ -253,7 +253,7 @@ npm run admin
 
 計算機是**寫在 `js/app.js` 裡的靜態邏輯**（不走 JSON），因為每個計算機的輸入欄位、規則邏輯、判讀文字都不同，沒必要為了 DRY 硬做資料驅動。
 
-現有五支：`bmi`、`lipid`、`peds-dose`、`mounjaro`、`wegovy`，分別對應 `renderBmi()`、`renderLipid()`、`renderPeds()`、`renderMounjaro()`、`renderWegovy()`。
+現有四支：`bmi`、`lipid`、`mounjaro`、`wegovy`，分別對應 `renderBmi()`、`renderLipid()`、`renderMounjaro()`、`renderWegovy()`。
 
 首頁由 `ClinicCatalog` 將 `procedures/index.json` metadata 與 calculator registrations 投影成同一種 semantic card；Catalog 不載入 procedure detail、不操作 DOM，也不執行計算。新增計算機只需要新增一筆 registration，首頁卡片、計算機 tab、合法 route 與 renderer dispatch 都由同一筆資料提供。
 
@@ -269,7 +269,6 @@ Mounjaro 與 Wegovy 計算機會常駐顯示適用市場／筆型、第一方來
 var CALCULATOR_REGISTRATIONS = [
   {id:'bmi',       tabLabel:'BMI',     title:'BMI 與肥胖分級',  subtitle:'...', render: renderBmi},
   {id:'lipid',     tabLabel:'血脂給付', title:'血脂異常用藥健保給付', subtitle:'...', render: renderLipid},
-  {id:'peds-dose', tabLabel:'小兒劑量', title:'小兒劑量（mg/kg）', subtitle:'...', render: renderPeds},
   // 新增：
   {id:'egfr',      tabLabel:'eGFR',    title:'eGFR 腎功能估算', subtitle:'CKD-EPI 2021', render: renderEgfr}
 ];
