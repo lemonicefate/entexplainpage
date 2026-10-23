@@ -20,7 +20,9 @@
     preloadImages: [],
     chromeHidden: false,
     chromeTimer: null,
-    readerLoading: false
+    readerLoading: false,
+    readerErrorId: null,         // procedure id behind the Reader error state
+    pendingNotice: ''            // one-shot notice to show on arrival home
   };
 
   var CHROME_AUTO_HIDE_MS = 3000;
@@ -43,6 +45,13 @@
   var imagePlaceholder = $('image-placeholder');
   var readerLoading = $('reader-loading');
   var readerLoadingTitle = $('reader-loading-title');
+  var readerError = $('reader-error');
+  var readerErrorTitle = $('reader-error-title');
+  var readerErrorRetry = $('reader-error-retry');
+  var readerErrorBack = $('reader-error-back');
+  var homeNotice = $('home-notice');
+  var homeNoticeText = $('home-notice-text');
+  var homeNoticeClose = $('home-notice-close');
   var placeholderTitle = $('placeholder-title');
   var placeholderAlt = $('placeholder-alt');
   var stepIndicator = $('step-indicator');
@@ -348,6 +357,7 @@
     setupSwipe();
     setupOffline();
     setupPlayerControls();
+    setupReaderFeedback();
     setupTapZones();
     setupScrubber();
     setupPen();
@@ -591,6 +601,8 @@
     }
     if (destination.kind === 'not-found' && hash) {
       readerSession.transition({ type: 'leave' });
+      // Never vanish silently (critique P1): explain on arrival home.
+      state.pendingNotice = '找不到這個頁面，已返回首頁。';
       window.location.hash = '';
       return;
     }
@@ -606,6 +618,16 @@
 
   function exitToHome() {
     switchView(homeView);
+    if (state.pendingNotice) {
+      showHomeNotice(state.pendingNotice);
+      state.pendingNotice = '';
+    }
+  }
+
+  function showHomeNotice(text) {
+    if (!homeNotice || !homeNoticeText) return;
+    homeNoticeText.textContent = text;
+    homeNotice.hidden = false;
   }
 
   // ============================================================
@@ -638,9 +660,10 @@
       return;
     }
     if (event.type === 'error') {
-      // The dedicated Reader error state belongs to issue #15. Preserve the
-      // existing fallback for the current target; stale errors never emit.
-      if (window.location.hash === '#/' + event.target.id) window.location.hash = '';
+      // Dedicated Reader error state (critique P1): stay in the player, say
+      // what failed, and offer retry — never bounce home silently in front
+      // of the patient. Stale errors (hash already moved on) never emit.
+      if (window.location.hash === '#/' + event.target.id) showReaderError(event.target);
       return;
     }
     if (event.type === 'leave') resetReaderLifecycle();
@@ -650,6 +673,7 @@
     state.current = null;
     state.stepIndex = 0;
     state.readerLoading = false;
+    state.readerErrorId = null;
     clearChromeTimer();
     setTool(null);
     clearChromeTimer();
@@ -660,6 +684,7 @@
     thumbStrip.textContent = '';
     endScreen.hidden = true;
     if (readerLoading) readerLoading.hidden = true;
+    if (readerError) readerError.hidden = true;
     if (readerLoadingTitle) readerLoadingTitle.textContent = '';
     slideView.classList.remove('reader-loading');
     slideView.setAttribute('aria-busy', 'false');
@@ -690,6 +715,32 @@
     if (slideImage) slideImage.hidden = true;
     if (imagePlaceholder) imagePlaceholder.hidden = true;
     setReaderInteractionEnabled(false);
+  }
+
+  function showReaderError(target) {
+    var proc = state.catalog && state.catalog.item(target.id);
+    resetReaderLifecycle();
+    state.readerErrorId = target.id;
+    switchView(slideView);
+    slideView.setAttribute('aria-busy', 'false');
+    if (readerErrorTitle) {
+      readerErrorTitle.textContent = '「' + (proc ? proc.title : target.id) + '」載入失敗';
+    }
+    if (readerError) readerError.hidden = false;
+    setReaderInteractionEnabled(false);
+  }
+
+  function setupReaderFeedback() {
+    if (readerErrorRetry) readerErrorRetry.addEventListener('click', function () {
+      if (!state.readerErrorId) return;
+      readerSession.transition({ type: 'procedure', id: state.readerErrorId }, { force: true });
+    });
+    if (readerErrorBack) readerErrorBack.addEventListener('click', function () {
+      window.location.hash = '';
+    });
+    if (homeNoticeClose) homeNoticeClose.addEventListener('click', function () {
+      homeNotice.hidden = true;
+    });
   }
 
   function commitReader(id, data) {
