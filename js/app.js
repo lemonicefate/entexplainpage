@@ -1567,12 +1567,12 @@
   var PEN_CLICK_VOLUME_ML = 0.01; // estimate only; neither label defines clicks
 
   var MOUNJARO_SOURCE = {
-    market: '加拿大（加拿大仿單）',
-    penType: 'MOUNJARO KwikPen 多劑預充填筆',
-    label: 'Eli Lilly Canada Inc. Product Monograph',
-    url: 'https://pi.lilly.com/ca/mounjaro-ca-pm.pdf',
-    revision: '2026-06-23',
-    lastChecked: PEN_LAST_CHECKED
+    market: '台灣',
+    penType: '猛健樂筆 MOUNJARO® KwikPen 多劑預充填筆',
+    label: '台灣仿單（台灣禮來）',
+    url: 'https://www.fda.gov.tw/MLMS/H0001.aspx',
+    revision: '2025-06-30',
+    lastChecked: '2026-10-23'
   };
   var MOUNJARO_PENS = [
     { doseMg: 2.5, totalMg: 10, totalMl: 2.4, labeledDoses: 4, doseMl: 0.6, source: MOUNJARO_SOURCE },
@@ -1670,20 +1670,22 @@
     return convertPenValue(WEGOVY_PEN_BY_DOSE[pen], anchor, value);
   }
 
-  function sourcePanel(source, safetyText) {
+  function sourcePanel(source, safetyText, noteText) {
     var sourceLink = el('a', {
       href: source.url,
       target: '_blank',
       rel: 'noreferrer noopener'
     }, [source.label]);
-    return el('div', { class: 'calc-note pen-source-panel' }, [
+    var lines = [
       el('strong', null, ['標示規格與安全基線']),
       el('div', null, ['適用市場／筆型：' + source.market + ' · ' + source.penType]),
       el('div', null, ['來源：', sourceLink, ' · 仿單／資料版本：' + source.revision]),
       el('div', null, ['最後查核日：' + source.lastChecked]),
       el('div', null, ['醫療人員限定；非病人自我操作指引：本頁不提供分抽、喀噠給藥、穿刺或殘液使用步驟。']),
       el('div', null, [safetyText])
-    ]);
+    ];
+    if (noteText) lines.push(el('div', null, [noteText]));
+    return el('div', { class: 'calc-note pen-source-panel' }, lines);
   }
 
   function unavailableSpecResult() {
@@ -1704,7 +1706,12 @@
     return s.replace(/\.?0+$/, '');
   }
 
-  function renderMounjaro() {
+  // ---------- Shared pen calculator renderer ----------
+  // Both pen calculators share one DOM implementation: pen picker, three
+  // linked fields (mg / ml / clicks) with anchor + caret preservation, and
+  // the result card. A product adapter supplies only its specifications,
+  // wording and reference-line text; behaviour never lives in the adapter.
+  function renderPenCalculator(config) {
     var s = { pen: null, mg: '', ml: '', clicks: '', lastEdited: null };
 
     function recompute() {
@@ -1712,7 +1719,7 @@
       var anchor = s.lastEdited;
       var anchorVal = s[anchor];
       if (anchorVal === '' || anchorVal == null) return;
-      var r = mounjaroCalc(s.pen, anchor, anchorVal);
+      var r = config.calc(s.pen, anchor, anchorVal);
       // Write all three, but skip the anchor itself so user keeps typing freely.
       if (anchor !== 'mg')     s.mg     = formatNum(r.mg);
       if (anchor !== 'ml')     s.ml     = formatNum(r.ml);
@@ -1721,7 +1728,7 @@
 
     function makePenPicker() {
       var seg = el('div', { class: 'seg' });
-      MOUNJARO_PENS.forEach(function (spec) {
+      config.pens.forEach(function (spec) {
         var b = el('button', { type: 'button', class: s.pen === spec.doseMg ? 'is-on' : '' }, [spec.doseMg + ' mg']);
         b.addEventListener('click', function () {
           s.pen = spec.doseMg;
@@ -1752,13 +1759,13 @@
           // so the user's caret position in this input isn't reset.
           ['mg', 'ml', 'clicks'].forEach(function (k) {
             if (k === key) return;
-            var other = document.querySelector('[data-mj-field="' + k + '"]');
+            var other = document.querySelector('[' + config.fieldAttr + '="' + k + '"]');
             if (other) other.value = s[k];
           });
           updateResult();
         }
       });
-      input.setAttribute('data-mj-field', key);
+      input.setAttribute(config.fieldAttr, key);
       var labelWrap = el('div', null, [
         el('label', { class: 'field-label' }, [label]),
         hint ? el('span', { class: 'field-hint' }, [hint]) : null
@@ -1770,25 +1777,13 @@
       if (!s.pen) {
         return el('p', { class: 'lead' }, ['請先選擇 pen 規格。']);
       }
-      var spec = MOUNJARO_PEN_BY_DOSE[s.pen];
+      var spec = config.penByDose[s.pen];
       if (!isUsablePenSpec(spec)) return el('p', { class: 'lead' }, ['標示規格來源不可用，已停止換算。']);
-      var concentration = spec.totalMg / spec.totalMl;
-      var resLo = formatNum(spec.estimates.residualMl.min * concentration);
-      var resHi = formatNum(spec.estimates.residualMl.max * concentration);
-      return el('p', { class: 'lead' }, [
-        '標示事實：' + spec.doseMg + ' mg pen 每支總量 ' + spec.totalMg + ' mg / ' + spec.totalMl +
-        ' ml，共 ' + spec.labeledDoses + ' 個標示劑量，每劑 ' + spec.doseMl + ' ml。' +
-        '非官方估算層：理論喀噠值以每喀噠 ' + spec.estimates.clickVolumeMl + ' ml 的換算假設計算；' +
-        '四個標示劑量後殘液理論範圍約 ' + spec.estimates.residualMl.min + '–' + spec.estimates.residualMl.max +
-        ' ml（約 ' + resLo + '–' + resHi + ' mg），不代表官方可用劑量。'
-      ]);
+      return el('p', { class: 'lead' }, [config.refText(spec)]);
     }
 
     function safetyLine() {
-      return sourcePanel(MOUNJARO_SOURCE,
-        '官方標示／仿單優先；分抽、喀噠值換算與殘液使用均屬 off-label；同一病人限用同一支筆，' +
-        '每次換新針，重複穿刺橡膠塞有 sterility 風險；四個標示劑量後官方建議丟棄剩餘藥液；' +
-        '開封後依來源保存規範（2–8°C 冷藏，或首次使用後 ≤30°C 最多 30 天），不得因本工具延長。');
+      return sourcePanel(config.source, config.safetyText, config.sourceNote);
     }
 
     function updateResult() {
@@ -1799,7 +1794,7 @@
         ]));
         return;
       }
-      var spec = MOUNJARO_PEN_BY_DOSE[s.pen];
+      var spec = config.penByDose[s.pen];
       if (!isUsablePenSpec(spec)) {
         setResult(unavailableSpecResult());
         return;
@@ -1816,14 +1811,14 @@
       var ml = formatNum(Number(s.ml));
       var clicks = formatNum(Number(s.clicks));
       var explain = explainBlock([
-        [{ strong: spec.doseMg + ' mg pen' }, ' · 濃度 ', { strong: formatNum(spec.totalMg / spec.totalMl) + ' mg/ml' }],
+        [{ strong: config.resultName(spec) }, ' · 濃度 ', { strong: formatNum(spec.totalMg / spec.totalMl) + ' mg/ml' }],
         ['劑量 ', { strong: mg + ' mg' }, ' · 體積 ', { strong: ml + ' ml' }],
         ['理論約略喀噠值 ', { strong: clicks }]
       ]);
       setResult(resultCard({
         label: '換算對照', value: mg, unit: 'mg',
         verdict: { label: '體積 ' + ml + ' ml · 理論約略喀噠值 ' + clicks, kind: 'info', shape: '●' },
-        body: [explain, summary('此組數值為 ' + spec.doseMg + ' mg pen 的劑量、體積與理論約略喀噠值對照；喀噠與殘液均非官方標示刻度或用法。')]
+        body: [explain, summary('此組數值為 ' + config.resultName(spec) + ' 的劑量、體積與理論約略喀噠值對照；喀噠與殘液均非官方標示刻度或用法。')]
       }));
     }
 
@@ -1831,8 +1826,8 @@
 
     function rerender() {
       var card = el('div', { class: 'calc-card' }, [
-        el('h3', null, ['猛健樂針劑換算 (Mounjaro)']),
-        el('p', { class: 'lead' }, ['Tirzepatide KwikPen 標示規格與 off-label 換算參考。選 pen 規格後，任一欄輸入即時連動其他欄位。']),
+        el('h3', null, [config.title]),
+        el('p', { class: 'lead' }, [config.lead]),
         section('Pen 規格', [makePenPicker()]),
         section('劑量換算(3 欄連動)', [
           makeField('mg',     '目標劑量 (mg)', null,                'mg'),
@@ -1852,6 +1847,33 @@
     }
 
     rerender();
+  }
+
+  function renderMounjaro() {
+    renderPenCalculator({
+      pens: MOUNJARO_PENS,
+      penByDose: MOUNJARO_PEN_BY_DOSE,
+      calc: mounjaroCalc,
+      fieldAttr: 'data-mj-field',
+      title: '猛健樂針劑換算 (Mounjaro)',
+      lead: 'Tirzepatide KwikPen 標示規格與 off-label 換算參考。選 pen 規格後，任一欄輸入即時連動其他欄位。',
+      source: MOUNJARO_SOURCE,
+      safetyText: '官方標示／仿單優先；分抽、喀噠值換算與殘液使用均屬 off-label；同一病人限用同一支筆，' +
+        '每次換新針，重複穿刺橡膠塞有 sterility 風險；四個標示劑量後官方建議丟棄剩餘藥液；' +
+        '開封後依來源保存規範（2–8°C 冷藏，或首次使用後 ≤30°C 最多 30 天），不得因本工具延長。',
+      sourceNote: '每支筆總含量／總體積為依台灣仿單「4 劑 × 每劑劑量／體積」推算，台灣仿單未直接標示總量；其餘數值均為仿單標示值。',
+      resultName: function (spec) { return spec.doseMg + ' mg pen'; },
+      refText: function (spec) {
+        var concentration = spec.totalMg / spec.totalMl;
+        var resLo = formatNum(spec.estimates.residualMl.min * concentration);
+        var resHi = formatNum(spec.estimates.residualMl.max * concentration);
+        return '標示事實：' + spec.doseMg + ' mg pen 每支總量 ' + spec.totalMg + ' mg / ' + spec.totalMl +
+          ' ml，共 ' + spec.labeledDoses + ' 個標示劑量，每劑 ' + spec.doseMl + ' ml。' +
+          '非官方估算層：理論喀噠值以每喀噠 ' + spec.estimates.clickVolumeMl + ' ml 的換算假設計算；' +
+          '四個標示劑量後殘液理論範圍約 ' + spec.estimates.residualMl.min + '–' + spec.estimates.residualMl.max +
+          ' ml（約 ' + resLo + '–' + resHi + ' mg），不代表官方可用劑量。';
+      }
+    });
   }
 
   // ---------- Wegovy (semaglutide FlexTouch) off-label split-draw ----------
