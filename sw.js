@@ -1,4 +1,4 @@
-var CACHE_NAME = 'entexplain-v25';
+var CACHE_NAME = 'entexplain-v26';
 
 var PRECACHE_URLS = [
   './',
