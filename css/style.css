@@ -7,12 +7,12 @@
   --fg:           #0f2a42;   /* deep navy — primary text, dark surfaces */
   --teal:         #0e7c7b;   /* brand */
   --teal-deep:    #0a6968;   /* gradient end */
-  --teal-2:       #4a9e94;   /* secondary teal, section labels */
+  --teal-2:       #2f7a6e;   /* secondary teal, section labels (AA: 5.08:1 on white, 4.68:1 on --tint-1) */
   --bg:           #ffffff;
   --muted:        #56706c;
   --ink:          #1a3942;   /* card titles, brand text */
   --ink-2:        #3a5064;   /* form labels, body */
-  --ink-3:        #8aa3a0;   /* placeholder, hints, kbd */
+  --ink-3:        #54736e;   /* placeholder, hints, kbd (AA: 5.18:1 on white, 4.76:1 on --tint-1) */
 
   /* --- Surfaces / borders --- */
   --surface:      #ffffff;
@@ -1230,4 +1230,61 @@ img.card-thumb-logo {
   .player-topbar { padding: 12px 12px 12px 110px; }
   .btn-pill { padding: 8px 14px; }
   .thumb { width: 90px; height: 56px; }
+}
+
+/* ============================================================
+   PRINT — calculator results only (impeccable critique P2)
+   The result cards' 列印 button prints just the result card,
+   full width, black on white, uncut by page breaks. The pen
+   source panel rides along: it lives inside the input card,
+   so the input card collapses to that panel alone.
+   ============================================================ */
+@media print {
+  .calc-topbar,
+  .calc-tabs,
+  .banner,
+  .home-topbar,
+  .player-topbar,
+  .player-controls,
+  #tap-zones,
+  .result-actions { display: none !important; }
+
+  body { background: var(--bg); }
+  .calc-wrap { padding: 0; }
+
+  .calc-layout { display: block; }
+  .result-sticky { position: static; }
+
+  /* Input card: hide every child except the pen source panel. */
+  .calc-card {
+    background: none;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+    margin: 0;
+  }
+  .calc-card > *:not(.pen-source-panel) { display: none !important; }
+  .pen-source-panel {
+    color: var(--ink);
+    border: 1px solid var(--line-strong);
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .result-card {
+    width: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    border: 1px solid var(--line-strong);
+    box-shadow: none;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .result-head {
+    background: none;
+    color: var(--ink);
+    border-bottom: 2px solid var(--ink);
+  }
 }

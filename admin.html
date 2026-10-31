@@ -5,20 +5,22 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>衛教管理 — Admin</title>
 <style>
+/* Token values mirror DESIGN.md §1 (the single design authority);
+   names stay admin-local, values must not drift from DESIGN.md. */
 :root {
-  --bg-primary: #FFFFFF;
-  --bg-dark: #0f2a42;
-  --bg-muted: #f5faf8;
-  --accent: #0e7c7b;
-  --accent-hover: #0a6968;
-  --text-primary: #0f2a42;
+  --bg-primary: #FFFFFF;   /* --surface */
+  --bg-dark: #0f2a42;      /* --fg / --player-bg */
+  --bg-muted: #f5faf8;     /* --tint-2 */
+  --accent: #0e7c7b;       /* --teal */
+  --accent-hover: #0a6968; /* --teal-deep */
+  --text-primary: #0f2a42; /* --fg */
   --text-light: #FFFFFF;
-  --text-muted: #56706c;
-  --text-disabled: #8aa3a0;
-  --overlay: rgba(15,42,66,0.78);
-  --border-light: #eaf2ef;
-  --danger: #b91c1c;
-  --danger-bg: #fde8e8;
+  --text-muted: #56706c;   /* --muted */
+  --text-disabled: #54736e; /* --ink-3 */
+  --gold: #f2c94c;         /* --gold (focus ring) */
+  --border-light: #eaf2ef; /* --line */
+  --danger: #c44a2e;       /* --danger-fg */
+  --danger-bg: #fde6e0;    /* --danger-bg */
   --radius: 10px;
   --space-xs: 8px;
   --space-sm: 16px;
@@ -178,8 +180,8 @@ select {
 input[type="text"]:focus,
 textarea:focus,
 select:focus {
-  outline: none;
-  border-color: var(--accent);
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
 }
 
 input[type="text"][readonly] {
@@ -413,6 +415,36 @@ input[type="file"] {
   border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
+/* Player skeleton (mirrors css/style.css .player-topbar / .player-stage):
+   counter + step title on top, contained image in the middle,
+   step description below the image — never an overlay on the image. */
+.preview-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-sm);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.preview-indicator {
+  color: var(--text-light);
+  font-size: 0.8125rem;
+  letter-spacing: 0.08em;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.preview-step-title {
+  color: var(--text-light);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .preview-viewport {
   flex: 1;
   position: relative;
@@ -432,7 +464,7 @@ input[type="file"] {
 .preview-placeholder {
   width: 100%;
   height: 100%;
-  background: #333;
+  background: var(--bg-dark);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -440,36 +472,13 @@ input[type="file"] {
   font-size: 0.875rem;
 }
 
-.preview-indicator {
-  position: absolute;
-  top: var(--space-xs);
-  right: var(--space-sm);
+.preview-caption {
   color: var(--text-light);
   font-size: 0.8125rem;
-  background: rgba(0,0,0,0.5);
-  padding: 2px 8px;
-  border-radius: 999px;
-}
-
-.preview-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--overlay);
-  color: var(--text-light);
-  padding: var(--space-sm);
-}
-
-.preview-overlay h3 {
-  font-size: 1rem;
-  margin-bottom: 4px;
-}
-
-.preview-overlay p {
-  font-size: 0.8125rem;
+  line-height: 1.5;
   opacity: 0.85;
-  line-height: 1.4;
+  padding: var(--space-xs) var(--space-sm);
+  border-top: 1px solid rgba(255,255,255,0.1);
 }
 
 .preview-nav {
@@ -586,17 +595,17 @@ input[type="file"] {
   <div class="right-col">
     <div class="preview-wrapper">
       <div class="preview-title">預覽</div>
+      <div class="preview-topbar">
+        <span class="preview-indicator" id="previewIndicator">0 / 0</span>
+        <h3 class="preview-step-title" id="previewStepTitle">步驟標題</h3>
+      </div>
       <div class="preview-viewport" id="previewViewport">
         <div class="preview-placeholder" id="previewPlaceholder">尚無圖片</div>
         <img class="preview-image" id="previewImage" style="display:none" alt="">
-        <div class="preview-indicator" id="previewIndicator">0 / 0</div>
-        <div class="preview-overlay" id="previewOverlay">
-          <h3 id="previewStepTitle">步驟標題</h3>
-          <p id="previewStepDesc">說明文字</p>
-        </div>
         <button class="preview-nav prev" id="btnPrev" title="上一步">◀</button>
         <button class="preview-nav next" id="btnNext" title="下一步">▶</button>
       </div>
+      <p class="preview-caption" id="previewStepDesc">說明文字</p>
     </div>
   </div>
 </div>

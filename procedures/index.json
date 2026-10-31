@@ -213,6 +213,32 @@
       "thumbnail": "images/testosterone/thumb.webp"
     },
     {
+      "id": "autonomic-hrv",
+      "title": "自律神經檢測",
+      "type": "explain",
+      "category": "functional",
+      "categories": [
+        "functional"
+      ],
+      "subtitle": "衛教解說 · 9 張",
+      "region": "",
+      "slides": 9,
+      "thumbnail": "images/autonomic-hrv/thumb.webp"
+    },
+    {
+      "id": "insomnia-cbti",
+      "title": "失眠 CBT-I",
+      "type": "explain",
+      "category": "functional",
+      "categories": [
+        "functional"
+      ],
+      "subtitle": "衛教解說 · 6 張",
+      "region": "",
+      "slides": 6,
+      "thumbnail": "images/insomnia-cbti/thumb.webp"
+    },
+    {
       "id": "chlorella",
       "title": "小球藻",
       "type": "explain",
