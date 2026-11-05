@@ -19,7 +19,6 @@ function makeFixture() {
     title: 'Guide A',
     type: 'explain',
     subtitle: 'A subtitle',
-    region: 'ENT',
     category: 'ent',
     categories: ['ent'],
     thumbnail: 'images/guide-a/thumb.png',
@@ -39,12 +38,12 @@ function makeFixture() {
 }
 
 describe('canonical repository inspection', () => {
-  it('accepts the checked-in catalog while surfacing legacy alt warnings', () => {
+  it('accepts the checked-in catalog with no legacy alt warnings', () => {
     const report = inspectRepository(path.resolve(process.cwd()));
 
     expect(report.ok).toBe(true);
     expect(report.errors).toEqual([]);
-    expect(report.warnings.some((diagnostic) => diagnostic.code === 'legacy-empty-alt')).toBe(true);
+    expect(report.warnings).toEqual([]);
   });
 
   it('accepts a consistent detail and its exact index projection', () => {
@@ -53,7 +52,7 @@ describe('canonical repository inspection', () => {
     expect(inspectRepository(root)).toMatchObject({ ok: true, errors: [], warnings: [] });
   });
 
-  it('reports metadata drift, cross-content assets, and empty alt with separate severities', () => {
+  it('reports metadata drift and cross-content assets', () => {
     const root = makeFixture();
     const detailPath = path.join(root, 'procedures', 'guide-a.json');
     const detail = JSON.parse(fs.readFileSync(detailPath, 'utf8'));
@@ -61,7 +60,6 @@ describe('canonical repository inspection', () => {
     detail.categories = ['functional'];
     detail.thumbnail = 'images/guide-b/thumb.png';
     detail.steps[0].image = 'images/guide-b/step1.png';
-    detail.steps[0].alt = '';
     fs.writeFileSync(detailPath, JSON.stringify(detail, null, 2));
 
     const before = fs.readFileSync(detailPath, 'utf8');
@@ -72,7 +70,6 @@ describe('canonical repository inspection', () => {
     expect(report.ok).toBe(false);
     expect(codes).toContain('metadata-category-drift');
     expect(codes).toContain('cross-content-asset');
-    expect(report.warnings.some((diagnostic) => diagnostic.code === 'legacy-empty-alt')).toBe(true);
     expect(before).toBe(after);
   });
 });
@@ -84,7 +81,6 @@ describe('canonical index projection', () => {
       title: 'X',
       type: 'surgery',
       subtitle: 'Subtitle',
-      region: 'Head',
       category: 'ent',
       categories: ['ent', 'surgery'],
       thumbnail: 'images/x/thumb.webp',
@@ -96,7 +92,6 @@ describe('canonical index projection', () => {
       category: 'ent',
       categories: ['ent', 'surgery'],
       subtitle: 'Subtitle',
-      region: 'Head',
       slides: 2,
       thumbnail: 'images/x/thumb.webp',
     });

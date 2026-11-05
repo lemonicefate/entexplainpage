@@ -174,7 +174,6 @@ node scripts/image-inventory.js --write docs/runtime-inventory.json
   "title": "扁桃腺切除術",
   "type": "surgery",
   "subtitle": "睡眠呼吸中止 · 4 步驟",
-  "region": "頭頸",
   "category": "ent",
   "categories": ["ent"],
   "thumbnail": "images/tonsillectomy/thumb.webp",
@@ -195,9 +194,9 @@ node scripts/image-inventory.js --write docs/runtime-inventory.json
 }
 ```
 
-每個步驟四個欄位：`image`、`title`、`description`、`alt`（為無障礙與圖片載入失敗時的替代說明，必填）。
+每個步驟四個欄位：`image`、`title`、`description`、`alt`（為無障礙與圖片載入失敗時的替代說明，選填；與 `description` 相同時可省略）。
 
-`procedures/{id}.json` 是 canonical source；`subtitle`、`region`、分類與 thumbnail 不再只寫在 index。`slides` 不寫入 detail，由 integrity projection 依 `steps.length` 產生。每個 step 的 `alt` 對新資料必填；既有 legacy 空白 alt 會由 gate 列 warning。
+`procedures/{id}.json` 是 canonical source；`subtitle`、分類與 thumbnail 不再只寫在 index。`slides` 不寫入 detail，由 integrity projection 依 `steps.length` 產生。正式欄位規格見 `procedures/schema.json`（ADR-0003）。
 
 **3. 更新索引投影**
 
@@ -211,7 +210,6 @@ node scripts/image-inventory.js --write docs/runtime-inventory.json
   "category": "ent",
   "categories": ["ent"],
   "subtitle": "睡眠呼吸中止 · 4 步驟",
-  "region": "頭頸",
   "slides": 4,
   "thumbnail": "images/tonsillectomy/thumb.webp"
 }
@@ -225,10 +223,9 @@ node scripts/image-inventory.js --write docs/runtime-inventory.json
 | `title` | ✅ | 卡片標題 |
 | `category` | ✅ | 對應 `categories` 其中之一：`surgery` / `ent` / `weight` / `functional` / `supplements` / `internal-medicine` / `calc` |
 | `categories` | ✅ | 多分類陣列；`category` 必須等於第一個分類 |
-| `type` | ✅ | `explain`（解釋病情）或 `surgery`（手術流程）——決定首頁篩選籤 |
+| `type` | ✅ | `explain`（解釋病情）、`surgery`（手術流程）或 `flowchart`（流程圖）——決定首頁篩選籤 |
 | `thumbnail` | ✅ | 首頁卡片縮圖路徑，必須位於 `images/{id}/` |
 | `subtitle` | ✅ | 卡片副標；可為空字串 |
-| `region` | ✅ | 身體區域；可為空字串 |
 | `slides` | ✅ | index projection，必須等於 canonical detail 的 `steps.length` |
 
 新增分類就編 `categories` 陣列。若一張圖卡需要同時屬於多個分類，請把 `categories` 寫成陣列，並保留 `category` 為主分類。

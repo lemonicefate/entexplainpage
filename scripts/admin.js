@@ -152,7 +152,6 @@ function parseCommitMultipart(parts, operation, routeId) {
       title: payload.title,
       type: payload.type,
       subtitle: payload.subtitle,
-      region: payload.region,
       category: payload.category,
       categories: payload.categories,
       steps: steps.map((step) => ({
