@@ -172,8 +172,8 @@
         if (id.indexOf('/') !== -1) throw validationError('procedure.id cannot contain /: ' + id);
         var title = requiredString(procedure.title, 'procedure.title', index);
         var type = requiredString(procedure.type, 'procedure.type', index);
-        if (type !== 'explain' && type !== 'surgery') {
-          throw validationError('procedure.type must be explain or surgery at index ' + index);
+        if (type !== 'explain' && type !== 'surgery' && type !== 'flowchart') {
+          throw validationError('procedure.type must be explain, surgery or flowchart at index ' + index);
         }
         var categoriesFromArray = Array.isArray(procedure.categories) ? normalizeCategories(procedure.categories) : [];
         var itemCategories = categoriesFromArray.length ? categoriesFromArray : normalizeCategories(procedure.category);
@@ -189,14 +189,13 @@
           id: id,
           title: title,
           subtitle: typeof procedure.subtitle === 'string' ? procedure.subtitle : '',
-          region: typeof procedure.region === 'string' ? procedure.region : '',
           slides: slides,
           categories: itemCategories.slice(),
           href: '#/' + id,
           cover: {
             src: procedure.thumbnail.trim(),
             mode: 'image',
-            fallback: ((procedure.region || type) + ' · ' + (slides || '?') + ' slides').trim()
+            fallback: (type + ' · ' + (slides || '?') + ' slides').trim()
           },
           tag: { id: firstCategory, label: categoryMap[firstCategory].title }
         };
@@ -246,7 +245,7 @@
         var filtered = allItems.filter(function (candidate) {
           if (selectedCategory !== 'all' && candidate.categories.indexOf(selectedCategory) === -1) return false;
           if (!query) return true;
-          return [candidate.title, candidate.subtitle, candidate.region].some(function (text) {
+          return [candidate.title, candidate.subtitle].some(function (text) {
             return text.toLocaleLowerCase('zh-Hant').indexOf(query) !== -1;
           });
         });

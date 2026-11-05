@@ -547,16 +547,12 @@ input[type="file"] {
       </div>
 
       <div class="field-group">
-        <label for="procRegion">身體區域</label>
-        <input type="text" id="procRegion" name="region">
-      </div>
-
-      <div class="field-group">
         <label for="procType">類型</label>
         <select id="procType" name="type" required>
           <option value="" disabled selected>選擇類型…</option>
           <option value="explain">解釋病情</option>
           <option value="surgery">手術流程</option>
+          <option value="flowchart">流程圖</option>
         </select>
       </div>
 
@@ -690,7 +686,6 @@ input[type="file"] {
   var procId = document.getElementById('procId');
   var procTitle = document.getElementById('procTitle');
   var procSubtitle = document.getElementById('procSubtitle');
-  var procRegion = document.getElementById('procRegion');
   var procType = document.getElementById('procType');
   var procCategory = document.getElementById('procCategory');
   var procCategories = document.getElementById('procCategories');
@@ -1081,7 +1076,6 @@ input[type="file"] {
         procId.readOnly = true;
         procTitle.value = data.title || '';
         procSubtitle.value = data.subtitle || '';
-        procRegion.value = data.region || '';
         procType.value = data.type || fallbackType || '';
         procCategory.value = data.category || fallbackCategory || '';
         Array.from(procCategories.options).forEach(function (option) {
@@ -1233,7 +1227,6 @@ input[type="file"] {
       title: title,
       type: type,
       subtitle: procSubtitle.value.trim(),
-      region: procRegion.value.trim(),
       category: category,
       categories: categories,
       thumbnailAssetHandle: thumbnailFile ? '' : procThumbnailHandle.value,

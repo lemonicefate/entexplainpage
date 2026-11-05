@@ -6,7 +6,7 @@ const path = require('node:path');
 const { inspectRepository, projectIndexEntry } = require('./integrity');
 
 const ID_PATTERN = /^[a-z0-9-]+$/;
-const TYPE_VALUES = new Set(['explain', 'surgery']);
+const TYPE_VALUES = new Set(['explain', 'surgery', 'flowchart']);
 const IMAGE_MIME_TYPES = new Set(['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']);
 const MAX_PAYLOAD_BYTES = 50 * 1024 * 1024;
 const MAX_ASSET_BYTES = 10 * 1024 * 1024;
@@ -172,9 +172,8 @@ function createPersistenceModule(options = {}) {
       issues.push({ path: 'content.id', code: 'invalid-id', message: 'Id must match /^[a-z0-9-]+$/' });
     }
     if (typeof content.title !== 'string' || !content.title.trim()) issues.push({ path: 'content.title', code: 'missing-title', message: 'Title is required' });
-    if (!TYPE_VALUES.has(content.type)) issues.push({ path: 'content.type', code: 'invalid-type', message: 'Type must be explain or surgery' });
+    if (!TYPE_VALUES.has(content.type)) issues.push({ path: 'content.type', code: 'invalid-type', message: 'Type must be explain, surgery or flowchart' });
     if (typeof content.subtitle !== 'string') issues.push({ path: 'content.subtitle', code: 'missing-subtitle', message: 'Subtitle must be a string' });
-    if (typeof content.region !== 'string') issues.push({ path: 'content.region', code: 'missing-region', message: 'Region must be a string' });
 
     const categories = Array.isArray(content.categories) ? content.categories.filter(Boolean) : [];
     if (!categories.length && typeof content.category === 'string' && content.category) categories.push(content.category);
@@ -202,7 +201,6 @@ function createPersistenceModule(options = {}) {
       const item = step && typeof step === 'object' ? step : {};
       if (typeof item.title !== 'string' || !item.title.trim()) issues.push({ path: `content.steps[${index}].title`, code: 'missing-step-title', message: 'Step title is required' });
       if (typeof item.description !== 'string') issues.push({ path: `content.steps[${index}].description`, code: 'missing-step-description', message: 'Step description must be a string' });
-      if (typeof item.alt !== 'string' || !item.alt.trim()) issues.push({ path: `content.steps[${index}].alt`, code: 'missing-step-alt', message: 'New and edited steps require non-empty alt text' });
       return {
         title: typeof item.title === 'string' ? item.title.trim() : '',
         description: typeof item.description === 'string' ? item.description : '',
@@ -240,7 +238,6 @@ function createPersistenceModule(options = {}) {
         title: content.title.trim(),
         type: content.type,
         subtitle: content.subtitle,
-        region: content.region,
         category: categories[0],
         categories,
         steps: normalizedSteps,
@@ -285,7 +282,6 @@ function createPersistenceModule(options = {}) {
       title: detail.title,
       type: detail.type,
       subtitle: detail.subtitle,
-      region: detail.region,
       category: detail.category,
       categories: detail.categories.slice(),
       thumbnail: { handle: assets.thumbnail.handle, path: assets.thumbnail.path },
