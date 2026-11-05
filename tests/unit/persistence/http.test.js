@@ -30,7 +30,7 @@ async function start(root) {
 function form({ mime = 'image/png', filename = 'step.png' } = {}) {
   const data = new FormData();
   data.append('payload', JSON.stringify({
-    id: 'http-guide', title: 'HTTP guide', type: 'explain', subtitle: '', region: '', category: 'ent', categories: ['ent'],
+    id: 'http-guide', title: 'HTTP guide', type: 'explain', subtitle: '', category: 'ent', categories: ['ent'],
     steps: [{ assetKey: 'stable-step-id', title: 'One', description: '', alt: 'One image' }],
   }));
   data.append('asset:stable-step-id', new Blob([Buffer.from('image')], { type: mime }), filename);

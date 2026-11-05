@@ -25,7 +25,6 @@ function content(id = 'new-guide') {
     title: 'New guide',
     type: 'explain',
     subtitle: 'A subtitle',
-    region: 'Head',
     category: 'ent',
     categories: ['ent'],
     steps: [{ title: 'First step', description: 'Explain it', alt: 'First step image' }],
