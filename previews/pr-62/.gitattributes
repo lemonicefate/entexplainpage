@@ -1,0 +1,15 @@
+# Normalize all text files to LF in the repo.
+# Working tree EOL follows core.autocrlf / core.eol per platform.
+* text=auto eol=lf
+
+# Binary files — never touch
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.pdf binary
