@@ -15,7 +15,8 @@
     "migrate:canonical": "node scripts/migrate-canonical.js",
     "images:inventory": "node scripts/image-inventory.js --check",
     "serve": "npx serve .",
-    "admin": "node scripts/admin.js"
+    "admin": "node scripts/admin.js",
+    "prototype:education-pages": "node scripts/admin.js"
   },
   "devDependencies": {
     "vitest": "^3.0.0",

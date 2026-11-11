@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>PROTOTYPE — 衛教頁工作流比較</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin-education-prototype.css">
+</head>
+<body class="education-prototype">
+  <!--
+    THROWAWAY UI PROTOTYPE.
+    Question: does direct image generation or deterministic composition produce
+    the better balance of visual quality, consistency, and editability?
+    Three variants are switchable with ?variant=direct|editorial|modular.
+  -->
+  <header class="prototype-header">
+    <div>
+      <div class="prototype-kicker">工作流比較原型 · 不會產圖或寫入正式資料</div>
+      <h1>衛教頁工作流比較</h1>
+      <p>先選示範主題，再比較三種呈現方式；本頁提供預覽，不直接產圖或編輯內容。</p>
+    </div>
+    <label class="topic-picker">
+      <span id="topic-select-label">步驟 1 · 選擇示範主題</span>
+      <select id="topic-select" aria-labelledby="topic-select-label"></select>
+    </label>
+  </header>
+
+  <nav class="workflow-nav" aria-label="步驟 2：選擇呈現工作流">
+    <div class="workflow-nav-heading">
+      <span>步驟 2</span>
+      <h2>選擇呈現方式</h2>
+      <p>同一主題可直接比較，切換結果也會保留在網址。</p>
+    </div>
+    <div class="workflow-options" role="group" aria-label="三種呈現工作流">
+      <button class="workflow-option" type="button" data-variant="direct" aria-pressed="false">
+        <strong>A · 直接產圖</strong>
+        <span>內容與版面一起生成</span>
+      </button>
+      <button class="workflow-option" type="button" data-variant="editorial" aria-pressed="false">
+        <strong>B · 敘事模板</strong>
+        <span>插圖搭配逐點說明</span>
+      </button>
+      <button class="workflow-option" type="button" data-variant="modular" aria-pressed="false">
+        <strong>C · 模組模板</strong>
+        <span>卡片承載比較與速查</span>
+      </button>
+    </div>
+  </nav>
+
+  <main class="prototype-main">
+    <section class="canvas-panel" aria-label="衛教頁預覽">
+      <div id="education-page" class="education-page"></div>
+      <div class="preview-toolbar">
+        <span>1080 × 1080 衛教頁</span>
+        <button id="preview-zoom-open" type="button" aria-haspopup="dialog" aria-controls="preview-dialog">放大預覽</button>
+      </div>
+      <nav id="narrative-pager" class="narrative-pager" aria-label="敘事模板分頁" hidden>
+        <button id="narrative-prev" type="button" aria-label="上一頁內容">上一頁</button>
+        <span id="narrative-page-status" aria-live="polite"></span>
+        <button id="narrative-next" type="button" aria-label="下一頁內容">下一頁</button>
+      </nav>
+      <details class="topic-copy-details">
+        <summary id="topic-copy-summary">檢視主題完整文字稿</summary>
+        <ol id="topic-copy-list" class="topic-copy-list"></ol>
+      </details>
+    </section>
+
+    <aside class="prototype-inspector" aria-label="原型狀態">
+      <div>
+        <div class="inspector-eyebrow">CURRENT STATE</div>
+        <h2 id="state-title"></h2>
+        <p id="state-summary"></p>
+      </div>
+
+      <dl class="state-grid">
+        <div><dt>工作流</dt><dd id="state-workflow"></dd></div>
+        <div><dt>內容版型</dt><dd id="state-layout"></dd></div>
+        <div><dt>內容來源</dt><dd id="state-source"></dd></div>
+        <div><dt>內容調整方式（工作流概念）</dt><dd id="state-editable"></dd></div>
+      </dl>
+
+      <div class="invariant-card">
+        <h3>三種工作流共用框架</h3>
+        <ul>
+          <li>1080 × 1080 標準畫布</li>
+          <li>固定頁首、頁尾與安全邊界</li>
+          <li>主品牌、發布者與頁碼位置</li>
+          <li>同一主題的強調色與插圖語言</li>
+          <li>衛教聲明的固定位置</li>
+        </ul>
+      </div>
+
+      <div class="rubric-card">
+        <h3>試跑時請觀察</h3>
+        <div class="rubric-row"><span>視覺吸引力</span><span>1—5</span></div>
+        <div class="rubric-row"><span>跨頁一致性</span><span>1—5</span></div>
+        <div class="rubric-row"><span>文字正確率</span><span>1—5</span></div>
+        <div class="rubric-row"><span>修改成本</span><span>1—5</span></div>
+        <div class="rubric-row"><span>重跑穩定性</span><span>1—5</span></div>
+      </div>
+    </aside>
+  </main>
+
+  <dialog id="preview-dialog" class="preview-dialog" aria-labelledby="preview-dialog-title" aria-describedby="preview-dialog-hint">
+    <div class="preview-dialog-header">
+      <div>
+        <h2 id="preview-dialog-title">衛教頁放大預覽</h2>
+        <p id="preview-dialog-hint">小螢幕可左右滑動檢視完整方形版面；全文可在原頁展開閱讀。</p>
+      </div>
+      <button id="preview-zoom-close" type="button">關閉</button>
+    </div>
+    <div class="preview-dialog-scroll">
+      <div id="preview-dialog-content"></div>
+    </div>
+  </dialog>
+
+  <div id="state-announcement" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <script src="js/admin-education-prototype.js"></script>
+</body>
+</html>
