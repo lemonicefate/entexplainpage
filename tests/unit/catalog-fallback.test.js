@@ -5,10 +5,11 @@ import path from 'path';
 
 const htmlContent = fs.readFileSync(path.resolve(__dirname, '../../index.html'), 'utf-8');
 const sessionSrc = fs.readFileSync(path.resolve(__dirname, '../../js/reader-session.js'), 'utf-8');
+const calculatorsSrc = fs.readFileSync(path.resolve(__dirname, '../../js/calculators.js'), 'utf-8');
 const appSrc = fs.readFileSync(path.resolve(__dirname, '../../js/app.js'), 'utf-8');
 
 function runApp(hash, fetchImpl) {
-  const dom = new JSDOM(htmlContent.replace('</body>', `<script>${sessionSrc}</script><script>${appSrc}</script></body>`), {
+  const dom = new JSDOM(htmlContent.replace('</body>', `<script>${sessionSrc}</script><script>${calculatorsSrc}</script><script>${appSrc}</script></body>`), {
     url: 'http://localhost/' + (hash || ''),
     runScripts: 'dangerously',
     pretendToBeVisual: true,
@@ -39,7 +40,7 @@ describe('procedure catalog failure fallback', () => {
 
     expect(doc.getElementById('grid-error').hidden).toBe(false);
     expect(doc.getElementById('grid-error').textContent).toContain('衛教內容暫時無法載入');
-    expect(doc.querySelectorAll('a.card[href^="#/calc/"]').length).toBe(5);
+    expect(doc.querySelectorAll('a.card[href^="#/calc/"]').length).toBe(4);
     expect(doc.querySelectorAll('a.card:not([href^="#/calc/"])').length).toBe(0);
   });
 
@@ -56,7 +57,7 @@ describe('procedure catalog failure fallback', () => {
 
     expect(doc.getElementById('grid-error').hidden).toBe(false);
     expect(doc.querySelector('a[aria-label="可用圖卡"]')).toBeNull();
-    expect(doc.querySelectorAll('a.card[href^="#/calc/"]').length).toBe(5);
+    expect(doc.querySelectorAll('a.card[href^="#/calc/"]').length).toBe(4);
   });
 
   it('keeps a valid direct calculator route during procedure failure', async () => {

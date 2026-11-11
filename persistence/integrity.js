@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ID_PATTERN = /^[a-z0-9-]+$/;
-const TYPE_VALUES = new Set(['explain', 'surgery']);
+const TYPE_VALUES = new Set(['explain', 'surgery', 'flowchart']);
 
 function projectIndexEntry(detail) {
   const categories = Array.isArray(detail.categories) && detail.categories.length
@@ -18,7 +18,6 @@ function projectIndexEntry(detail) {
     category: categories[0],
     categories,
     subtitle: typeof detail.subtitle === 'string' ? detail.subtitle : '',
-    region: typeof detail.region === 'string' ? detail.region : '',
     slides: Array.isArray(detail.steps) ? detail.steps.length : 0,
     thumbnail: detail.thumbnail,
   };
@@ -122,7 +121,7 @@ function inspectRepository(rootDir) {
   });
 
   if (fs.existsSync(proceduresDir)) {
-    fs.readdirSync(proceduresDir).filter((name) => name.endsWith('.json') && name !== 'index.json').forEach((name) => {
+    fs.readdirSync(proceduresDir).filter((name) => name.endsWith('.json') && name !== 'index.json' && name !== 'schema.json').forEach((name) => {
       const id = name.slice(0, -'.json'.length);
       if (!indexIds.has(id)) {
         add('orphan-detail', 'error', `procedures/${name} is not listed in index.json`, `procedures/${name}`);
@@ -152,9 +151,8 @@ function inspectRepository(rootDir) {
       add('invalid-id', 'error', `${location}.id must match /^[a-z0-9-]+$/`, `${location}.id`);
     }
     if (typeof detail.title !== 'string' || !detail.title.trim()) add('missing-title', 'error', `${id} needs a non-empty title`, `${location}.title`);
-    if (!TYPE_VALUES.has(detail.type)) add('invalid-type', 'error', `${id} type must be explain or surgery`, `${location}.type`);
+    if (!TYPE_VALUES.has(detail.type)) add('invalid-type', 'error', `${id} type must be explain, surgery or flowchart`, `${location}.type`);
     if (typeof detail.subtitle !== 'string') add('missing-subtitle', 'error', `${id} needs canonical subtitle metadata`, `${location}.subtitle`);
-    if (typeof detail.region !== 'string') add('missing-region', 'error', `${id} needs canonical region metadata`, `${location}.region`);
     if (Object.prototype.hasOwnProperty.call(detail, 'slides')) add('legacy-slides-field', 'error', `${id} must derive slides from steps; remove detail.slides`, `${location}.slides`);
     if (typeof detail.category !== 'string' || !knownCategories.has(detail.category)) {
       add('invalid-category', 'error', `${id} has an unknown category: ${String(detail.category)}`, `${location}.category`);
@@ -191,7 +189,6 @@ function inspectRepository(rootDir) {
       }
       if (typeof step.title !== 'string' || !step.title.trim()) add('missing-step-title', 'error', `${id} step ${stepIndex + 1} needs a non-empty title`, `${stepLocation}.title`);
       if (typeof step.description !== 'string') add('missing-step-description', 'error', `${id} step ${stepIndex + 1} needs a description string`, `${stepLocation}.description`);
-      if (typeof step.alt !== 'string' || !step.alt.trim()) add('legacy-empty-alt', 'warning', `${id} step ${stepIndex + 1} has an empty alt text`, `${stepLocation}.alt`);
       if (typeof step.image !== 'string' || !step.image) add('missing-step-image', 'error', `${id} step ${stepIndex + 1} needs an image reference`, `${stepLocation}.image`);
       else inspectAsset(step.image, id, `${stepLocation}.image`, 'step');
     });

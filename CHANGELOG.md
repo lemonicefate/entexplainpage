@@ -4,8 +4,47 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.2.3.9] - 2026-10-23
+
+### Fixed
+- **計算機列印版型（impeccable critique P2）** — `css/style.css` 新增 `@media print`：從計算機頁列印時隱藏輸入卡（`.calc-card`）、`.calc-tabs`、`.calc-topbar`、banner 與其他 chrome，只印結果卡（`.result-card`，全寬、黑字白底、`break-inside: avoid` 不跨頁切斷），並移除列印按鈕本身；筆針的來源面板（`.pen-source-panel`，位於輸入卡內）以「輸入卡只保留該面板」的方式一併納入列印。
+- **Admin 對齊設計系統（impeccable critique P2）** — `admin.html` 的色彩 token 值、字型與 focus 樣式改與 DESIGN.md §1 一致（input focus 改用 `--gold` outline ring，不再 `outline: none` ＋邊框變色；danger 色對齊 `--danger-fg`/`--danger-bg`）；右側預覽改成播放器骨架：上方 topbar（頁數＋步驟標題）、中央 `object-fit: contain` 全圖、說明文字在圖下方，移除原「標題／說明壓在圖片底部」的 overlay 構圖。
+- **小字對比未達 AA（critique 交叉驗證）** — `--ink-3` 自 `#8aa3a0`（對白約 2.7:1）加深為 `#54736e`（對白 5.18:1、對 `--tint-1` 4.76:1）；`--teal-2` 自 `#4a9e94`（約 3.2:1）加深為 `#2f7a6e`（對白 5.08:1、對 `--tint-1` 4.68:1），同色相家族只降明度，達 DESIGN.md §9 自訂 WCAG AA 4.5:1。DESIGN.md token 表同步更新並註明實算對比；admin 的 `--text-disabled` 同步新 `--ink-3` 值。
+- **CI：persistence/http 測試逾時（issue #53）** — `tests/unit/persistence/http.test.js` 首行加 `// @vitest-environment node`：jsdom 的 FormData/fetch 組合遺失 multipart boundary 使請求逾時，改用 Node 原生環境後兩項測試正常通過，全套 unit 測試全綠。
+
+## [0.2.3.8] - 2026-10-23
+
+### Fixed
+- **計算機未輸入先給判讀（impeccable critique P0）** — BMI 移除預填的 170 cm / 75 kg：欄位改為空白＋範例 placeholder，身高與體重皆輸入且在合理範圍內才計算分級，否則結果區顯示「等待輸入」並列出尚缺項目；非法值（≤0、超出範圍）在欄位下方顯示提示，不再經 `Number(raw) || 0` 默默以 0 判讀。血脂計算機的病人類別與危險因子（DM、高血壓、年齡等）改為預設全部不勾選，且四項檢驗值（LDL-C、HDL-C、Triglyceride、Total Cholesterol）未齊或非法時只列出尚缺／待修正欄位，不渲染「符合／不符合」任一判讀，非法數值不以 0 參與判定。筆針計算機經查已有「未選規格不給結果」的 gate（`isUsablePenSpec`＋等待輸入卡），維持不動。
+- **Reader 載入失敗靜默跳回首頁（impeccable critique P1）** — 圖卡載入失敗改在播放器內顯示專屬錯誤狀態（「〈標題〉載入失敗」＋重試／返回列表），重試重新載入同一張圖卡，不再無訊息跳回首頁；直接輸入未知網址時改為回首頁並顯示一次性通知，不再無聲消失。
+
+### Changed
+- **播放器工具可發現性（impeccable critique P1）** — 工具按鈕自 40×40px 放大至最小 44px 寬、48px 高（DESIGN.md §7 觸控標準），並在圖示下加文字標籤（畫筆／聚光燈／雷射／退出）；chrome 自動隱藏時返回按鈕保持可見，不再連同工具列一起消失。
+
+## [0.2.3.7] - 2026-10-23
+
+### Changed
+- **計算機全數搬出 app.js（重構第 1 步完成）** — BMI、血脂、Mounjaro、Wegovy 四支計算機的 registrations、純邏輯（BMI 分級、健保給付判定、筆針換算）、筆針規格與共用 renderer、計算機專用 UI helpers 全數移至新檔 `js/calculators.js`。新模組比照 `js/reader-session.js` 形狀：瀏覽器以 classic script 載入、測試以 CommonJS 載入，只暴露 `Calculators.create(deps)`；app shell 注入共用 DOM builder（`el`）與計算機掛載點（`calcBody`），並消費回傳的 registrations——app.js 自此不再包含任何計算機程式，只剩 shell、ClinicCatalog 與 Reader。`index.html` 於 app.js 前載入 calculators.js;SW precache 新增 `js/calculators.js`，runtime inventory 同步納入，同步 bump SW cache v21 → v22。畫面、操作與計算結果不變；測試 harness 比照 reader-session 先例，於各 fixture 先載入 calculators.js。
+
+## [0.2.3.6] - 2026-10-23
+
+### Changed
+- **筆針計算機共用 renderer（Wegovy 遷移完成）** — `renderWegovy()` 遷移至共用 `renderPenCalculator(config)` 薄 adapter（規格表＋來源＋安全文字＋參考行文字），兩支筆針自此共用同一份 DOM 實作；舊獨立 renderer 整段刪除。Wegovy 的殘液固定文字、安全文字與「X mg FlexTouch」結果命名皆以 adapter 資料原樣保留；喀噠體積改經規格表 estimates 讀取（數值不變）。共用 renderer 的 DOM 行為測試擴及 Wegovy 設定（欄位連動、換 pen 重算、來源失效 fail closed、0.5 mg 不再顯示包裝警示註記）。
+- **Wegovy 規格來源改以台灣仿單為準** — `WEGOVY_SOURCE` 自英國 eMC 改為台灣仿單（台灣諾和諾德；版本 2025-03-04；最後查核日 2026-10-23；來源連結改指食藥署仿單查詢系統）。查核結果：五種 FlexTouch 規格數值與台灣仿單逐欄一致，數值未變；來源面板加註每劑體積為依台灣仿單每支筆總體積 ÷ 4 劑推算（台灣仿單未直接標示每劑體積）。台灣僅核准 0.5 mg 的 1.5 ml 包裝，原英國來源「另列 3 ml presentation」警示註記（packNote）不適用台灣，已移除。同步 bump SW cache v20 → v21
+
+## [0.2.3.5] - 2026-10-23
+
+### Changed
+- **筆針計算機共用 renderer（Mounjaro 先行）** — `renderMounjaro()` 與 `renderWegovy()` 原為兩份近乎相同的 DOM renderer（pen picker、mg/ml/喀噠 3 欄連動、anchor 與 caret 保留、結果卡），抽出共用 `renderPenCalculator(config)` 一份實作，Mounjaro 改為薄 adapter（規格表＋來源＋安全文字＋參考行文字）。Wegovy 本階段維持原 renderer，下一階段再遷移。畫面與計算結果不變；新增共用 renderer 的 DOM 行為測試（欄位連動、錨點保留、來源失效 fail closed）。
+- **Mounjaro 規格來源改以台灣仿單為準** — `MOUNJARO_SOURCE` 自加拿大仿單改為台灣仿單（台灣禮來；版本 2025-06-30；最後查核日 2026-10-23；來源連結改指食藥署仿單查詢系統）。查核結果：六種 KwikPen 規格數值與台灣仿單逐欄一致，數值未變；來源面板加註每支筆總含量／總體積為依仿單「4 劑 × 每劑劑量／體積」推算（台灣仿單未直接標示總量）。同步 bump SW cache v19 → v20
+
+## [0.2.3.4] - 2026-10-23
+
 ### Added
 - **Mounjaro / Wegovy 規格與安全基線** — `#/calc/mounjaro` 鎖定六種 MOUNJARO KwikPen 標示規格，`#/calc/wegovy` 鎖定五種 Wegovy FlexTouch 標示規格；每筆包含適用市場／筆型、第一方來源與最後查核日。來源不完整時 fail closed，不顯示一般成功結果。喀噠與殘液維持為明確的非官方估算，結果改為中性劑量／體積／理論約略喀噠對照，並常駐顯示醫療人員限定、非病人自我操作指引、同一病人、換新針、sterility、殘液棄置與開封保存規範。
+
+### Removed
+- **移除小兒劑量計算機** — `#/calc/peds-dose`（`renderPeds()`）在診間實際未使用，整支移除：刪除 `CALCULATOR_REGISTRATIONS` 註冊項與 renderer，首頁計算機卡片與計算機分頁列同步消失；舊網址經 `ClinicCatalog.resolve()` 回 not-found、自動導回首頁，不留說明頁。同步更新 README / DESIGN / TODOS 移除其列管與待補條目。同步 bump SW cache v18 → v19
 
 ## [0.2.3.3] - 2026-05-08
 

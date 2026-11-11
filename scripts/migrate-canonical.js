@@ -24,7 +24,6 @@ index.procedures = (index.procedures || []).map((legacyEntry) => {
     title: detail.title,
     type: detail.type,
     subtitle: legacyEntry.subtitle || '',
-    region: legacyEntry.region || '',
     category: categories[0],
     categories,
     thumbnail: legacyEntry.thumbnail,

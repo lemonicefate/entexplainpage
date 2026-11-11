@@ -12,7 +12,7 @@
 - **離線可用**：Service Worker 預載核心資源，iPad 連線不穩也能解說。
 - **Reader 模式**：仿電子書體驗——點左右換頁、點中間叫出工具列、下方拖拉桿快速跳頁、3 秒後工具自動淡出。
 - **診間工具**：畫筆、聚光燈、雷射指標，支援滑鼠、觸控、Apple Pencil（Pointer Events 統一處理）。
-- **內建計算機**：BMI、血脂異常用藥健保給付（Statin / Fibrate）、小兒劑量、Mounjaro KwikPen 與 Wegovy FlexTouch 的醫療人員 off-label 換算參考。
+- **內建計算機**：BMI、血脂異常用藥健保給付（Statin / Fibrate）、Mounjaro KwikPen 與 Wegovy FlexTouch 的醫療人員 off-label 換算參考。
 
 ---
 
@@ -24,7 +24,8 @@ entexplainpage/
 ├── manifest.json            # PWA manifest
 ├── sw.js                    # Service Worker（必須放 repo 根部，scope 才對）
 ├── css/style.css            # Design tokens + 全站樣式
-├── js/app.js                # ClinicCatalog + app shell + calculator implementations
+├── js/app.js                # ClinicCatalog + app shell
+├── js/calculators.js        # 四支計算機實作 + registrations
 ├── procedures/
 │   ├── index.json           # 分類 + canonical detail 的策展投影
 │   ├── snore.json           # 單篇 canonical detail（每篇一檔）
@@ -173,7 +174,6 @@ node scripts/image-inventory.js --write docs/runtime-inventory.json
   "title": "扁桃腺切除術",
   "type": "surgery",
   "subtitle": "睡眠呼吸中止 · 4 步驟",
-  "region": "頭頸",
   "category": "ent",
   "categories": ["ent"],
   "thumbnail": "images/tonsillectomy/thumb.webp",
@@ -194,9 +194,9 @@ node scripts/image-inventory.js --write docs/runtime-inventory.json
 }
 ```
 
-每個步驟四個欄位：`image`、`title`、`description`、`alt`（為無障礙與圖片載入失敗時的替代說明，必填）。
+每個步驟四個欄位：`image`、`title`、`description`、`alt`（為無障礙與圖片載入失敗時的替代說明，選填；與 `description` 相同時可省略）。
 
-`procedures/{id}.json` 是 canonical source；`subtitle`、`region`、分類與 thumbnail 不再只寫在 index。`slides` 不寫入 detail，由 integrity projection 依 `steps.length` 產生。每個 step 的 `alt` 對新資料必填；既有 legacy 空白 alt 會由 gate 列 warning。
+`procedures/{id}.json` 是 canonical source；`subtitle`、分類與 thumbnail 不再只寫在 index。`slides` 不寫入 detail，由 integrity projection 依 `steps.length` 產生。正式欄位規格見 `procedures/schema.json`（ADR-0003）。
 
 **3. 更新索引投影**
 
@@ -210,7 +210,6 @@ node scripts/image-inventory.js --write docs/runtime-inventory.json
   "category": "ent",
   "categories": ["ent"],
   "subtitle": "睡眠呼吸中止 · 4 步驟",
-  "region": "頭頸",
   "slides": 4,
   "thumbnail": "images/tonsillectomy/thumb.webp"
 }
@@ -224,10 +223,9 @@ node scripts/image-inventory.js --write docs/runtime-inventory.json
 | `title` | ✅ | 卡片標題 |
 | `category` | ✅ | 對應 `categories` 其中之一：`surgery` / `ent` / `weight` / `functional` / `supplements` / `internal-medicine` / `calc` |
 | `categories` | ✅ | 多分類陣列；`category` 必須等於第一個分類 |
-| `type` | ✅ | `explain`（解釋病情）或 `surgery`（手術流程）——決定首頁篩選籤 |
+| `type` | ✅ | `explain`（解釋病情）、`surgery`（手術流程）或 `flowchart`（流程圖）——決定首頁篩選籤 |
 | `thumbnail` | ✅ | 首頁卡片縮圖路徑，必須位於 `images/{id}/` |
 | `subtitle` | ✅ | 卡片副標；可為空字串 |
-| `region` | ✅ | 身體區域；可為空字串 |
 | `slides` | ✅ | index projection，必須等於 canonical detail 的 `steps.length` |
 
 新增分類就編 `categories` 陣列。若一張圖卡需要同時屬於多個分類，請把 `categories` 寫成陣列，並保留 `category` 為主分類。
@@ -251,25 +249,24 @@ npm run admin
 
 ## 新增計算機
 
-計算機是**寫在 `js/app.js` 裡的靜態邏輯**（不走 JSON），因為每個計算機的輸入欄位、規則邏輯、判讀文字都不同，沒必要為了 DRY 硬做資料驅動。
+計算機是**寫在 `js/calculators.js` 裡的靜態邏輯**（不走 JSON），因為每個計算機的輸入欄位、規則邏輯、判讀文字都不同，沒必要為了 DRY 硬做資料驅動。
 
-現有五支：`bmi`、`lipid`、`peds-dose`、`mounjaro`、`wegovy`，分別對應 `renderBmi()`、`renderLipid()`、`renderPeds()`、`renderMounjaro()`、`renderWegovy()`。
+現有四支：`bmi`、`lipid`、`mounjaro`、`wegovy`，分別對應 `renderBmi()`、`renderLipid()`、`renderMounjaro()`、`renderWegovy()`。
 
 首頁由 `ClinicCatalog` 將 `procedures/index.json` metadata 與 calculator registrations 投影成同一種 semantic card；Catalog 不載入 procedure detail、不操作 DOM，也不執行計算。新增計算機只需要新增一筆 registration，首頁卡片、計算機 tab、合法 route 與 renderer dispatch 都由同一筆資料提供。
 
-Mounjaro 與 Wegovy 計算機會常駐顯示適用市場／筆型、第一方來源、最後查核日、醫療人員限定與安全基線。標示規格與喀噠／殘液估算分層；分抽、喀噠換算與殘液使用不代表官方給藥方式，也不是病人自我操作指引。Mounjaro 規格採加拿大 Eli Lilly KwikPen 仿單；Wegovy 規格採英國 eMC FlexTouch 仿單，使用時仍須以手上筆標示與當地仿單為準。
+Mounjaro 與 Wegovy 計算機會常駐顯示適用市場／筆型、第一方來源、最後查核日、醫療人員限定與安全基線。標示規格與喀噠／殘液估算分層；分抽、喀噠換算與殘液使用不代表官方給藥方式，也不是病人自我操作指引。Mounjaro 規格採台灣禮來 KwikPen 仿單（2025-06-30）；Wegovy 規格採台灣諾和諾德 FlexTouch 仿單（2025-03-04），使用時仍須以手上筆標示為準。
 
 ### 步驟
 
 **1. 登記 metadata（含分頁標籤）**
 
-`js/app.js` 找到 `CALCULATOR_REGISTRATIONS` 陣列（約第 76 行），加一筆；`tabLabel` 是分頁列的短標題，`render` 必須直接指向該計算機的靜態 renderer：
+`js/calculators.js` 的 `create()` 尾端找到 `registrations` 陣列，加一筆；`tabLabel` 是分頁列的短標題，`render` 必須直接指向該計算機的靜態 renderer：
 
 ```js
-var CALCULATOR_REGISTRATIONS = [
+var registrations = [
   {id:'bmi',       tabLabel:'BMI',     title:'BMI 與肥胖分級',  subtitle:'...', render: renderBmi},
   {id:'lipid',     tabLabel:'血脂給付', title:'血脂異常用藥健保給付', subtitle:'...', render: renderLipid},
-  {id:'peds-dose', tabLabel:'小兒劑量', title:'小兒劑量（mg/kg）', subtitle:'...', render: renderPeds},
   // 新增：
   {id:'egfr',      tabLabel:'eGFR',    title:'eGFR 腎功能估算', subtitle:'CKD-EPI 2021', render: renderEgfr}
 ];
@@ -279,7 +276,7 @@ var CALCULATOR_REGISTRATIONS = [
 
 **2. 寫 render 函式**
 
-仿照 `renderBmi()`（約 995 行）。可用的共用 helpers：
+仿照 `renderBmi()`（`js/calculators.js`）。可用的共用 helpers：
 
 - `field(label, hint, value, unit, onInput, opts)` —— 數字輸入欄位
 - `check(label, checked, onChange)` —— checkbox

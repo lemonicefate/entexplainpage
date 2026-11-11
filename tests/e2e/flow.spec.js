@@ -56,7 +56,13 @@ test.describe('Calculator', () => {
     await expect(page.locator('#calc-view')).toBeVisible();
     await expect(page.locator('.calc-card h3')).toContainText('BMI');
 
-    // Result card renders
+    // No verdict before input: the result area waits for real numbers
+    await expect(page.locator('#calc-result')).toContainText('等待輸入');
+    await expect(page.locator('.result-value')).toHaveCount(0);
+
+    // Result card renders once height and weight are entered
+    await page.locator('.calc-card .field-input').nth(0).fill('170');
+    await page.locator('.calc-card .field-input').nth(1).fill('75');
     await expect(page.locator('.result-value').first()).toBeVisible();
 
     // Switch to lipid tab

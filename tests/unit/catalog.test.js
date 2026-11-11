@@ -3,6 +3,7 @@ import vm from 'vm';
 import fs from 'fs';
 import path from 'path';
 
+const calculatorsSrc = fs.readFileSync(path.resolve(__dirname, '../../js/calculators.js'), 'utf-8');
 const appSrc = fs.readFileSync(path.resolve(__dirname, '../../js/app.js'), 'utf-8');
 
 function loadCatalog() {
@@ -22,6 +23,7 @@ function loadCatalog() {
     setTimeout,
     clearTimeout
   };
+  vm.runInNewContext(calculatorsSrc, context);
   vm.runInNewContext(appSrc, context);
   return window.ClinicCatalog;
 }

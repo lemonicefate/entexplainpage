@@ -13,7 +13,7 @@
 |------|------|
 | 解釋病情（explain） | 多頁圖卡，解剖圖、分級、治療選擇 |
 | 手術流程（surgery） | 步驟式圖卡，從術前到術後 |
-| 醫學計算機（calc） | BMI、血脂異常用藥健保給付（Statin / Fibrate）、小兒劑量、Mounjaro / Wegovy 針劑換算 |
+| 醫學計算機（calc） | BMI、血脂異常用藥健保給付（Statin / Fibrate）、Mounjaro / Wegovy 針劑換算 |
 
 **設計取向：** Warm Teal × Peach。專業、眼睛舒適、適合長時間閱讀。
 
@@ -29,7 +29,7 @@ CSS custom property 定義於 `:root`，禁止 hardcode hex（測試會擋）。
 | `--fg` | `#0f2a42` | 主要文字、深色背景（播放器） |
 | `--teal` | `#0e7c7b` | 品牌主色、按鈕、結果卡標頭 |
 | `--teal-deep` | `#0a6968` | 漸層末端、hover |
-| `--teal-2` | `#4a9e94` | section label、次要 teal |
+| `--teal-2` | `#2f7a6e` | section label、次要 teal（2026-10-23 加深：對白 5.08:1、對 `--tint-1` 4.68:1，達 §9 AA；原 `#4a9e94` 僅約 3.2:1） |
 | `--bg` | `#ffffff` | 頁面背景 |
 | `--muted` | `#56706c` | 次要文字 |
 
@@ -38,7 +38,7 @@ CSS custom property 定義於 `:root`，禁止 hardcode hex（測試會擋）。
 |-------|----|------|
 | `--ink` | `#1a3942` | 卡片標題、品牌文字 |
 | `--ink-2` | `#3a5064` | 表單 label、內文 |
-| `--ink-3` | `#8aa3a0` | placeholder、計數、kbd |
+| `--ink-3` | `#54736e` | placeholder、計數、kbd（2026-10-23 加深：對白 5.18:1、對 `--tint-1` 4.76:1，達 §9 AA；原 `#8aa3a0` 僅約 2.7:1） |
 
 ### Surface / 線條
 | Token | 值 | 用途 |
@@ -230,7 +230,7 @@ CSS custom property 定義於 `:root`，禁止 hardcode hex（測試會擋）。
 ┌──────────────────────────────────────────┐
 │ ← 返回   醫學計算機                       │
 │                                          │
-│ [BMI] [血脂給付] [小兒劑量] [猛健樂]      │  ← tab in pill
+│ [BMI] [血脂給付] [猛健樂]                 │  ← tab in pill
 │                                          │
 │ ┌──────────────────┐  ┌────────────┐     │
 │ │ INPUT CARD       │  │ RESULT     │     │

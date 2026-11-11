@@ -5,6 +5,7 @@ import path from 'path';
 
 const htmlContent = fs.readFileSync(path.resolve(__dirname, '../../index.html'), 'utf-8');
 const sessionSrc = fs.readFileSync(path.resolve(__dirname, '../../js/reader-session.js'), 'utf-8');
+const calculatorsSrc = fs.readFileSync(path.resolve(__dirname, '../../js/calculators.js'), 'utf-8');
 const appSrc = fs.readFileSync(path.resolve(__dirname, '../../js/app.js'), 'utf-8');
 
 function deferred() {
@@ -34,7 +35,7 @@ function createApp(hash, procedureRequests) {
     ]
   };
   const dom = new JSDOM(
-    htmlContent.replace('</body>', `<script>${sessionSrc}</script><script>${appSrc}</script></body>`),
+    htmlContent.replace('</body>', `<script>${sessionSrc}</script><script>${calculatorsSrc}</script><script>${appSrc}</script></body>`),
     {
       url: 'http://localhost/' + (hash || ''),
       runScripts: 'dangerously',
